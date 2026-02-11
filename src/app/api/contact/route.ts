@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         <hr />
         <p style="color: #999; font-size: 12px;">
           이 메일은 자동으로 발송된 메일입니다. 추가 문의사항이 있으시면 이 메일에 회신하지 마시고
-          <a href="https://rottery.kr/contact">로또리 문의 페이지</a>를 이용해주세요.
+          <a href="https://lottery.io.kr/contact">로또리 문의 페이지</a>를 이용해주세요.
         </p>
       `,
     });
