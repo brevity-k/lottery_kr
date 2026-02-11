@@ -17,6 +17,7 @@
 npm run dev           # Start dev server (localhost:3000)
 npm run build         # Build for production (runs update-data first via prebuild)
 npm run update-data   # Fetch latest lottery data from superkts.com
+npm run generate-blog # Generate a blog post via Claude Haiku API (needs ANTHROPIC_API_KEY)
 npm run lint          # Run ESLint
 ```
 
@@ -38,10 +39,11 @@ scripts/update-data.ts  -->  src/data/lotto.json  -->  Build-time reads via fs.r
 
 ### Data Flow
 
-1. `scripts/update-data.ts` scrapes superkts.com meta descriptions in batches of 10
-2. Saves to `src/data/lotto.json` (currently ~1,210 rounds, ~241KB)
+1. `scripts/update-data.ts` scrapes superkts.com meta descriptions + HTML body in batches of 10
+2. Saves to `src/data/lotto.json` (currently ~1,210 rounds, ~252KB, includes prize amounts)
 3. `src/lib/api/dhlottery.ts` reads JSON file synchronously at build time
-4. Pages and components consume data through exported functions
+4. `src/lib/blog.ts` reads blog post JSON files from `content/blog/` at build time
+5. Pages and components consume data through exported functions
 
 ---
 
@@ -59,20 +61,29 @@ rottery_kr/
 │   ├── robots.txt                     # Search engine crawl rules
 │   └── ads.txt                        # AdSense publisher verification
 ├── scripts/
-│   └── update-data.ts                 # Fetches lottery data from superkts.com
+│   ├── update-data.ts                 # Fetches lottery data from superkts.com
+│   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API
+│   └── blog-topics.json               # 8 topic templates for blog rotation
+├── content/
+│   └── blog/                          # Blog post JSON files (auto-generated + seed)
+├── .github/
+│   └── workflows/
+│       └── generate-blog-post.yml     # Weekly cron (Sunday 10:00 KST)
 └── src/
     ├── data/
     │   └── lotto.json                 # Pre-fetched lottery data (all rounds)
     ├── types/
-    │   └── lottery.ts                 # TypeScript type definitions
+    │   └── lottery.ts                 # TypeScript type definitions (LottoResult, BlogPost, etc.)
     ├── lib/
     │   ├── api/
-    │   │   └── dhlottery.ts           # Data loading (reads from local JSON)
+    │   │   └── dhlottery.ts           # Lottery data loading (reads from local JSON)
+    │   ├── blog.ts                    # Blog data loading (reads from content/blog/*.json)
     │   ├── lottery/
     │   │   ├── recommend.ts           # 6 recommendation algorithms
     │   │   └── stats.ts               # Statistical calculations
     │   └── utils/
-    │       └── format.ts              # Korean formatting utilities
+    │       ├── format.ts              # Korean formatting utilities
+    │       └── markdown.ts            # Zero-dependency markdown-to-HTML converter
     ├── components/
     │   ├── layout/
     │   │   ├── Header.tsx             # Responsive header with mobile menu
@@ -100,10 +111,13 @@ rottery_kr/
         │   │   ├── page.tsx           # Latest 20 results
         │   │   └── [round]/page.tsx   # Round detail (statically generated)
         │   └── stats/page.tsx         # Statistics & frequency analysis
+        ├── blog/
+        │   ├── page.tsx               # Blog list page
+        │   └── [slug]/page.tsx        # Blog detail (statically generated)
         ├── about/page.tsx             # About page
         ├── privacy/page.tsx           # Privacy policy
         ├── terms/page.tsx             # Terms of service
-        └── contact/page.tsx           # Contact page
+        └── contact/page.tsx           # Contact page (rottery0.kr@gmail.com)
 ```
 
 ---
@@ -242,92 +256,84 @@ Additional requirements:
 
 ---
 
-## Auto Blog Post Generation
-
-### Summary
-
-Yes, it is possible to automatically generate blog posts. The recommended approach uses **GitHub Actions + Claude Haiku 4.5 API** to generate weekly lottery analysis posts.
+## Auto Blog Post Generation (IMPLEMENTED)
 
 ### Architecture
 
 ```
-GitHub Actions (cron) --> scripts/generate-blog-post.ts --> Claude API --> content/blog/*.json --> git commit --> Vercel rebuild
+GitHub Actions (cron: Sunday 10:00 KST)
+  --> scripts/update-data.ts (refresh lottery data)
+  --> scripts/generate-blog-post.ts (Claude Haiku 4.5 API)
+  --> content/blog/{slug}.json
+  --> git commit & push
+  --> Vercel rebuild (static pages including new blog post)
 ```
 
-### Recommended Frequency
+### Blog Data Flow
 
-**Weekly (not daily)** for these reasons:
-- Avoids Google "scaled content abuse" penalties
-- Each post has more data to analyze (full week of draws)
-- Better SEO: fewer, higher-quality posts rank better
-- Lower cost and maintenance
+1. Blog posts are stored as JSON files in `content/blog/`
+2. `src/lib/blog.ts` reads all JSON files at build time (mirrors `dhlottery.ts` pattern with fs.readFileSync + cache)
+3. `src/lib/utils/markdown.ts` converts markdown content to HTML (zero dependencies)
+4. `/blog` list page and `/blog/[slug]` detail pages are statically generated via `generateStaticParams()`
+5. Blog URLs are included in `sitemap.ts`, nav header, footer, and homepage
 
-### Schedule
+### Blog Post Format (JSON)
 
-| Day | Content Type | Example |
-|-----|-------------|---------|
-| Sunday | Weekly draw analysis | "제1210회 로또 당첨번호 분석 및 통계" |
-| Wednesday (optional) | Rotating topic | Strategy guides, statistical deep-dives, educational |
+```json
+{
+  "slug": "1210-draw-analysis",
+  "title": "제1210회 로또 당첨번호 분석",
+  "description": "Short description for SEO",
+  "content": "Markdown content here...",
+  "date": "2026-02-09",
+  "category": "당첨번호 분석",
+  "tags": ["1210회", "당첨번호", "통계분석"]
+}
+```
 
-### Cost Estimate (Annual)
+### Topic Rotation
 
-| Frequency | Model | Cost/Year |
-|-----------|-------|-----------|
-| Weekly (52 posts) | Claude Haiku 4.5 | ~$0.88 |
-| Weekly (52 posts) | GPT-4o-mini | ~$0.11 |
-| Daily (365 posts) | Claude Haiku 4.5 | ~$6.20 |
+8 topic templates in `scripts/blog-topics.json`:
 
-### Implementation Steps
+| Topic ID | Description |
+|----------|-------------|
+| `draw-analysis` | Latest round draw analysis (priority if not yet written) |
+| `weekly-trend` | Weekly trend analysis with hot/cold numbers |
+| `number-deep-dive` | Deep analysis of a specific number |
+| `section-analysis` | Section-by-section frequency analysis |
+| `odd-even-analysis` | Odd/even ratio pattern analysis |
+| `consecutive-numbers` | Consecutive number probability analysis |
+| `first-timer-guide` | Beginner's guide to lottery |
+| `historical-jackpot` | Historical jackpot records |
 
-1. **Create blog infrastructure:**
-   - `content/blog/` directory for post files (JSON format)
-   - `src/lib/blog.ts` - file reader (mirrors `dhlottery.ts` pattern)
-   - `/blog` and `/blog/[slug]` pages with `generateStaticParams()`
-   - Update `sitemap.ts` to include blog URLs
+The script auto-selects: draw analysis for new rounds first, then rotates other topics by week number.
 
-2. **Create generation script:**
-   - `scripts/generate-blog-post.ts` - reads `lotto.json`, calls Claude API, writes JSON
-   - `scripts/blog-topics.json` - topic rotation config
-   - Install `@anthropic-ai/sdk` as dev dependency
+### Schedule & Cost
 
-3. **Set up GitHub Actions:**
-   ```yaml
-   # .github/workflows/generate-blog-post.yml
-   name: Generate Weekly Blog Post
-   on:
-     schedule:
-       - cron: '0 1 * * 0'  # Sunday 10:00 KST
-     workflow_dispatch:
-   permissions:
-     contents: write
-   jobs:
-     generate-post:
-       runs-on: ubuntu-latest
-       steps:
-         - uses: actions/checkout@v4
-         - uses: actions/setup-node@v4
-           with: { node-version: '20', cache: 'npm' }
-         - run: npm ci
-         - run: npm run update-data
-         - run: npx tsx scripts/generate-blog-post.ts
-           env:
-             ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-         - run: |
-             git config user.name "github-actions[bot]"
-             git config user.email "github-actions[bot]@users.noreply.github.com"
-             git add content/blog/ src/data/
-             git diff --staged --quiet || git commit -m "blog: auto-generate weekly post" && git push
-   ```
+- **Frequency:** Weekly (Sunday 10:00 KST via GitHub Actions cron)
+- **Model:** Claude Haiku 4.5 (`claude-haiku-4-5-20251001`)
+- **Cost:** ~$0.88/year for 52 weekly posts
+- **Manual trigger:** `workflow_dispatch` enabled in GitHub Actions
 
-4. **Required secrets:**
-   - `ANTHROPIC_API_KEY` - Get from console.anthropic.com
+### Required Setup
 
-### SEO Best Practices for Auto-Generated Content
+- [ ] Add `ANTHROPIC_API_KEY` as GitHub Actions secret (Settings > Secrets > Actions)
+- Get key from [console.anthropic.com](https://console.anthropic.com)
 
-- Ground every post in real data from `lotto.json`
-- Vary post structure (use 5-8 different templates)
-- Target distinct long-tail keywords per post
-- Include disclaimer: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
+### Seed Posts (3 included)
+
+| Slug | Category |
+|------|----------|
+| `1210-draw-analysis` | 당첨번호 분석 |
+| `lotto-number-selection-strategies` | 전략 가이드 |
+| `understanding-lotto-probability` | 교육 |
+
+### SEO Best Practices
+
+- Every post grounded in real data from `lotto.json`
+- 8 different topic templates for variety
+- Each post targets distinct long-tail keywords
+- AI disclaimer included: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
 - Monitor Google Search Console and Naver Search Advisor
 
 ---
@@ -338,12 +344,22 @@ GitHub Actions (cron) --> scripts/generate-blog-post.ts --> Claude API --> conte
 
 The official lottery API (`dhlottery.co.kr/common.do?method=getLottoNumber`) now returns an HTML page with RSA JavaScript challenge instead of JSON. This is bot protection added sometime in 2025-2026. We use superkts.com as an alternative data source, which scrapes the official data and exposes it via HTML meta tags.
 
+### Prize Amount Parsing
+
+The `update-data.ts` script extracts prize amounts from two sources:
+1. **Meta description** (Korean notation): `11억229만8407원씩` → parsed by `parseKoreanAmount()`
+2. **HTML body** (exact numbers): `1,102,298,407원` → parsed by `parseCommaNumber()` (preferred, more precise)
+
+The HTML body extraction only runs when `winners > 0` to avoid picking up 2nd prize amounts for rounds with no 1st place winners. `totSellamnt` (total selling amount) is not available from superkts.com and remains 0.
+
+Out of 1,210 rounds: 1,196 have prize data, 14 have `firstWinamnt: 0` (no 1st prize winners — rounds 1, 4, 5, 7, 8, 9, 13, 18, 24, 41, 71, 289, 295, 463).
+
 ### Git Push Authentication
 
-If pushing to GitHub fails with 403, it may be because macOS Keychain caches a different GitHub account's credentials. Workaround:
+If pushing to GitHub fails with 403, it may be because macOS Keychain caches a different GitHub account's credentials (`psychemistz`). Workaround:
 
 ```bash
-git -c http.extraHeader="Authorization: Basic $(echo -n 'username:token' | base64)" push origin main
+git -c http.extraHeader="Authorization: Basic $(echo -n 'brevity-k:YOUR_GITHUB_PAT' | base64)" push origin main
 ```
 
 ### Performance
@@ -362,7 +378,7 @@ The site was originally making 50-100 API calls per page load to dhlottery.co.kr
 |-------|--------|-------------|
 | Phase 1 | COMPLETE | Lotto 6/45 - core site, recommendations, stats, results |
 | Phase 2 | Not started | Add pension lottery (연금복권 720+), more lottery types |
-| Phase 3 | Not started | Blog system, community features, push notifications |
+| Phase 3 | IN PROGRESS | Blog system (DONE), community features, push notifications |
 | Phase 4 | Not started | Mobile app (PWA), premium features |
 
 ---
@@ -380,6 +396,7 @@ The site was originally making 50-100 API calls per page load to dhlottery.co.kr
 - `typescript` ^5
 - `tailwindcss` ^4
 - `@tailwindcss/postcss` ^4
+- `@anthropic-ai/sdk` ^0.74.0
 - `tsx` ^4.21.0
 - `eslint` ^9
 - `eslint-config-next` 16.2.0-canary.35
