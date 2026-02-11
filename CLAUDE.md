@@ -11,6 +11,7 @@
 **Email:** Resend (contact form auto-reply)
 **Language:** Korean only
 **Revenue Model:** Google AdSense
+**Analytics:** Google Analytics 4 (G-TCRP4JXV63)
 **Contact:** brevity1s.wos@gmail.com
 
 ---
@@ -71,7 +72,7 @@ rottery_kr/
 │   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API
 │   └── blog-topics.json               # 8 topic templates for blog rotation
 ├── content/
-│   └── blog/                          # Blog post JSON files (8 posts: 3 seed + 5 math)
+│   └── blog/                          # Blog post JSON files (auto-generated weekly)
 ├── .github/
 │   └── workflows/
 │       ├── update-data.yml            # Weekly data update (Sunday 00:00 KST)
@@ -87,14 +88,15 @@ rottery_kr/
     │   ├── blog.ts                    # Blog data loading (reads from content/blog/*.json)
     │   ├── lottery/
     │   │   ├── recommend.ts           # 6 recommendation algorithms
-    │   │   └── stats.ts               # Statistical calculations
+    │   │   ├── stats.ts               # Statistical calculations
+    │   │   └── tax.ts                 # Lottery tax calculation (Korean tax rules)
     │   └── utils/
     │       ├── format.ts              # Korean formatting utilities
     │       └── markdown.ts            # Zero-dependency markdown-to-HTML converter
     ├── components/
     │   ├── layout/
-    │   │   ├── Header.tsx             # Responsive header with mobile menu (includes 블로그)
-    │   │   └── Footer.tsx             # 3-column footer with links (includes 블로그)
+    │   │   ├── Header.tsx             # Responsive header with mobile menu (includes 세금 계산기)
+    │   │   └── Footer.tsx             # 3-column footer with links (includes 세금 계산기)
     │   ├── lottery/
     │   │   ├── LottoBall.tsx          # Colored ball (official 5-color scheme)
     │   │   ├── LottoResultCard.tsx    # Result display card (prize per winner + total)
@@ -104,7 +106,7 @@ rottery_kr/
     │   └── ads/
     │       └── AdBanner.tsx           # AdSense wrapper (placeholder in dev)
     └── app/
-        ├── layout.tsx                 # Root layout (Korean, Pretendard font)
+        ├── layout.tsx                 # Root layout (Korean, Pretendard font, GA4)
         ├── page.tsx                   # Homepage (includes 최근 블로그 글 section)
         ├── not-found.tsx              # 404 page
         ├── sitemap.ts                 # Dynamic sitemap (lotto rounds + blog posts)
@@ -119,7 +121,10 @@ rottery_kr/
         │   ├── results/
         │   │   ├── page.tsx           # Latest 20 results
         │   │   └── [round]/page.tsx   # Round detail (statically generated)
-        │   └── stats/page.tsx         # Statistics & frequency analysis
+        │   ├── stats/page.tsx         # Statistics & frequency analysis
+        │   └── tax/
+        │       ├── page.tsx           # Tax calculator (server, metadata)
+        │       └── TaxCalculatorClient.tsx # Tax calculator UI (client)
         ├── blog/
         │   ├── page.tsx               # Blog list page
         │   └── [slug]/page.tsx        # Blog detail (async params, statically generated)
@@ -148,7 +153,38 @@ Six methods implemented in `src/lib/lottery/recommend.ts`:
 
 ---
 
-## Auto Blog Post Generation (IMPLEMENTED)
+## Lottery Tax Calculator (IMPLEMENTED)
+
+Interactive tax calculator at `/lotto/tax` following Korean tax rules (effective 2023-01-01).
+
+### Tax Brackets
+
+| Prize Amount | Income Tax | Local Tax | Total |
+|---|---|---|---|
+| <= 200만원 | 0% | 0% | 0% (비과세) |
+| 200만원 초과 ~ 3억원 | 20% | 2% | 22% |
+| 3억원 초과 portion | 30% | 3% | 33% |
+
+- Necessary expense deduction: 1,000원 (ticket cost) before tax calculation
+- Progressive brackets: first 3억 at 22%, excess at 33%
+
+### Components
+
+- **`src/lib/lottery/tax.ts`** — Pure tax calculation functions (`calculateLotteryTax()`)
+- **`src/app/lotto/tax/page.tsx`** — Server component (metadata + SEO)
+- **`src/app/lotto/tax/TaxCalculatorClient.tsx`** — Client component (input, presets, breakdown table, tax rules info)
+
+### Features
+
+- Input field with comma-formatted numbers
+- 6 preset buttons (5천원 ~ 20억원)
+- Detailed breakdown: 당첨금, 필요경비, 과세대상, 소득세, 지방소득세, 세금합계, 실수령액, 실효세율
+- Tax rules reference section with 2023 changes and prize claim info
+- Linked from header nav, footer, and lotto landing page (4th feature card)
+
+---
+
+## Auto Blog Post Generation (IMPLEMENTED & VERIFIED)
 
 ### Architecture
 
@@ -202,7 +238,7 @@ GitHub Actions (cron: Sunday 10:00 KST)
 
 The script auto-selects: draw analysis for new rounds first, then rotates other topics by week number.
 
-### Current Blog Posts (8)
+### Current Blog Posts (9+)
 
 | Slug | Category | Description |
 |------|----------|-------------|
@@ -214,6 +250,9 @@ The script auto-selects: draw analysis for new rounds first, then rotates other 
 | `birthday-paradox-lottery` | 수학과 확률 | Birthday paradox applied to lottery |
 | `law-of-large-numbers` | 수학과 확률 | Convergence proven with 1,200 draws |
 | `monte-carlo-simulation-lottery` | 수학과 확률 | Simulating 1M lottery purchases |
+| `historical-jackpot-2026-02-11` | 역대 잭팟 | Historical jackpot records (auto-generated) |
+
+New posts are added weekly by GitHub Actions (see workflow section).
 
 ### Schedule & Cost
 
@@ -314,8 +353,16 @@ User fills form → POST /api/contact → Resend API
 - [x] Configure DNS for `lottery.io.kr` → Vercel
 - [x] SSL certificate (automatic)
 - [ ] Add `RESEND_API_KEY` to Vercel environment variables
-- [ ] Add `ANTHROPIC_API_KEY` to GitHub Actions secrets
+- [x] Add `ANTHROPIC_API_KEY` to GitHub Actions secrets
 - [ ] (Optional) Add `lottery.io.kr` domain to Resend for branded emails
+
+---
+
+## Google Analytics 4 (IMPLEMENTED)
+
+- **Measurement ID:** `G-TCRP4JXV63`
+- **Integration:** `next/script` with `afterInteractive` strategy in `layout.tsx`
+- **Status:** Live and tracking on lottery.io.kr
 
 ---
 
@@ -411,7 +458,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 |-------|--------|-------------|
 | Phase 1 | COMPLETE | Lotto 6/45 - core site, recommendations, stats, results |
 | Phase 2 | Not started | Add pension lottery (연금복권 720+), more lottery types |
-| Phase 3 | IN PROGRESS | Blog system (DONE), contact form (DONE), community features, push notifications |
+| Phase 3 | IN PROGRESS | Blog system (DONE), contact form (DONE), tax calculator (DONE), GA4 (DONE), community features, push notifications |
 | Phase 4 | Not started | Mobile app (PWA), premium features |
 
 ---
