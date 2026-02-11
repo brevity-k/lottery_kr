@@ -160,7 +160,7 @@ Dedicated KakaoTalk share button on `/lotto/recommend` using the Kakao JavaScrip
 ### Integration
 
 - **Kakao JS SDK:** v2.7.4 loaded via `next/script` (`afterInteractive`) in `layout.tsx`
-- **App Key:** `ce9fb90b8a2019d4766eda5fe9a2b2d1`
+- **App Key:** `accfcea8c90806c685d4321fa93a4501`
 - **SDK initialization:** Lazy — `Kakao.init()` called on first share click if not yet initialized
 
 ### Share Message
