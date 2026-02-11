@@ -3,6 +3,22 @@
 import { RecommendedSet } from "@/types/lottery";
 import LottoBall from "./LottoBall";
 
+declare global {
+  interface Window {
+    Kakao?: {
+      init(appKey: string): void;
+      isInitialized(): boolean;
+      Share: {
+        sendDefault(settings: {
+          objectType: string;
+          text: string;
+          link: { mobileWebUrl: string; webUrl: string };
+        }): void;
+      };
+    };
+  }
+}
+
 interface RecommendResultProps {
   sets: RecommendedSet[];
 }
@@ -14,6 +30,28 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
       .join("\n");
     navigator.clipboard.writeText(text);
     alert("번호가 클립보드에 복사되었습니다!");
+  };
+
+  const handleKakaoShare = () => {
+    const Kakao = window.Kakao;
+    if (!Kakao) {
+      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    if (!Kakao.isInitialized()) {
+      Kakao.init("ce9fb90b8a2019d4766eda5fe9a2b2d1");
+    }
+    const text = sets
+      .map((s) => `${s.label}: ${s.numbers.join(", ")}`)
+      .join("\n");
+    Kakao.Share.sendDefault({
+      objectType: "text",
+      text: `🎯 로또리 번호 추천\n\n${text}`,
+      link: {
+        mobileWebUrl: "https://lottery.io.kr/lotto/recommend",
+        webUrl: "https://lottery.io.kr/lotto/recommend",
+      },
+    });
   };
 
   return (
@@ -42,6 +80,12 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
           📋 복사하기
         </button>
         <button
+          onClick={handleKakaoShare}
+          className="flex-1 bg-[#FEE500] text-[#191919] font-medium py-3 rounded-xl hover:brightness-95 transition-all text-sm"
+        >
+          💬 카카오톡 공유
+        </button>
+        <button
           onClick={() => {
             if (navigator.share) {
               navigator.share({
@@ -53,7 +97,7 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
               handleCopy();
             }
           }}
-          className="flex-1 bg-yellow-400 text-gray-900 font-medium py-3 rounded-xl hover:bg-yellow-500 transition-colors text-sm"
+          className="flex-1 bg-blue-500 text-white font-medium py-3 rounded-xl hover:bg-blue-600 transition-colors text-sm"
         >
           📱 공유하기
         </button>
