@@ -100,13 +100,13 @@ rottery_kr/
     │   ├── lottery/
     │   │   ├── LottoBall.tsx          # Colored ball (official 5-color scheme)
     │   │   ├── LottoResultCard.tsx    # Result display card (prize per winner + total)
-    │   │   └── RecommendResult.tsx    # Client component with copy/share
+    │   │   └── RecommendResult.tsx    # Client component with copy/KakaoTalk share/Web Share
     │   ├── charts/
     │   │   └── FrequencyChart.tsx     # Chart.js bar chart
     │   └── ads/
     │       └── AdBanner.tsx           # AdSense wrapper (placeholder in dev)
     └── app/
-        ├── layout.tsx                 # Root layout (Korean, Pretendard font, GA4)
+        ├── layout.tsx                 # Root layout (Korean, Pretendard font, GA4, Kakao SDK)
         ├── page.tsx                   # Homepage (includes 최근 블로그 글 section)
         ├── not-found.tsx              # 404 page
         ├── sitemap.ts                 # Dynamic sitemap (lotto rounds + blog posts)
@@ -150,6 +150,32 @@ Six methods implemented in `src/lib/lottery/recommend.ts`:
 | `cold` | 콜드넘버 기반 | Inverse recent frequency weighting |
 | `balanced` | 균형 추천 | 1 number per section (1-9, 10-18, 19-27, 28-36, 37-45) + odd/even balance |
 | `ai` | AI 종합 추천 | Composite: 20% all-time + 25% hot + 15% cold + 30% random + balance filter |
+
+---
+
+## KakaoTalk Share (IMPLEMENTED)
+
+Dedicated KakaoTalk share button on `/lotto/recommend` using the Kakao JavaScript SDK.
+
+### Integration
+
+- **Kakao JS SDK:** v2.7.4 loaded via `next/script` (`afterInteractive`) in `layout.tsx`
+- **App Key:** `ce9fb90b8a2019d4766eda5fe9a2b2d1`
+- **SDK initialization:** Lazy — `Kakao.init()` called on first share click if not yet initialized
+
+### Share Message
+
+Uses `Kakao.Share.sendDefault()` with `objectType: 'text'`:
+- Text: `🎯 로또리 번호 추천\n\nA세트: 1, 7, 12, 25, 33, 41\nB세트: ...`
+- Link: `https://lottery.io.kr/lotto/recommend`
+
+### Button Layout (RecommendResult.tsx)
+
+3-button layout: 📋 복사하기 (gray) | 💬 카카오톡 공유 (yellow `#FEE500`) | 📱 공유하기 (blue, Web Share API)
+
+### Prerequisites
+
+- Domain `lottery.io.kr` must be registered in Kakao Developers console (My Application > Platform > Web > Site Domain)
 
 ---
 
@@ -458,7 +484,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 |-------|--------|-------------|
 | Phase 1 | COMPLETE | Lotto 6/45 - core site, recommendations, stats, results |
 | Phase 2 | Not started | Add pension lottery (연금복권 720+), more lottery types |
-| Phase 3 | IN PROGRESS | Blog system (DONE), contact form (DONE), tax calculator (DONE), GA4 (DONE), community features, push notifications |
+| Phase 3 | IN PROGRESS | Blog system (DONE), contact form (DONE), tax calculator (DONE), GA4 (DONE), KakaoTalk share (DONE), community features, push notifications |
 | Phase 4 | Not started | Mobile app (PWA), premium features |
 
 ---
