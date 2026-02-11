@@ -39,7 +39,7 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
       return;
     }
     if (!Kakao.isInitialized()) {
-      Kakao.init("ce9fb90b8a2019d4766eda5fe9a2b2d1");
+      Kakao.init("accfcea8c90806c685d4321fa93a4501");
     }
     const text = sets
       .map((s) => `${s.label}: ${s.numbers.join(", ")}`)
