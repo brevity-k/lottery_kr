@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "로또 번호 추천 - AI 통계 기반 스마트 추천",
   description:
     "6가지 추천 알고리즘으로 로또 6/45 번호를 추천받으세요. 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형, AI 종합 추천을 제공합니다.",
+  alternates: { canonical: "/lotto/recommend" },
 };
 
 export default function RecommendPage() {

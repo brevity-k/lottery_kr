@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "로또 당첨번호 조회 - 전 회차 당첨번호",
   description:
     "로또 6/45 1회부터 최신 회차까지 전체 당첨번호를 확인하세요. 회차별 당첨번호, 당첨금, 당첨자 수를 제공합니다.",
+  alternates: { canonical: "/lotto/results" },
 };
 
 export default function ResultsPage() {

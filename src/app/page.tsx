@@ -44,8 +44,22 @@ export default function Home() {
   const stats = calculateStats(recentResults, 10);
   const recentPosts = getRecentBlogPosts(3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "로또리",
+    url: "https://lottery.io.kr",
+    description:
+      "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서.",
+    inLanguage: "ko",
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <section className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">

@@ -21,9 +21,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.description,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
+      url: `/blog/${slug}`,
+      siteName: "로또리",
+      locale: "ko_KR",
       type: "article",
       publishedTime: post.date,
     },
@@ -41,8 +47,33 @@ export default async function BlogPostPage({ params }: Props) {
     .filter((p) => p.slug !== post.slug)
     .slice(0, 3);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    datePublished: post.date,
+    author: {
+      "@type": "Organization",
+      name: "로또리",
+      url: "https://lottery.io.kr",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "로또리",
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `https://lottery.io.kr/blog/${slug}`,
+    },
+  };
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href="/blog"
         className="text-sm text-blue-600 hover:text-blue-700 mb-6 inline-block"

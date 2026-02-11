@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   title: "로또 6/45 - 당첨번호 조회 및 번호 추천",
   description:
     "로또 6/45 최신 당첨번호 확인, 통계 기반 번호 추천, 출현 빈도 분석까지 한 곳에서 확인하세요.",
+  alternates: { canonical: "/lotto" },
 };
 
 const features = [

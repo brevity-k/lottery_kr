@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   title: "로또 통계 분석 - 번호별 출현 빈도, 패턴 분석",
   description:
     "로또 6/45 역대 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버/콜드넘버를 확인하세요.",
+  alternates: { canonical: "/lotto/stats" },
 };
 
 export default function StatsPage() {

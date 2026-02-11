@@ -5,6 +5,7 @@ import Footer from "@/components/layout/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://lottery.io.kr"),
   title: {
     default: "로또리 - 한국 복권 번호 추천 | 로또 6/45 당첨번호 분석",
     template: "%s | 로또리",
@@ -21,9 +22,14 @@ export const metadata: Metadata = {
     "로또 통계",
     "당첨번호 조회",
   ],
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     title: "로또리 - 한국 복권 번호 추천",
     description: "통계 기반 스마트한 로또 번호 추천 서비스",
+    url: "/",
+    siteName: "로또리",
     locale: "ko_KR",
     type: "website",
   },

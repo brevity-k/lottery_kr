@@ -19,6 +19,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `제 ${round}회 로또 당첨번호`,
     description: `로또 6/45 제 ${round}회 당첨번호, 당첨금액, 당첨자 수를 확인하세요.`,
+    alternates: {
+      canonical: `/lotto/results/${round}`,
+    },
+    openGraph: {
+      title: `제 ${round}회 로또 당첨번호`,
+      description: `로또 6/45 제 ${round}회 당첨번호, 당첨금액, 당첨자 수를 확인하세요.`,
+      url: `/lotto/results/${round}`,
+      siteName: "로또리",
+      locale: "ko_KR",
+      type: "article",
+    },
   };
 }
 
