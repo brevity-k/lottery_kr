@@ -35,14 +35,22 @@ const OUTPUT_PATH = "./src/data/lotto.json";
 function parseKoreanAmount(text: string): number {
   let amount = 0;
   const eokMatch = text.match(/(\d+)억/);
-  const manMatch = text.match(/억\s*(\d+)만/);
+  const manMatch = text.match(/억(\d+)만/);
+  const wonMatch = text.match(/만(\d+)원/);
   const manOnlyMatch = !eokMatch ? text.match(/(\d+)만/) : null;
+  const wonOnlyMatch = !eokMatch && !manOnlyMatch ? text.match(/(\d+)원/) : null;
 
   if (eokMatch) amount += parseInt(eokMatch[1]) * 100000000;
   if (manMatch) amount += parseInt(manMatch[1]) * 10000;
   if (manOnlyMatch) amount += parseInt(manOnlyMatch[1]) * 10000;
+  if (wonMatch) amount += parseInt(wonMatch[1]);
+  if (wonOnlyMatch) amount += parseInt(wonOnlyMatch[1]);
 
   return amount;
+}
+
+function parseCommaNumber(text: string): number {
+  return parseInt(text.replace(/,/g, ""), 10) || 0;
 }
 
 async function fetchRound(round: number): Promise<LottoResult | null> {
@@ -79,9 +87,19 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
     const winnerMatch = desc.match(/1등\s*당첨자는\s*(\d+)명/);
     const winners = winnerMatch ? parseInt(winnerMatch[1]) : 0;
 
-    // Extract prize amount
-    const prizeMatch = desc.match(/(\d+억[\d만원씩]+|[\d만원씩]+)/);
-    const prize = prizeMatch ? parseKoreanAmount(prizeMatch[1]) : 0;
+    // Extract prize amount from meta description (format: "이며 11억229만8407원씩")
+    const prizeDescMatch = desc.match(/이며\s*(.+?)원씩/);
+    let prize = prizeDescMatch ? parseKoreanAmount(prizeDescMatch[1] + "원") : 0;
+
+    // Try to get exact prize from HTML body (format: "1,102,298,407원")
+    // Only if we know there are winners, to avoid picking up 2nd prize amounts
+    if (winners > 0) {
+      const exactPrizeMatches = html.match(/([\d,]{10,})원/g);
+      if (exactPrizeMatches) {
+        const exactPrize = parseCommaNumber(exactPrizeMatches[0].replace("원", ""));
+        if (exactPrize > 0) prize = exactPrize;
+      }
+    }
 
     return {
       drwNo: round,
@@ -124,14 +142,22 @@ async function fetchAllData(): Promise<void> {
   try {
     const existing = fs.readFileSync(OUTPUT_PATH, "utf-8");
     existingData = JSON.parse(existing) as LottoDataFile;
-    if (existingData.draws.length > 0 && existingData.latestRound >= latestRound) {
+
+    // Check if prize data is missing (all firstWinamnt = 0) -> force full re-fetch
+    const hasPrizeData = existingData.draws.some((d) => d.firstWinamnt > 0);
+    if (!hasPrizeData && existingData.draws.length > 0) {
+      console.log("⚠️ Prize amount data is missing. Re-fetching all rounds...");
+      existingData = null;
+      startRound = 1;
+    } else if (existingData.draws.length > 0 && existingData.latestRound >= latestRound) {
       console.log("✅ Data is already up to date!");
       return;
+    } else {
+      startRound = existingData.latestRound + 1;
+      console.log(
+        `📊 Existing data: ${existingData.draws.length} rounds (up to ${existingData.latestRound})`
+      );
     }
-    startRound = existingData.latestRound + 1;
-    console.log(
-      `📊 Existing data: ${existingData.draws.length} rounds (up to ${existingData.latestRound})`
-    );
   } catch {
     console.log(`📥 No existing data. Fetching all ${latestRound} rounds...`);
   }
