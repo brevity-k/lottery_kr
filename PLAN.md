@@ -54,7 +54,7 @@ GET https://www.dhlottery.co.kr/common.do?method=getLottoNumber&drwNo={회차번
 | **데이터 수집** | Vercel Cron Jobs + API Routes | 자동 데이터 수집 |
 | **분석** | Google Analytics 4 + Vercel Analytics | 트래픽/사용자 분석 |
 | **광고** | Google AdSense | 주 수익원 |
-| **도메인** | rottery.kr | 한국 도메인으로 네이버 SEO 유리 |
+| **도메인** | lottery.kr | 한국 도메인으로 네이버 SEO 유리 |
 
 ### 3.2 왜 Next.js + Vercel 인가?
 
@@ -452,7 +452,7 @@ Desktop: > 1024px  (3 columns + sidebar)
 ## 10. 프로젝트 디렉토리 구조
 
 ```
-rottery_kr/
+lottery_kr/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── layout.tsx                # 루트 레이아웃 (AdSense 스크립트)
@@ -544,7 +544,7 @@ rottery_kr/
 
 | 항목 | 초기 비용 | 월간 비용 |
 |------|----------|----------|
-| 도메인 (rottery.kr) | ~₩15,000/년 | - |
+| 도메인 (lottery.kr) | ~₩15,000/년 | - |
 | Vercel (무료 티어) | ₩0 | ₩0 |
 | Vercel Postgres (무료 티어) | ₩0 | ₩0 |
 | Google Analytics | ₩0 | ₩0 |
@@ -567,7 +567,7 @@ rottery_kr/
 
 ### Step 1: 프로젝트 초기화
 ```bash
-npx create-next-app@latest rottery-kr --typescript --tailwind --app --src-dir
+npx create-next-app@latest lottery-kr --typescript --tailwind --app --src-dir
 ```
 
 ### Step 2: 필수 패키지 설치

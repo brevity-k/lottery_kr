@@ -34,12 +34,12 @@ export default function ContactPage() {
             <div>
               <span className="text-sm text-gray-500">GitHub</span>
               <a
-                href="https://github.com/brevity-k/rottery_kr"
+                href="https://github.com/brevity-k/lottery_kr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block text-sm text-blue-600 hover:text-blue-700"
               >
-                github.com/brevity-k/rottery_kr
+                github.com/brevity-k/lottery_kr
               </a>
             </div>
           </div>

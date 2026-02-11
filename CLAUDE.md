@@ -1,9 +1,9 @@
-# CLAUDE.md - Rottery.kr Project Documentation
+# CLAUDE.md - Lottery.kr Project Documentation
 
 ## Project Overview
 
 **Site:** lottery.io.kr (Korean lottery number recommendation)
-**Repo:** github.com/brevity-k/rottery_kr
+**Repo:** github.com/brevity-k/lottery_kr
 **Stack:** Next.js 16 App Router + TypeScript + Tailwind CSS 4 + Chart.js
 **Hosting:** Vercel (free tier) — DEPLOYED & LIVE
 **Domain:** lottery.io.kr (registered at Gabia, DNS pointing to Vercel)
@@ -57,7 +57,7 @@ content/blog/*.json     -->  src/lib/blog.ts      -->  Build-time reads via fs.r
 ## Directory Structure
 
 ```
-rottery_kr/
+lottery_kr/
 ├── CLAUDE.md                          # This file
 ├── PLAN.md                            # Original project plan (14 sections)
 ├── package.json                       # Dependencies and scripts
@@ -346,7 +346,7 @@ User fills form → POST /api/contact → Resend API
 
 ### Current Setup
 
-- **Vercel:** Connected to `github.com/brevity-k/rottery_kr`, auto-deploys on push
+- **Vercel:** Connected to `github.com/brevity-k/lottery_kr`, auto-deploys on push
 - **Domain:** `lottery.io.kr` (Gabia → Vercel DNS)
 - **SSL:** Auto-provisioned by Vercel
 
@@ -443,12 +443,12 @@ In Next.js 16, dynamic route `params` is a `Promise` that must be `await`ed. Bot
 The remote URL includes the GitHub PAT for auth (avoids macOS Keychain conflict with `psychemistz` account):
 
 ```
-origin https://brevity-k:<PAT>@github.com/brevity-k/rottery_kr.git
+origin https://brevity-k:<PAT>@github.com/brevity-k/lottery_kr.git
 ```
 
 If the PAT expires, update with:
 ```bash
-git remote set-url origin https://brevity-k:<NEW_PAT>@github.com/brevity-k/rottery_kr.git
+git remote set-url origin https://brevity-k:<NEW_PAT>@github.com/brevity-k/lottery_kr.git
 ```
 
 ### Performance
