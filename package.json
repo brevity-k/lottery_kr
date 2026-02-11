@@ -1,12 +1,14 @@
 {
-  "name": "rottery_kr_temp",
+  "name": "rottery-kr",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "update-data": "tsx scripts/update-data.ts",
+    "prebuild": "tsx scripts/update-data.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
@@ -24,6 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.0-canary.35",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

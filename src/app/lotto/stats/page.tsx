@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchRecentResults } from "@/lib/api/dhlottery";
+import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
 import FrequencyChart from "@/components/charts/FrequencyChart";
@@ -11,9 +11,9 @@ export const metadata: Metadata = {
     "로또 6/45 역대 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버/콜드넘버를 확인하세요.",
 };
 
-export default async function StatsPage() {
-  const results = await fetchRecentResults(100);
-  const stats = calculateStats(results, 20);
+export default function StatsPage() {
+  const allResults = getAllResults();
+  const stats = calculateStats(allResults, 20);
 
   const totalNumbers = stats.oddEvenRatio.odd + stats.oddEvenRatio.even;
 
@@ -21,10 +21,9 @@ export default async function StatsPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 로또 통계 분석</h1>
       <p className="text-gray-600 mb-8">
-        최근 {stats.totalDraws}회 당첨번호 기반 통계 분석
+        전체 {stats.totalDraws}회 당첨번호 기반 통계 분석
       </p>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-xl border border-gray-200 p-4 text-center">
           <p className="text-2xl font-bold text-blue-600">{stats.totalDraws}</p>
@@ -50,21 +49,18 @@ export default async function StatsPage() {
         </div>
       </div>
 
-      {/* Frequency Chart */}
       <FrequencyChart
         frequencies={stats.frequencies}
-        title={`번호별 출현 빈도 (최근 ${stats.totalDraws}회)`}
+        title={`번호별 출현 빈도 (전체 ${stats.totalDraws}회)`}
       />
 
       <AdBanner slot="stats-mid" format="horizontal" className="my-8" />
 
-      {/* Recent Frequency Chart */}
       <FrequencyChart
         frequencies={stats.recentFrequencies}
         title="번호별 출현 빈도 (최근 20회)"
       />
 
-      {/* Hot & Cold Numbers */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
           <h3 className="font-bold text-gray-900 mb-2">🔥 핫넘버 (최근 자주 출현)</h3>
@@ -109,7 +105,6 @@ export default async function StatsPage() {
 
       <AdBanner slot="stats-bottom" format="horizontal" className="mt-8" />
 
-      {/* Explanation */}
       <div className="mt-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
         <h3 className="font-semibold text-gray-900 mb-2">통계 분석 안내</h3>
         <p className="text-xs text-gray-500 leading-relaxed">

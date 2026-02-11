@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchRecentResults } from "@/lib/api/dhlottery";
+import { getRecentResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import AdBanner from "@/components/ads/AdBanner";
 import RecommendClient from "./RecommendClient";
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
     "6가지 추천 알고리즘으로 로또 6/45 번호를 추천받으세요. 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형, AI 종합 추천을 제공합니다.",
 };
 
-export default async function RecommendPage() {
-  const results = await fetchRecentResults(100);
+export default function RecommendPage() {
+  const results = getRecentResults(100);
   const stats = calculateStats(results, 20);
 
   return (
@@ -27,7 +27,6 @@ export default async function RecommendPage() {
 
       <AdBanner slot="recommend-bottom" format="horizontal" className="mt-8" />
 
-      {/* Disclaimer */}
       <div className="mt-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
         <p className="text-xs text-gray-500 leading-relaxed">
           ※ 본 사이트의 번호 추천은 역대 당첨번호의 통계적 분석을 기반으로 한 참고

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchLatestLottoRound, fetchMultipleLottoResults } from "@/lib/api/dhlottery";
+import { getLatestRound, getMultipleResults } from "@/lib/api/dhlottery";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 
@@ -10,10 +10,12 @@ export const metadata: Metadata = {
     "로또 6/45 1회부터 최신 회차까지 전체 당첨번호를 확인하세요. 회차별 당첨번호, 당첨금, 당첨자 수를 제공합니다.",
 };
 
-export default async function ResultsPage() {
-  const latestRound = await fetchLatestLottoRound();
+export default function ResultsPage() {
+  const latestRound = getLatestRound();
   const startRound = Math.max(1, latestRound - 19);
-  const results = await fetchMultipleLottoResults(startRound, latestRound);
+  const results = getMultipleResults(startRound, latestRound).sort(
+    (a, b) => b.drwNo - a.drwNo
+  );
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchLottoResult, fetchLatestLottoRound } from "@/lib/api/dhlottery";
+import { getLottoResult, getLatestRound } from "@/lib/api/dhlottery";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 
@@ -34,9 +34,9 @@ const features = [
   },
 ];
 
-export default async function LottoPage() {
-  const latestRound = await fetchLatestLottoRound();
-  const latestResult = await fetchLottoResult(latestRound);
+export default function LottoPage() {
+  const latestRound = getLatestRound();
+  const latestResult = getLottoResult(latestRound);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -45,7 +45,6 @@ export default async function LottoPage() {
         1부터 45까지의 숫자 중 6개를 선택하는 대한민국 대표 복권
       </p>
 
-      {/* Latest Result */}
       {latestResult && (
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">최신 당첨번호</h2>
@@ -55,7 +54,6 @@ export default async function LottoPage() {
 
       <AdBanner slot="lotto-top" format="horizontal" className="mb-8" />
 
-      {/* Features Grid */}
       <section className="mb-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {features.map((f) => (
@@ -75,7 +73,6 @@ export default async function LottoPage() {
         </div>
       </section>
 
-      {/* Lotto Info */}
       <section className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
         <h2 className="text-xl font-bold text-gray-900 mb-4">로또 6/45 안내</h2>
         <div className="space-y-4 text-sm text-gray-700 leading-relaxed">

@@ -1,9 +1,9 @@
 import { MetadataRoute } from "next";
-import { fetchLatestLottoRound } from "@/lib/api/dhlottery";
+import { getLatestRound } from "@/lib/api/dhlottery";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://rottery.kr";
-  const latestRound = await fetchLatestLottoRound();
+  const latestRound = getLatestRound();
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
@@ -17,7 +17,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  // Generate pages for recent 100 rounds
   const roundPages: MetadataRoute.Sitemap = [];
   const startRound = Math.max(1, latestRound - 99);
   for (let i = latestRound; i >= startRound; i--) {

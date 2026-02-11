@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { fetchLottoResult } from "@/lib/api/dhlottery";
+import { getLottoResult, getAllResults } from "@/lib/api/dhlottery";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 
 interface Props {
   params: Promise<{ round: string }>;
+}
+
+export function generateStaticParams() {
+  const results = getAllResults();
+  return results.map((r) => ({ round: r.drwNo.toString() }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -25,7 +30,7 @@ export default async function RoundDetailPage({ params }: Props) {
     notFound();
   }
 
-  const result = await fetchLottoResult(roundNum);
+  const result = getLottoResult(roundNum);
 
   if (!result) {
     notFound();
@@ -50,7 +55,6 @@ export default async function RoundDetailPage({ params }: Props) {
 
       <AdBanner slot="round-detail" format="horizontal" className="mt-8" />
 
-      {/* Navigation */}
       <div className="flex justify-between mt-8">
         {roundNum > 1 && (
           <Link

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { fetchLatestLottoRound, fetchLottoResult, fetchRecentResults } from "@/lib/api/dhlottery";
+import { getLatestRound, getLottoResult, getRecentResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
@@ -36,10 +36,10 @@ const lotteryTypes = [
   },
 ];
 
-export default async function Home() {
-  const latestRound = await fetchLatestLottoRound();
-  const latestResult = await fetchLottoResult(latestRound);
-  const recentResults = await fetchRecentResults(50);
+export default function Home() {
+  const latestRound = getLatestRound();
+  const latestResult = getLottoResult(latestRound);
+  const recentResults = getRecentResults(50);
   const stats = calculateStats(recentResults, 10);
 
   return (
