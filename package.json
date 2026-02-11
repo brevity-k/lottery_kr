@@ -12,6 +12,7 @@
     "prebuild": "tsx scripts/update-data.ts"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
     "@vercel/analytics": "^1.6.1",
     "chart.js": "^4.5.1",
     "next": "^16.1.6",
