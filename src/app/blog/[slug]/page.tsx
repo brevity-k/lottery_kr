@@ -5,16 +5,17 @@ import { getAllBlogPosts, getBlogPost } from "@/lib/blog";
 import { markdownToHtml } from "@/lib/utils/markdown";
 import AdBanner from "@/components/ads/AdBanner";
 
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
 export function generateStaticParams() {
   return getAllBlogPosts().map((post) => ({ slug: post.slug }));
 }
 
-export function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Metadata {
-  const post = getBlogPost(params.slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const post = getBlogPost(slug);
   if (!post) return { title: "글을 찾을 수 없습니다" };
 
   return {
@@ -29,12 +30,9 @@ export function generateMetadata({
   };
 }
 
-export default function BlogPostPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
-  const post = getBlogPost(params.slug);
+export default async function BlogPostPage({ params }: Props) {
+  const { slug } = await params;
+  const post = getBlogPost(slug);
   if (!post) notFound();
 
   const contentHtml = markdownToHtml(post.content);
