@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Site:** rottery.kr (Korean lottery number recommendation)
+**Site:** lottery.io.kr (Korean lottery number recommendation)
 **Stack:** Next.js 16 App Router + TypeScript + Tailwind CSS 4 + Chart.js
 **Hosting:** Vercel (free tier)
 **Data Source:** superkts.com (pre-fetched to local JSON)
@@ -180,7 +180,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 
 1. **GitHub Repository:** Push code to GitHub (currently at `github.com/brevity-k/rotter_kr`)
 2. **Vercel Account:** Sign up at vercel.com and connect your GitHub repo
-3. **Domain:** Configure `rottery.kr` DNS to point to Vercel
+3. **Domain:** Configure `lottery.io.kr` DNS to point to Vercel
 
 ### Deploy Steps
 
@@ -244,7 +244,7 @@ Additional requirements:
 ### AdSense Integration Checklist
 
 - [ ] Sign up for Google AdSense
-- [ ] Submit site for review (rottery.kr)
+- [ ] Submit site for review (lottery.io.kr)
 - [ ] Wait for approval (typically 1-4 weeks)
 - [ ] Get Publisher ID (`ca-pub-XXXXXXXXXXXXXXXX`)
 - [ ] Update `public/ads.txt` with publisher ID
