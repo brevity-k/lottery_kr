@@ -43,16 +43,24 @@ export default function LottoResultCard({
       {showDetails && (
         <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-3 text-sm">
           <div>
-            <span className="text-gray-500">1등 당첨금</span>
-            <p className="font-semibold text-gray-900">{formatKRW(result.firstWinamnt)}</p>
+            <span className="text-gray-500">1등 당첨금 (1인)</span>
+            <p className="font-semibold text-gray-900">
+              {result.firstWinamnt > 0 ? formatKRW(result.firstWinamnt) : "해당 없음"}
+            </p>
           </div>
           <div>
             <span className="text-gray-500">1등 당첨자</span>
-            <p className="font-semibold text-gray-900">{result.firstPrzwnerCo}명</p>
+            <p className="font-semibold text-gray-900">
+              {result.firstPrzwnerCo > 0 ? `${result.firstPrzwnerCo}명` : "없음"}
+            </p>
           </div>
           <div className="col-span-2">
-            <span className="text-gray-500">총 판매금액</span>
-            <p className="font-semibold text-gray-900">{formatKRW(result.totSellamnt)}</p>
+            <span className="text-gray-500">총 1등 당첨금</span>
+            <p className="font-semibold text-gray-900">
+              {result.firstWinamnt > 0 && result.firstPrzwnerCo > 0
+                ? formatKRW(result.firstWinamnt * result.firstPrzwnerCo)
+                : "해당 없음"}
+            </p>
           </div>
         </div>
       )}
