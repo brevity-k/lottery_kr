@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rottery.kr/sitemap.xml
+Sitemap: https://lottery.io.kr/sitemap.xml

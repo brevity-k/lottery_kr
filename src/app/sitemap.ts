@@ -3,7 +3,7 @@ import { getLatestRound } from "@/lib/api/dhlottery";
 import { getAllBlogPosts } from "@/lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://rottery.kr";
+  const baseUrl = "https://lottery.io.kr";
   const latestRound = getLatestRound();
 
   const staticPages: MetadataRoute.Sitemap = [
