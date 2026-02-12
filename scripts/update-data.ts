@@ -7,110 +7,30 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import type { LottoResult, LottoDataFile } from "../src/types/lottery";
+import { DATA_PATH, BACKUP_PATH, LOTTO_FIRST_DRAW_DATE, validateDrawData, withRetry } from "./lib/shared";
 
-interface LottoResult {
-  drwNo: number;
-  drwNoDate: string;
-  drwtNo1: number;
-  drwtNo2: number;
-  drwtNo3: number;
-  drwtNo4: number;
-  drwtNo5: number;
-  drwtNo6: number;
-  bnusNo: number;
-  firstWinamnt: number;
-  firstPrzwnerCo: number;
-  totSellamnt: number;
-  returnValue: string;
-}
+const FETCH_TIMEOUT_MS = 30_000;
+const FIRST_DRAW_DATE = new Date(LOTTO_FIRST_DRAW_DATE);
 
-interface LottoDataFile {
-  lottery: string;
-  lastUpdated: string;
-  latestRound: number;
-  draws: LottoResult[];
-}
-
-const OUTPUT_PATH = "./src/data/lotto.json";
-const BACKUP_PATH = "./src/data/lotto.json.bak";
-
-async function fetchWithRetry(
+async function fetchWithTimeout(
   url: string,
-  options: RequestInit = {},
-  maxRetries = 3
+  options: RequestInit = {}
 ): Promise<Response> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const res = await fetch(url, options);
-      if (!res.ok && attempt < maxRetries) {
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        console.warn(`⚠️ Fetch failed (${res.status}), retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries})`);
-        await new Promise((r) => setTimeout(r, delay));
-        continue;
-      }
-      return res;
-    } catch (err) {
-      if (attempt < maxRetries) {
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        console.warn(`⚠️ Fetch error, retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries}): ${err}`);
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        throw err;
-      }
-    }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  } finally {
+    clearTimeout(timeout);
   }
-  throw new Error("fetchWithRetry: exhausted all retries");
-}
-
-function validateData(draws: LottoResult[]): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-
-  if (draws.length === 0) {
-    errors.push("No draws found");
-    return { valid: false, errors };
-  }
-
-  for (const draw of draws) {
-    const nums = [draw.drwtNo1, draw.drwtNo2, draw.drwtNo3, draw.drwtNo4, draw.drwtNo5, draw.drwtNo6];
-
-    // Check numbers in 1-45 range
-    for (const n of nums) {
-      if (n < 1 || n > 45) {
-        errors.push(`Round ${draw.drwNo}: number ${n} out of range 1-45`);
-      }
-    }
-
-    // Check bonus number in range
-    if (draw.bnusNo < 1 || draw.bnusNo > 45) {
-      errors.push(`Round ${draw.drwNo}: bonus ${draw.bnusNo} out of range 1-45`);
-    }
-
-    // Check no duplicates in main numbers
-    if (new Set(nums).size !== 6) {
-      errors.push(`Round ${draw.drwNo}: duplicate numbers found in ${nums.join(",")}`);
-    }
-
-    // Check valid date format (YYYY-MM-DD)
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(draw.drwNoDate)) {
-      errors.push(`Round ${draw.drwNo}: invalid date format "${draw.drwNoDate}"`);
-    }
-  }
-
-  // Check sequential round numbers
-  const sorted = [...draws].sort((a, b) => a.drwNo - b.drwNo);
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].drwNo !== sorted[i - 1].drwNo + 1) {
-      errors.push(`Missing round(s) between ${sorted[i - 1].drwNo} and ${sorted[i].drwNo}`);
-    }
-  }
-
-  return { valid: errors.length === 0, errors };
 }
 
 function backupExistingData(): void {
   try {
-    if (fs.existsSync(OUTPUT_PATH)) {
-      fs.copyFileSync(OUTPUT_PATH, BACKUP_PATH);
+    if (fs.existsSync(DATA_PATH)) {
+      fs.copyFileSync(DATA_PATH, BACKUP_PATH);
       console.log(`📦 Backup created: ${BACKUP_PATH}`);
     }
   } catch (err) {
@@ -141,9 +61,14 @@ function parseCommaNumber(text: string): number {
 
 async function fetchRound(round: number): Promise<LottoResult | null> {
   try {
-    const res = await fetchWithRetry(`https://superkts.com/lotto/${round}`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const res = await withRetry(
+      () => fetchWithTimeout(`https://superkts.com/lotto/${round}`, {
+        headers: { "User-Agent": "Mozilla/5.0" },
+      }),
+      3,
+      `Fetch round ${round}`
+    );
+    if (!res.ok) return null;
     const html = await res.text();
 
     // Parse from meta description:
@@ -208,12 +133,31 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
 }
 
 async function findLatestRound(): Promise<number> {
-  // Try recent rounds to find the latest
-  for (let round = 1220; round >= 1200; round--) {
+  // Estimate current round from elapsed weeks since first draw
+  const weeksSinceFirst = Math.floor(
+    (Date.now() - FIRST_DRAW_DATE.getTime()) / (7 * 24 * 60 * 60 * 1000)
+  );
+  const estimated = weeksSinceFirst;
+
+  // Check existing data for a known baseline (no hardcoded fallback — rely on estimation)
+  let knownLatest = estimated;
+  try {
+    if (fs.existsSync(DATA_PATH)) {
+      const existing = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
+      if (existing.latestRound) knownLatest = Math.max(existing.latestRound, estimated);
+    }
+  } catch {
+    // ignore — use estimated value
+  }
+
+  // Search forward from max of known and estimated, with buffer
+  const searchStart = Math.max(knownLatest, estimated) + 5;
+  for (let round = searchStart; round >= knownLatest; round--) {
     const result = await fetchRound(round);
     if (result) return round;
   }
-  return 1210;
+
+  return knownLatest;
 }
 
 async function fetchAllData(): Promise<void> {
@@ -226,7 +170,7 @@ async function fetchAllData(): Promise<void> {
   let startRound = 1;
 
   try {
-    const existing = fs.readFileSync(OUTPUT_PATH, "utf-8");
+    const existing = fs.readFileSync(DATA_PATH, "utf-8");
     existingData = JSON.parse(existing) as LottoDataFile;
 
     // Check if prize data is missing (all firstWinamnt = 0) -> force full re-fetch
@@ -286,9 +230,9 @@ async function fetchAllData(): Promise<void> {
 
   allDraws.sort((a, b) => b.drwNo - a.drwNo);
 
-  // Validate data before writing
+  // Validate data using shared validation before writing
   console.log("\n🔍 Validating data...");
-  const validation = validateData(allDraws);
+  const validation = validateDrawData(allDraws);
   if (!validation.valid) {
     console.error("❌ Data validation failed:");
     for (const err of validation.errors) {
@@ -309,17 +253,33 @@ async function fetchAllData(): Promise<void> {
   };
 
   // Ensure output directory exists
-  const outputDir = path.dirname(OUTPUT_PATH);
+  const outputDir = path.dirname(DATA_PATH);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  fs.writeFileSync(OUTPUT_PATH, JSON.stringify(output));
+  fs.writeFileSync(DATA_PATH, JSON.stringify(output));
 
-  const fileSizeKB = Math.round(fs.statSync(OUTPUT_PATH).size / 1024);
+  const fileSizeKB = Math.round(fs.statSync(DATA_PATH).size / 1024);
   console.log(
-    `✅ Saved ${allDraws.length} rounds to ${OUTPUT_PATH} (${fileSizeKB}KB)`
+    `✅ Saved ${allDraws.length} rounds to ${DATA_PATH} (${fileSizeKB}KB)`
   );
 }
 
-fetchAllData().catch(console.error);
+fetchAllData().catch((err) => {
+  // If existing data is available, don't block the build
+  if (fs.existsSync(DATA_PATH)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(DATA_PATH, "utf-8")) as LottoDataFile;
+      if (existing.draws && existing.draws.length > 0) {
+        console.warn(`\n⚠️ Data update failed: ${err}`);
+        console.warn(`   Using existing data (${existing.draws.length} rounds, latest: ${existing.latestRound})`);
+        process.exit(0); // Don't block build
+      }
+    } catch {
+      // existing data is also broken
+    }
+  }
+  console.error(`\n❌ Data update failed and no existing data available: ${err}`);
+  process.exit(1);
+});

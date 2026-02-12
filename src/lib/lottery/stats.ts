@@ -1,6 +1,7 @@
 import { LottoResult, LottoStats, NumberFrequency, NumberDetail } from "@/types/lottery";
+import { LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_HIGH_LOW_THRESHOLD, DEFAULT_RECENT_DRAWS } from "@/lib/constants";
 
-function getNumbers(result: LottoResult): number[] {
+export function getDrawNumbers(result: LottoResult): number[] {
   return [
     result.drwtNo1,
     result.drwtNo2,
@@ -15,10 +16,10 @@ export function calculateFrequencies(
   results: LottoResult[]
 ): NumberFrequency[] {
   const counts = new Map<number, number>();
-  for (let i = 1; i <= 45; i++) counts.set(i, 0);
+  for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) counts.set(i, 0);
 
   for (const result of results) {
-    for (const num of getNumbers(result)) {
+    for (const num of getDrawNumbers(result)) {
       counts.set(num, (counts.get(num) || 0) + 1);
     }
   }
@@ -35,7 +36,7 @@ export function calculateFrequencies(
 
 export function calculateStats(
   allResults: LottoResult[],
-  recentCount: number = 20
+  recentCount: number = DEFAULT_RECENT_DRAWS
 ): LottoStats {
   const frequencies = calculateFrequencies(allResults);
   const recentResults = allResults.slice(0, recentCount);
@@ -47,10 +48,10 @@ export function calculateStats(
   let totalLow = 0;
 
   for (const result of allResults) {
-    for (const num of getNumbers(result)) {
+    for (const num of getDrawNumbers(result)) {
       if (num % 2 === 1) totalOdd++;
       else totalEven++;
-      if (num > 22) totalHigh++;
+      if (num > LOTTO_HIGH_LOW_THRESHOLD) totalHigh++;
       else totalLow++;
     }
   }
@@ -66,10 +67,10 @@ export function calculateStats(
     recentFrequencies,
     oddEvenRatio: { odd: totalOdd, even: totalEven },
     highLowRatio: { high: totalHigh, low: totalLow },
-    mostCommon: sortedByCount.slice(0, 6).map((f) => f.number),
-    leastCommon: sortedByCount.slice(-6).map((f) => f.number),
-    hottestNumbers: recentSorted.slice(0, 6).map((f) => f.number),
-    coldestNumbers: recentSorted.slice(-6).map((f) => f.number),
+    mostCommon: sortedByCount.slice(0, LOTTO_NUMBERS_PER_SET).map((f) => f.number),
+    leastCommon: sortedByCount.slice(-LOTTO_NUMBERS_PER_SET).map((f) => f.number),
+    hottestNumbers: recentSorted.slice(0, LOTTO_NUMBERS_PER_SET).map((f) => f.number),
+    coldestNumbers: recentSorted.slice(-LOTTO_NUMBERS_PER_SET).map((f) => f.number),
   };
 }
 
@@ -80,7 +81,7 @@ export function getNumberDetail(num: number, results: LottoResult[]): NumberDeta
   const appearedRounds: number[] = [];
 
   for (const result of results) {
-    if (getNumbers(result).includes(num)) {
+    if (getDrawNumbers(result).includes(num)) {
       totalAppearances++;
       appearedRounds.push(result.drwNo);
     }

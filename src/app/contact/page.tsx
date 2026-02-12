@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import { OWNER_EMAIL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "문의하기",
   description: "로또리에 문의사항이 있으시면 연락주세요.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Breadcrumb items={[{ label: "문의하기" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-8">문의하기</h1>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mb-6">
@@ -26,7 +30,7 @@ export default function ContactPage() {
             <span className="text-lg">📧</span>
             <div>
               <span className="text-sm text-gray-500">이메일</span>
-              <p className="text-sm text-gray-700">brevity1s.wos@gmail.com</p>
+              <p className="text-sm text-gray-700">{OWNER_EMAIL}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">

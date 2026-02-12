@@ -41,8 +41,11 @@ scripts/update-data.ts  -->  src/data/lotto.json  -->  Build-time reads via fs.r
 content/blog/*.json     -->  src/lib/blog.ts      -->  Build-time reads via fs.readFileSync
 ```
 
-- `prebuild` script runs `update-data` before every `next build`
+- `prebuild` script runs `update-data` before every `next build` — gracefully degrades if network unavailable (uses existing data)
 - Data is cached in memory after first read (`dhlottery.ts`, `blog.ts`)
+- `dhlottery.ts` falls back to `lotto.json.bak` if primary file is corrupted
+- `blog.ts` skips malformed JSON files instead of crashing the build
+- `sitemap.ts` uses try-catch so data loading failures don't block sitemap generation
 - All pages are statically generated, including `/lotto/results/[round]` and `/blog/[slug]` via `generateStaticParams()`
 - Only dynamic route: `/api/contact` (serverless function for email)
 
@@ -70,10 +73,12 @@ lottery_kr/
 │   ├── robots.txt                     # Search engine crawl rules (lottery.io.kr)
 │   └── ads.txt                        # AdSense publisher verification
 ├── scripts/
-│   ├── update-data.ts                 # Fetches lottery data (retry + validation + backup)
-│   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API (retry + validation)
-│   ├── generate-prediction.ts         # Generates weekly prediction post (Friday before draw)
-│   ├── health-check.ts               # Validates data freshness, integrity, blog, critical files
+│   ├── lib/
+│   │   └── shared.ts                  # Shared utilities (paths, constants, withRetry, validateDrawData, validateBlogContent, getDrawNumbers, loadLottoData)
+│   ├── update-data.ts                 # Fetches lottery data (retry + validation + backup + 30s timeout)
+│   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API (uses shared retry + validation)
+│   ├── generate-prediction.ts         # Generates weekly prediction post (uses shared retry + validation)
+│   ├── health-check.ts               # Validates data freshness, integrity, blog, critical files (29 files)
 │   └── blog-topics.json               # 12 topic templates for blog rotation
 ├── content/
 │   └── blog/                          # Blog post JSON files (auto-generated weekly)
@@ -87,18 +92,22 @@ lottery_kr/
     ├── data/
     │   └── lotto.json                 # Pre-fetched lottery data (all rounds, with prizes)
     ├── types/
-    │   └── lottery.ts                 # TypeScript type definitions (LottoResult, BlogPost, etc.)
+    │   └── lottery.ts                 # TypeScript type definitions (LottoResult, LottoDataFile, BlogPost, etc.)
     ├── lib/
     │   ├── api/
     │   │   └── dhlottery.ts           # Lottery data loading (reads from local JSON)
-    │   ├── blog.ts                    # Blog data loading (reads from content/blog/*.json)
+    │   ├── blog.ts                    # Blog data loading (reads from content/blog/*.json, skips malformed)
+    │   ├── constants.ts               # App-wide constants (SITE_URL, SITE_NAME, OWNER_EMAIL, KAKAO_APP_KEY, LOTTO_*, LOTTO_SECTIONS, LOTTO_TICKET_PRICE)
     │   ├── lottery/
-    │   │   ├── recommend.ts           # 6 recommendation algorithms
-    │   │   ├── stats.ts               # Statistical calculations
-    │   │   └── tax.ts                 # Lottery tax calculation (Korean tax rules)
+    │   │   ├── recommend.ts           # 6 recommendation algorithms (uses LOTTO_SECTIONS from constants)
+    │   │   ├── stats.ts               # Statistical calculations (exports getDrawNumbers)
+    │   │   ├── simulator.ts           # Lottery simulator (uses LOTTO_TICKET_PRICE from constants)
+    │   │   └── tax.ts                 # Lottery tax calculation (uses LOTTO_TICKET_PRICE from constants)
     │   └── utils/
     │       ├── format.ts              # Korean formatting utilities
-    │       └── markdown.ts            # Zero-dependency markdown-to-HTML converter
+    │       ├── kakao.ts               # Shared Kakao SDK initialization (getKakaoSDK, global Window.Kakao type)
+    │       ├── kst.ts                 # KST timezone utility (getKSTDate)
+    │       └── markdown.ts            # Zero-dependency markdown-to-HTML converter (exports escapeHtml)
     ├── components/
     │   ├── layout/
     │   │   ├── Header.tsx             # Responsive header with mobile menu (includes 오늘의 행운)
@@ -170,7 +179,7 @@ Dedicated KakaoTalk share button on `/lotto/recommend` using the Kakao JavaScrip
 
 - **Kakao JS SDK:** v2.7.4 loaded via `next/script` (`afterInteractive`) in `layout.tsx`
 - **App Key:** `accfcea8c90806c685d4321fa93a4501`
-- **SDK initialization:** Lazy — `Kakao.init()` called on first share click if not yet initialized
+- **SDK initialization:** Lazy via `getKakaoSDK()` from `src/lib/utils/kakao.ts` — centralizes `Window.Kakao` type declaration and init logic for all 3 share components (RecommendResult, LuckyClient, SimulatorClient)
 
 ### Share Message
 
@@ -258,7 +267,7 @@ GitHub Actions (cron: Sunday 10:00 KST)
 
 ### Resilience Features
 
-- **Retry with exponential backoff:** `callClaudeWithRetry()` — 3 attempts with 1s/2s/4s delay
+- **Retry with exponential backoff:** `withRetry()` from `scripts/lib/shared.ts` — 3 attempts with 1s/2s/4s delay
 - **Content validation:** Checks minimum length (800+ chars), AI disclaimer presence, markdown headings
 - **Duplicate prevention:** Skips generation if output slug file already exists (exits cleanly)
 - **Increased output:** `max_tokens: 4000`, prompt targets 1500-2500 words for better SEO ranking
@@ -332,22 +341,24 @@ All workflows include: retry with 60s delay on first failure, auto-create GitHub
 ### 2. Blog Generation (`generate-blog-post.yml`)
 
 - **Schedule:** Sunday 01:00 UTC = Sunday 10:00 KST
-- **Action:** Updates data + generates blog post via Claude API + commits
+- **Action:** Updates data (commits separately) + generates blog post via Claude API + commits blog post
 - **Permissions:** `contents: write`, `issues: write`
 - **Requires:** `ANTHROPIC_API_KEY` GitHub Actions secret
+- **Resilience:** Data update committed independently so it's not lost if blog generation fails
 
 ### 3. Prediction Generation (`generate-prediction.yml`)
 
 - **Schedule:** Friday 10:00 UTC = Friday 19:00 KST (before Saturday draw)
-- **Action:** Updates data + generates prediction post for next round + commits
+- **Action:** Updates data (commits separately) + generates prediction post for next round + commits
 - **Permissions:** `contents: write`, `issues: write`
 - **Requires:** `ANTHROPIC_API_KEY` GitHub Actions secret
 - **Output:** `content/blog/{nextRound}-prediction.json`
+- **Resilience:** Data update committed independently so it's not lost if prediction generation fails
 
 ### 4. Health Check (`health-check.yml`)
 
 - **Triggers:** After data-update / blog-generation / prediction workflows complete (`workflow_run`), plus weekly Monday 03:00 UTC = Monday 12:00 KST
-- **Checks:** Data freshness (>10 days = fail), data integrity (numbers/dates), blog posts (>14 days = fail), critical file existence (14 files)
+- **Checks:** Data freshness (>10 days = fail), data integrity via shared `validateDrawData()`, blog posts (>14 days = fail), critical file existence (29 files)
 - **Permissions:** `contents: read`, `issues: write`
 - **Output:** JSON health report + human-readable summary
 
@@ -425,36 +436,54 @@ Linked from: Header nav ("오늘의 행운"), Footer (under 서비스), Lotto la
 
 The site runs fully autonomously with zero user intervention. All automation includes retry logic, validation, and failure notifications.
 
+### Shared Automation Utilities (`scripts/lib/shared.ts`)
+
+Single source of truth for all script-side constants and utilities:
+- **File paths:** `DATA_PATH`, `BACKUP_PATH`, `BLOG_DIR`, `TOPICS_PATH` — eliminates duplicate path definitions
+- **Lottery constants:** `LOTTO_MIN`, `LOTTO_MAX`, `LOTTO_PER_SET`, `LOTTO_SECTIONS` — mirrors `src/lib/constants.ts` for scripts
+- **`withRetry()`:** Generic retry with exponential backoff (1s/2s/4s) — used by all scripts
+- **`validateDrawData()`:** Number range, duplicates, date format, sequential rounds — shared between `update-data.ts` and `health-check.ts`
+- **`validateBlogContent()`:** Min length (800 chars), AI disclaimer, markdown headings
+- **`getDrawNumbers()`:** Extract 6 numbers from LottoResult — used by all scripts
+- **`loadLottoData()`:** Load + parse lotto.json with backup fallback — mirrors `dhlottery.ts` resilience
+
 ### Data Pipeline Resilience (`scripts/update-data.ts`)
 
-- **`fetchWithRetry()`:** 3 attempts with exponential backoff (1s/2s/4s)
-- **`validateData()`:** Checks numbers 1-45 range, no duplicates, valid dates, sequential rounds
+- **`withRetry()` + `fetchWithTimeout()`:** 3 attempts per round with 30s timeout via AbortController
+- **`findLatestRound()`:** Dynamic round detection based on elapsed weeks since first draw (2002-12-07) + existing data baseline — no hardcoded limits
+- **`validateDrawData()`:** Shared validation from `shared.ts` — numbers 1-45 range, no duplicates, valid dates, sequential rounds
 - **`backupExistingData()`:** Copies `lotto.json` → `lotto.json.bak` before overwrite
+- **Graceful degradation:** If fetch fails but existing data is available, exits with code 0 (doesn't block builds)
 - **Exit code 1** on validation failure (prevents corrupt data from being committed)
 
 ### Blog Pipeline Resilience (`scripts/generate-blog-post.ts`)
 
-- **`callClaudeWithRetry()`:** 3 attempts with exponential backoff
-- **`validateContent()`:** Checks min length (800 chars), AI disclaimer, markdown headings
+- **`withRetry()`:** Generic retry from `scripts/lib/shared.ts` — 3 attempts with exponential backoff
+- **`validateBlogContent()`:** Checks min length (800 chars), AI disclaimer, markdown headings — **blocks publication on failure** (exit code 1)
 - **Duplicate prevention:** Skips if output slug file exists (exit code 0)
 - **Increased output:** `max_tokens: 4000`, targets 1500-2500 words
 
 ### Prediction Pipeline (`scripts/generate-prediction.ts`)
 
-- Computes hot/cold numbers from recent 20 draws
-- Generates 3 AI recommendation sets (hot-number based, composite, balanced)
+- Computes hot/cold numbers from recent 20 draws using shared `getDrawNumbers()`
+- Generates 3 AI recommendation sets using shared `LOTTO_SECTIONS` and `LOTTO_MIN`/`LOTTO_MAX` constants
 - Rich context prompt with recent 10 draws + statistical analysis
 - Built-in duplicate prevention + retry
+- **Content validation:** Same `validateBlogContent()` from shared — blocks publication on failure
 
 ### Health Monitoring (`scripts/health-check.ts`)
 
 4 automated checks:
 1. **Data freshness:** Fail if data >10 days old
-2. **Data integrity:** Valid numbers, dates, sequential rounds (sampled)
-3. **Blog posts:** Fail if latest post >14 days old
-4. **Critical files:** 14 essential files must exist
+2. **Data integrity:** Uses shared `validateDrawData()` on sampled draws (first 10, middle 10, last 10)
+3. **Blog posts:** Fail if latest post >14 days old, warn if any posts have invalid JSON or missing required fields
+4. **Critical files:** 29 essential files must exist (pages, components, constants, utilities, data loaders, automation scripts + shared module)
 
 Outputs JSON report + human-readable summary. Exit code 1 triggers GitHub Issue.
+
+### Workflow Commit Resilience
+
+Blog and prediction workflows commit data updates **separately** before content generation. This ensures data updates are never lost if the AI content generation step fails (even after retry).
 
 ---
 
@@ -635,7 +664,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 
 | Issue | Impact | Effort | Status |
 |-------|--------|--------|--------|
-| No `og:image` on any page — social shares show no preview | High | Low | Open |
+| ~~No `og:image` on any page — social shares show no preview~~ | ~~High~~ | ~~Low~~ | **FIXED** |
 | ~~Sitemap only includes latest 100 rounds (1,110+ excluded)~~ | ~~High~~ | ~~Low~~ | **FIXED** |
 | ~~`/lotto/tax` missing from sitemap~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | ~~No `FAQPage` JSON-LD structured data~~ | ~~High~~ | ~~Medium~~ | **FIXED** |
@@ -668,7 +697,7 @@ Quick wins — simulator, SEO fixes, FAQ, countdown, toast notifications, blog p
 | # | Feature | Target Keywords | Status |
 |---|---------|----------------|--------|
 | 2.1 | **Lottery simulator** (`/lotto/simulator`) | 로또 시뮬레이터 | **DONE** |
-| 2.2 | **OG images** — branded preview images for social sharing | — (CTR improvement) | Not started |
+| 2.2 | **OG images** — branded preview images for social sharing | — (CTR improvement) | **DONE** |
 | 2.3 | **Fix sitemap** — include all 1,210+ rounds + tax page | — (indexing improvement) | **DONE** |
 | 2.4 | **FAQ page** (`/faq`) with `FAQPage` JSON-LD | 로또 구매 방법, 당첨금 수령 | **DONE** |
 | 2.5 | **실수령액 계산기** branding | 로또 실수령액 | **DONE** |

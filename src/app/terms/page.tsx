@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "이용약관",
   description: "로또리의 이용약관을 안내합니다.",
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Breadcrumb items={[{ label: "이용약관" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-8">이용약관</h1>
 
       <div className="prose prose-gray max-w-none space-y-6 text-sm">

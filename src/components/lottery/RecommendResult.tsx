@@ -3,22 +3,8 @@
 import { RecommendedSet } from "@/types/lottery";
 import LottoBall from "./LottoBall";
 import { useToast } from "@/components/ui/Toast";
-
-declare global {
-  interface Window {
-    Kakao?: {
-      init(appKey: string): void;
-      isInitialized(): boolean;
-      Share: {
-        sendDefault(settings: {
-          objectType: string;
-          text: string;
-          link: { mobileWebUrl: string; webUrl: string };
-        }): void;
-      };
-    };
-  }
-}
+import { SITE_URL } from "@/lib/constants";
+import { getKakaoSDK } from "@/lib/utils/kakao";
 
 interface RecommendResultProps {
   sets: RecommendedSet[];
@@ -36,13 +22,10 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
   };
 
   const handleKakaoShare = () => {
-    const Kakao = window.Kakao;
+    const Kakao = getKakaoSDK();
     if (!Kakao) {
       toast("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "error");
       return;
-    }
-    if (!Kakao.isInitialized()) {
-      Kakao.init("accfcea8c90806c685d4321fa93a4501");
     }
     const text = sets
       .map((s) => `${s.label}: ${s.numbers.join(", ")}`)
@@ -51,8 +34,8 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
       objectType: "text",
       text: `🎯 로또리 번호 추천\n\n${text}`,
       link: {
-        mobileWebUrl: "https://lottery.io.kr/lotto/recommend",
-        webUrl: "https://lottery.io.kr/lotto/recommend",
+        mobileWebUrl: `${SITE_URL}/lotto/recommend`,
+        webUrl: `${SITE_URL}/lotto/recommend`,
       },
     });
   };
@@ -75,7 +58,7 @@ export default function RecommendResult({ sets }: RecommendResultProps) {
         </div>
       ))}
 
-      <div className="flex gap-3 mt-6">
+      <div className="flex flex-col sm:flex-row gap-3 mt-6">
         <button
           onClick={handleCopy}
           className="flex-1 bg-gray-100 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm"

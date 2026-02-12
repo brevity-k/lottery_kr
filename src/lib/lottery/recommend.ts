@@ -1,4 +1,13 @@
 import { RecommendedSet, RecommendMethod, NumberFrequency } from "@/types/lottery";
+import { LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_SECTIONS } from "@/lib/constants";
+
+/** Weighting factors for recommendation algorithms. */
+const HOT_NUMBER_MULTIPLIER = 3;
+const AI_WEIGHT_ALL_TIME = 0.2;
+const AI_WEIGHT_HOT = 0.25;
+const AI_WEIGHT_COLD = 0.15;
+const AI_WEIGHT_RANDOM = 0.3;
+const AI_RANDOM_SCALE = 10;
 
 function getRandomNumbers(count: number, min: number, max: number): number[] {
   const numbers = new Set<number>();
@@ -26,24 +35,17 @@ function weightedRandom(weights: { number: number; weight: number }[], count: nu
 }
 
 function generateBalanced(): number[] {
-  const sections = [
-    [1, 9],
-    [10, 18],
-    [19, 27],
-    [28, 36],
-    [37, 45],
-  ];
 
   const numbers = new Set<number>();
 
   // Pick one from each of 5 sections, then 1 random
-  for (const [min, max] of sections) {
+  for (const [min, max] of LOTTO_SECTIONS) {
     if (numbers.size >= 5) break;
     numbers.add(Math.floor(Math.random() * (max - min + 1)) + min);
   }
 
-  while (numbers.size < 6) {
-    numbers.add(Math.floor(Math.random() * 45) + 1);
+  while (numbers.size < LOTTO_NUMBERS_PER_SET) {
+    numbers.add(Math.floor(Math.random() * LOTTO_MAX_NUMBER) + LOTTO_MIN_NUMBER);
   }
 
   // Ensure roughly balanced odd/even
@@ -70,7 +72,7 @@ export function generateRecommendation(
 
     switch (method) {
       case "random":
-        numbers = getRandomNumbers(6, 1, 45);
+        numbers = getRandomNumbers(LOTTO_NUMBERS_PER_SET, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER);
         break;
 
       case "statistics": {
@@ -78,16 +80,16 @@ export function generateRecommendation(
           number: f.number,
           weight: f.count + 1,
         }));
-        numbers = weightedRandom(weights, 6);
+        numbers = weightedRandom(weights, LOTTO_NUMBERS_PER_SET);
         break;
       }
 
       case "hot": {
         const weights = recentFrequencies.map((f) => ({
           number: f.number,
-          weight: (f.count + 1) * 3,
+          weight: (f.count + 1) * HOT_NUMBER_MULTIPLIER,
         }));
-        numbers = weightedRandom(weights, 6);
+        numbers = weightedRandom(weights, LOTTO_NUMBERS_PER_SET);
         break;
       }
 
@@ -97,7 +99,7 @@ export function generateRecommendation(
           number: f.number,
           weight: maxCount - f.count + 1,
         }));
-        numbers = weightedRandom(weights, 6);
+        numbers = weightedRandom(weights, LOTTO_NUMBERS_PER_SET);
         break;
       }
 
@@ -116,13 +118,13 @@ export function generateRecommendation(
           return {
             number: f.number,
             weight:
-              f.count * 0.2 +
-              recentCount * 3 * 0.25 +
-              coldBonus * 0.15 +
-              Math.random() * 10 * 0.3,
+              f.count * AI_WEIGHT_ALL_TIME +
+              recentCount * HOT_NUMBER_MULTIPLIER * AI_WEIGHT_HOT +
+              coldBonus * AI_WEIGHT_COLD +
+              Math.random() * AI_RANDOM_SCALE * AI_WEIGHT_RANDOM,
           };
         });
-        numbers = weightedRandom(weights, 6);
+        numbers = weightedRandom(weights, LOTTO_NUMBERS_PER_SET);
 
         // Apply balance filter
         const oddCount = numbers.filter((n) => n % 2 === 1).length;
@@ -133,7 +135,7 @@ export function generateRecommendation(
       }
 
       default:
-        numbers = getRandomNumbers(6, 1, 45);
+        numbers = getRandomNumbers(LOTTO_NUMBERS_PER_SET, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER);
     }
 
     sets.push({

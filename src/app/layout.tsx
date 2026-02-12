@@ -4,10 +4,11 @@ import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ToastProvider } from "@/components/ui/Toast";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://lottery.io.kr"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "로또리 - 한국 복권 번호 추천 | 로또 6/45 당첨번호 분석",
     template: "%s | 로또리",
@@ -31,9 +32,14 @@ export const metadata: Metadata = {
     title: "로또리 - 한국 복권 번호 추천",
     description: "통계 기반 스마트한 로또 번호 추천 서비스",
     url: "/",
-    siteName: "로또리",
+    siteName: SITE_NAME,
     locale: "ko_KR",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "로또리 - 한국 복권 번호 추천",
+    description: "통계 기반 스마트한 로또 번호 추천 서비스",
   },
   verification: {
     google: "l9x3-7Ka7vQqGyceePwBraUm1GpiQxsWF0MhGyLDNVQ",

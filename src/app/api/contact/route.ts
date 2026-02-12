@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
-
-const OWNER_EMAIL = "brevity1s.wos@gmail.com";
+import { OWNER_EMAIL, SITE_URL } from "@/lib/constants";
+import { escapeHtml } from "@/lib/utils/markdown";
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         <hr />
         <p style="color: #999; font-size: 12px;">
           이 메일은 자동으로 발송된 메일입니다. 추가 문의사항이 있으시면 이 메일에 회신하지 마시고
-          <a href="https://lottery.io.kr/contact">로또리 문의 페이지</a>를 이용해주세요.
+          <a href="${SITE_URL}/contact">로또리 문의 페이지</a>를 이용해주세요.
         </p>
       `,
     });
@@ -82,12 +82,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 }

@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: "로또리의 개인정보처리방침을 안내합니다.",
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Breadcrumb items={[{ label: "개인정보처리방침" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-8">개인정보처리방침</h1>
 
       <div className="prose prose-gray max-w-none space-y-6 text-sm">

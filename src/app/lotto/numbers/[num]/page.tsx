@@ -6,13 +6,14 @@ import { getNumberDetail } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { LOTTO_MAX_NUMBER } from "@/lib/constants";
 
 interface Props {
   params: Promise<{ num: string }>;
 }
 
 export function generateStaticParams() {
-  return Array.from({ length: 45 }, (_, i) => ({ num: String(i + 1) }));
+  return Array.from({ length: LOTTO_MAX_NUMBER }, (_, i) => ({ num: String(i + 1) }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -28,7 +29,7 @@ export default async function NumberDetailPage({ params }: Props) {
   const { num } = await params;
   const numVal = parseInt(num, 10);
 
-  if (isNaN(numVal) || numVal < 1 || numVal > 45) {
+  if (isNaN(numVal) || numVal < 1 || numVal > LOTTO_MAX_NUMBER) {
     notFound();
   }
 

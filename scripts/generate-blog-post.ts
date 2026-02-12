@@ -7,24 +7,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
-
-interface LottoResult {
-  drwNo: number;
-  drwNoDate: string;
-  drwtNo1: number;
-  drwtNo2: number;
-  drwtNo3: number;
-  drwtNo4: number;
-  drwtNo5: number;
-  drwtNo6: number;
-  bnusNo: number;
-  firstPrzwnerCo: number;
-}
-
-interface LottoDataFile {
-  latestRound: number;
-  draws: LottoResult[];
-}
+import type { LottoDataFile, BlogPost } from "../src/types/lottery";
+import { withRetry, validateBlogContent, getDrawNumbers, loadLottoData, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
 
 interface TopicConfig {
   id: string;
@@ -34,39 +18,9 @@ interface TopicConfig {
   prompt: string;
 }
 
-interface BlogPost {
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  date: string;
-  category: string;
-  tags: string[];
-}
-
-const BLOG_DIR = path.join(process.cwd(), "content/blog");
-const DATA_PATH = path.join(process.cwd(), "src/data/lotto.json");
-const TOPICS_PATH = path.join(process.cwd(), "scripts/blog-topics.json");
-
-function loadLottoData(): LottoDataFile {
-  const raw = fs.readFileSync(DATA_PATH, "utf-8");
-  return JSON.parse(raw);
-}
-
 function loadTopics(): TopicConfig[] {
   const raw = fs.readFileSync(TOPICS_PATH, "utf-8");
   return JSON.parse(raw).topics;
-}
-
-function getNumbers(draw: LottoResult): number[] {
-  return [
-    draw.drwtNo1,
-    draw.drwtNo2,
-    draw.drwtNo3,
-    draw.drwtNo4,
-    draw.drwtNo5,
-    draw.drwtNo6,
-  ];
 }
 
 function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
@@ -74,7 +28,7 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
   vars: Record<string, string>;
 } {
   const latest = data.draws[0];
-  const numbers = getNumbers(latest);
+  const numbers = getDrawNumbers(latest);
   const numbersStr = numbers.join(", ");
   const nextRound = String(latest.drwNo + 1);
 
@@ -142,49 +96,10 @@ function fillTemplate(template: string, vars: Record<string, string>): string {
 function buildContext(data: LottoDataFile): string {
   const recent = data.draws.slice(0, 10);
   const lines = recent.map((d) => {
-    const nums = getNumbers(d);
+    const nums = getDrawNumbers(d);
     return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo} (1등 ${d.firstPrzwnerCo}명)`;
   });
   return `최근 10회차 당첨번호:\n${lines.join("\n")}`;
-}
-
-async function callClaudeWithRetry(
-  client: Anthropic,
-  params: Anthropic.MessageCreateParamsNonStreaming,
-  maxRetries = 3
-): Promise<Anthropic.Message> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await client.messages.create(params);
-    } catch (err) {
-      if (attempt < maxRetries) {
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        console.warn(`⚠️ API call failed, retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries}): ${err}`);
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        throw err;
-      }
-    }
-  }
-  throw new Error("callClaudeWithRetry: exhausted all retries");
-}
-
-function validateContent(content: string): string[] {
-  const warnings: string[] = [];
-
-  if (content.length < 800) {
-    warnings.push(`Content too short (${content.length} chars, minimum 800)`);
-  }
-
-  if (!content.includes("AI 분석 도구") && !content.includes("AI가")) {
-    warnings.push("Missing AI disclaimer");
-  }
-
-  if (!content.includes("##")) {
-    warnings.push("No markdown headings found");
-  }
-
-  return warnings;
 }
 
 async function generatePost(): Promise<void> {
@@ -224,13 +139,15 @@ async function generatePost(): Promise<void> {
 
   const client = new Anthropic({ apiKey });
 
-  const message = await callClaudeWithRetry(client, {
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 4000,
-    messages: [
-      {
-        role: "user",
-        content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 블로그 글을 작성해주세요.
+  const message = await withRetry(
+    () =>
+      client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4000,
+        messages: [
+          {
+            role: "user",
+            content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 블로그 글을 작성해주세요.
 
 ${context}
 
@@ -245,25 +162,32 @@ ${prompt}
 - 데이터에 기반한 사실만 언급
 - 마지막에 다음 문구를 포함: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
 - "당첨을 보장하지 않는다"는 면책 문구 포함`,
-      },
-    ],
-  });
+          },
+        ],
+      }),
+    3,
+    "Claude API"
+  );
 
-  const content =
-    message.content[0].type === "text" ? message.content[0].text : "";
+  if (!message.content || message.content.length === 0 || message.content[0].type !== "text") {
+    console.error("❌ API에서 예상치 못한 응답 형식을 받았습니다.");
+    process.exit(1);
+  }
+  const content = message.content[0].text;
 
   if (!content) {
     console.error("❌ API에서 빈 응답을 받았습니다.");
     process.exit(1);
   }
 
-  // Validate content
-  const warnings = validateContent(content);
+  // Validate content — block publication on failure
+  const warnings = validateBlogContent(content);
   if (warnings.length > 0) {
-    console.warn("⚠️ Content validation warnings:");
+    console.error("❌ Content validation failed:");
     for (const w of warnings) {
-      console.warn(`   - ${w}`);
+      console.error(`   - ${w}`);
     }
+    process.exit(1);
   }
 
   // Create description from first paragraph

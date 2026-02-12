@@ -8,59 +8,14 @@
 import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
-
-interface LottoResult {
-  drwNo: number;
-  drwNoDate: string;
-  drwtNo1: number;
-  drwtNo2: number;
-  drwtNo3: number;
-  drwtNo4: number;
-  drwtNo5: number;
-  drwtNo6: number;
-  bnusNo: number;
-  firstPrzwnerCo: number;
-}
-
-interface LottoDataFile {
-  latestRound: number;
-  draws: LottoResult[];
-}
-
-interface BlogPost {
-  slug: string;
-  title: string;
-  description: string;
-  content: string;
-  date: string;
-  category: string;
-  tags: string[];
-}
-
-const BLOG_DIR = path.join(process.cwd(), "content/blog");
-const DATA_PATH = path.join(process.cwd(), "src/data/lotto.json");
-
-function loadLottoData(): LottoDataFile {
-  const raw = fs.readFileSync(DATA_PATH, "utf-8");
-  return JSON.parse(raw);
-}
-
-function getNumbers(draw: LottoResult): number[] {
-  return [
-    draw.drwtNo1,
-    draw.drwtNo2,
-    draw.drwtNo3,
-    draw.drwtNo4,
-    draw.drwtNo5,
-    draw.drwtNo6,
-  ];
-}
+import type { LottoResult, LottoDataFile, BlogPost } from "../src/types/lottery";
+import { withRetry, getDrawNumbers, validateBlogContent, loadLottoData, BLOG_DIR, LOTTO_MIN, LOTTO_MAX, LOTTO_PER_SET, LOTTO_SECTIONS } from "./lib/shared";
 
 function computeFrequency(draws: LottoResult[]): Map<number, number> {
   const freq = new Map<number, number>();
-  for (let i = 1; i <= 45; i++) freq.set(i, 0);
+  for (let i = LOTTO_MIN; i <= LOTTO_MAX; i++) freq.set(i, 0);
   for (const draw of draws) {
-    for (const n of getNumbers(draw)) {
+    for (const n of getDrawNumbers(draw)) {
       freq.set(n, (freq.get(n) || 0) + 1);
     }
   }
@@ -108,18 +63,15 @@ function pickWeighted(pool: number[], count: number): number[] {
   }
   // Fill remaining from random if pool too small
   while (result.length < count) {
-    const n = Math.floor(Math.random() * 45) + 1;
+    const n = Math.floor(Math.random() * LOTTO_MAX) + LOTTO_MIN;
     if (!result.includes(n)) result.push(n);
   }
   return result;
 }
 
 function pickBalanced(coldNumbers: number[]): number[] {
-  const sections = [
-    [1, 9], [10, 18], [19, 27], [28, 36], [37, 45],
-  ];
   const result: number[] = [];
-  for (const [min, max] of sections) {
+  for (const [min, max] of LOTTO_SECTIONS) {
     const coldInSection = coldNumbers.filter((n) => n >= min && n <= max);
     if (coldInSection.length > 0) {
       result.push(coldInSection[Math.floor(Math.random() * coldInSection.length)]);
@@ -128,32 +80,11 @@ function pickBalanced(coldNumbers: number[]): number[] {
     }
   }
   // Add 6th number
-  while (result.length < 6) {
-    const n = Math.floor(Math.random() * 45) + 1;
+  while (result.length < LOTTO_PER_SET) {
+    const n = Math.floor(Math.random() * LOTTO_MAX) + LOTTO_MIN;
     if (!result.includes(n)) result.push(n);
   }
   return result;
-}
-
-async function callClaudeWithRetry(
-  client: Anthropic,
-  params: Anthropic.MessageCreateParamsNonStreaming,
-  maxRetries = 3
-): Promise<Anthropic.Message> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await client.messages.create(params);
-    } catch (err) {
-      if (attempt < maxRetries) {
-        const delay = Math.pow(2, attempt - 1) * 1000;
-        console.warn(`⚠️ API call failed, retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries}): ${err}`);
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        throw err;
-      }
-    }
-  }
-  throw new Error("callClaudeWithRetry: exhausted all retries");
 }
 
 async function generatePrediction(): Promise<void> {
@@ -166,6 +97,13 @@ async function generatePrediction(): Promise<void> {
   const data = loadLottoData();
   const latest = data.draws[0];
   const nextRound = latest.drwNo + 1;
+
+  // Sanity check: ensure we're not predicting a round that was already drawn
+  if (data.draws.some((d) => d.drwNo >= nextRound)) {
+    console.error(`❌ Round ${nextRound} already exists in data. Data may be stale or script ran late.`);
+    process.exit(1);
+  }
+
   const slug = `${nextRound}-prediction`;
 
   // Duplicate prevention
@@ -178,7 +116,7 @@ async function generatePrediction(): Promise<void> {
   // Build rich context
   const recent10 = data.draws.slice(0, 10);
   const recentLines = recent10.map((d) => {
-    const nums = getNumbers(d);
+    const nums = getDrawNumbers(d);
     return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo}`;
   });
 
@@ -202,13 +140,15 @@ ${recommendedSets}`;
 
   const client = new Anthropic({ apiKey });
 
-  const message = await callClaudeWithRetry(client, {
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 4000,
-    messages: [
-      {
-        role: "user",
-        content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 제${nextRound}회 로또 예상번호 분석 블로그 글을 작성해주세요.
+  const message = await withRetry(
+    () =>
+      client.messages.create({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 4000,
+        messages: [
+          {
+            role: "user",
+            content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 제${nextRound}회 로또 예상번호 분석 블로그 글을 작성해주세요.
 
 ${context}
 
@@ -230,15 +170,31 @@ ${context}
 - 데이터에 기반한 사실만 언급
 - "예상번호는 통계적 참고자료일 뿐 당첨을 보장하지 않습니다"라는 면책 문구를 반드시 포함
 - 마지막에: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."`,
-      },
-    ],
-  });
+          },
+        ],
+      }),
+    3,
+    "Claude API"
+  );
 
-  const content =
-    message.content[0].type === "text" ? message.content[0].text : "";
+  if (!message.content || message.content.length === 0 || message.content[0].type !== "text") {
+    console.error("❌ API에서 예상치 못한 응답 형식을 받았습니다.");
+    process.exit(1);
+  }
+  const content = message.content[0].text;
 
   if (!content) {
     console.error("❌ API에서 빈 응답을 받았습니다.");
+    process.exit(1);
+  }
+
+  // Validate content — block publication on failure
+  const warnings = validateBlogContent(content);
+  if (warnings.length > 0) {
+    console.error("❌ Content validation failed:");
+    for (const w of warnings) {
+      console.error(`   - ${w}`);
+    }
     process.exit(1);
   }
 

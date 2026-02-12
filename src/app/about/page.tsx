@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "소개",
   description: "로또리는 한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-12">
+      <Breadcrumb items={[{ label: "소개" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-8">로또리 소개</h1>
 
       <div className="prose prose-gray max-w-none space-y-6">

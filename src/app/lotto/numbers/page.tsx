@@ -30,7 +30,7 @@ export default function NumbersIndexPage() {
 
       <AdBanner slot="numbers-top" format="horizontal" className="mb-8" />
 
-      <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
+      <div className="grid grid-cols-4 sm:grid-cols-7 md:grid-cols-9 gap-3">
         {frequencies.map((f) => (
           <Link
             key={f.number}

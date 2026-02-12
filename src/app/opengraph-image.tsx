@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { SITE_URL } from "@/lib/constants";
 
 export const runtime = "edge";
 export const alt = "로또리 - 한국 복권 번호 추천";
@@ -83,7 +84,7 @@ export default function Image() {
             color: "rgba(255,255,255,0.7)",
           }}
         >
-          lottery.io.kr
+          {SITE_URL.replace(/^https?:\/\//, "")}
         </div>
       </div>
     ),

@@ -1,21 +1,13 @@
+import { LOTTO_TICKET_PRICE } from "@/lib/constants";
+import type { TaxResult } from "@/types/lottery";
+export type { TaxResult };
+
 const TAX_FREE_THRESHOLD = 2_000_000;
 const LOWER_BRACKET_LIMIT = 300_000_000;
 const LOWER_INCOME_RATE = 0.20;
 const LOWER_LOCAL_RATE = 0.02;
 const UPPER_INCOME_RATE = 0.30;
 const UPPER_LOCAL_RATE = 0.03;
-const TICKET_COST = 1_000;
-
-export interface TaxResult {
-  prizeAmount: number;
-  ticketCost: number;
-  taxableAmount: number;
-  incomeTax: number;
-  localTax: number;
-  totalTax: number;
-  netAmount: number;
-  effectiveRate: number;
-}
 
 export function calculateLotteryTax(prizeAmount: number): TaxResult {
   if (prizeAmount <= 0) {
@@ -31,7 +23,7 @@ export function calculateLotteryTax(prizeAmount: number): TaxResult {
     };
   }
 
-  const ticketCost = TICKET_COST;
+  const ticketCost = LOTTO_TICKET_PRICE;
   const afterExpense = prizeAmount - ticketCost;
 
   if (afterExpense <= TAX_FREE_THRESHOLD) {

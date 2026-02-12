@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { getKSTDate } from "@/lib/utils/kst";
 
 function getNextDrawInfo() {
-  const now = new Date();
-  // Convert to KST (UTC+9)
-  const kstOffset = 9 * 60 * 60 * 1000;
-  const kstNow = new Date(now.getTime() + kstOffset + now.getTimezoneOffset() * 60 * 1000);
+  const kstNow = getKSTDate();
 
   // Find next Saturday 20:45 KST
   const target = new Date(kstNow);

@@ -43,7 +43,7 @@ export default function BlogPage() {
                   </span>
                   <span className="text-xs text-gray-400">{post.date}</span>
                 </div>
-                <h2 className="text-lg font-bold text-gray-900 mb-2">
+                <h2 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
                   {post.title}
                 </h2>
                 <p className="text-sm text-gray-600 line-clamp-2">
