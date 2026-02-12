@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: "로또리의 개인정보처리방침을 안내합니다.",
   alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: "개인정보처리방침",
+    description: "로또리의 개인정보처리방침을 안내합니다.",
+    url: "/privacy",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function PrivacyPage() {

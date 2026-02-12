@@ -74,7 +74,7 @@ lottery_kr/
 │   └── ads.txt                        # AdSense publisher verification
 ├── scripts/
 │   ├── lib/
-│   │   └── shared.ts                  # Shared utilities (paths, constants, withRetry, withTimeout, ensureDir, buildLotteryContext, validateDrawData, validateBlogContent, getDrawNumbers, loadLottoData)
+│   │   └── shared.ts                  # Shared utilities (paths, constants, KST dates, withRetry, withTimeout, ensureDir, buildLotteryContext, validateDrawData, validateBlogContent, getDrawNumbers, loadLottoData)
 │   ├── update-data.ts                 # Fetches lottery data (retry + validation + backup + 30s timeout)
 │   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API (uses shared retry + validation)
 │   ├── generate-prediction.ts         # Generates weekly prediction post (uses shared retry + validation)
@@ -441,6 +441,7 @@ The site runs fully autonomously with zero user intervention. All automation inc
 Single source of truth for all script-side constants and utilities:
 - **File paths:** `DATA_PATH`, `BACKUP_PATH`, `BLOG_DIR`, `TOPICS_PATH` — eliminates duplicate path definitions
 - **Lottery constants:** `LOTTO_MIN_NUMBER`, `LOTTO_MAX_NUMBER`, `LOTTO_NUMBERS_PER_SET`, `LOTTO_SECTIONS` — same names as `src/lib/constants.ts` (unified naming convention)
+- **KST utilities:** `getKSTDate()`, `formatKSTDate()` — mirrors `src/lib/utils/kst.ts` for scripts; all date operations use KST consistently
 - **`withRetry()`:** Generic retry with exponential backoff (1s/2s/4s, capped at 30s) — used by all scripts
 - **`withTimeout()`:** Promise timeout wrapper (default 120s) — prevents indefinite hangs on API calls
 - **`ensureDir()`:** Safe directory creation with error handling — exits with code 1 on failure
@@ -453,7 +454,7 @@ Single source of truth for all script-side constants and utilities:
 ### Data Pipeline Resilience (`scripts/update-data.ts`)
 
 - **`withRetry()` + `fetchWithTimeout()`:** 3 attempts per round with 30s timeout via AbortController
-- **`findLatestRound()`:** Dynamic round detection based on elapsed weeks since first draw (2002-12-07) + existing data baseline — no hardcoded limits
+- **`findLatestRound()`:** Dynamic round detection based on elapsed KST weeks since first draw (2002-12-07) + existing data baseline — no hardcoded limits
 - **`validateDrawData()`:** Shared validation from `shared.ts` — numbers 1-45 range, no duplicates, valid dates, sequential rounds
 - **`backupExistingData()`:** Copies `lotto.json` → `lotto.json.bak` before overwrite
 - **Failed round tracking:** Logs which specific rounds failed to fetch in each batch for debugging

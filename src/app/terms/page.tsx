@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "이용약관",
   description: "로또리의 이용약관을 안내합니다.",
   alternates: { canonical: "/terms" },
+  openGraph: {
+    title: "이용약관",
+    description: "로또리의 이용약관을 안내합니다.",
+    url: "/terms",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function TermsPage() {

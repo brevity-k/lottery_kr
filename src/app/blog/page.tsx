@@ -3,12 +3,22 @@ import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "블로그",
   description:
     "로또 6/45 당첨번호 분석, 통계 심층분석, 번호 선택 전략 등 유용한 정보를 제공합니다.",
   alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "블로그",
+    description:
+      "로또 6/45 당첨번호 분석, 통계 심층분석, 번호 선택 전략 등 유용한 정보를 제공합니다.",
+    url: "/blog",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function BlogPage() {

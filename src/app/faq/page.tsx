@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "자주 묻는 질문 (FAQ) - 로또 구매, 당첨금 수령, 세금 안내",
   description:
     "로또 6/45 구매 방법, 당첨금 수령 절차, 세금 계산, 추첨 일정 등 자주 묻는 질문과 답변을 확인하세요.",
   alternates: { canonical: "/faq" },
+  openGraph: {
+    title: "자주 묻는 질문 (FAQ) - 로또 구매, 당첨금 수령, 세금 안내",
+    description:
+      "로또 6/45 구매 방법, 당첨금 수령 절차, 세금 계산, 추첨 일정 등 자주 묻는 질문과 답변을 확인하세요.",
+    url: "/faq",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 const faqs = [

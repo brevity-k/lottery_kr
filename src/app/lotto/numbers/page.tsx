@@ -5,12 +5,22 @@ import { calculateFrequencies } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "번호별 통계 - 로또 6/45 번호 1~45 출현 분석",
   description:
     "로또 6/45 번호 1부터 45까지 각 번호의 출현 빈도, 최근 출현 회차, 평균 간격 등 상세 통계를 확인하세요.",
   alternates: { canonical: "/lotto/numbers" },
+  openGraph: {
+    title: "번호별 통계 - 로또 6/45 번호 1~45 출현 분석",
+    description:
+      "로또 6/45 번호 1부터 45까지 각 번호의 출현 빈도, 최근 출현 회차, 평균 간격 등 상세 통계를 확인하세요.",
+    url: "/lotto/numbers",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function NumbersIndexPage() {

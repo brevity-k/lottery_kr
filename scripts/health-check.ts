@@ -8,7 +8,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoDataFile } from "../src/types/lottery";
-import { DATA_PATH, BLOG_DIR, validateDrawData, validateBlogContent } from "./lib/shared";
+import { DATA_PATH, BLOG_DIR, validateDrawData, validateBlogContent, getKSTDate } from "./lib/shared";
 
 /** Health check thresholds (days). */
 const DATA_FRESHNESS_FAIL_DAYS = 10;
@@ -33,7 +33,7 @@ function checkDataFreshness(): CheckResult {
     const data: LottoDataFile = JSON.parse(raw);
 
     const lastUpdated = new Date(data.lastUpdated);
-    const now = new Date();
+    const now = getKSTDate();
     const daysSinceUpdate = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
 
     if (daysSinceUpdate > DATA_FRESHNESS_FAIL_DAYS) {
@@ -166,7 +166,7 @@ function checkBlogPosts(): CheckResult {
     }
 
     if (latestDate) {
-      const daysSince = (Date.now() - new Date(latestDate).getTime()) / (1000 * 60 * 60 * 24);
+      const daysSince = (getKSTDate().getTime() - new Date(latestDate).getTime()) / (1000 * 60 * 60 * 24);
       if (daysSince > BLOG_FRESHNESS_FAIL_DAYS) {
         return {
           name: "Blog Posts",
@@ -290,7 +290,7 @@ function runHealthCheck(): void {
   const hasFail = checks.some((c) => c.status === "fail");
 
   const report: HealthReport = {
-    timestamp: new Date().toISOString(),
+    timestamp: getKSTDate().toISOString(),
     overall: hasFail ? "unhealthy" : "healthy",
     checks,
   };

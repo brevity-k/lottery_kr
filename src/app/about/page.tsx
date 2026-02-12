@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "소개",
   description: "로또리는 한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.",
   alternates: { canonical: "/about" },
+  openGraph: {
+    title: "소개",
+    description: "로또리는 한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.",
+    url: "/about",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function AboutPage() {

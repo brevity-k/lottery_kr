@@ -27,6 +27,25 @@ export const LOTTO_SECTIONS: readonly [number, number][] = [
 ];
 export const LOTTO_FIRST_DRAW_DATE = "2002-12-07";
 
+/**
+ * KST (Korean Standard Time, UTC+9) utilities for scripts.
+ * Mirrors src/lib/utils/kst.ts — scripts can't use @/ alias.
+ */
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+export function getKSTDate(): Date {
+  const now = new Date();
+  return new Date(now.getTime() + KST_OFFSET_MS + now.getTimezoneOffset() * 60 * 1000);
+}
+
+/** Formats a KST Date as YYYY-MM-DD string. */
+export function formatKSTDate(d: Date = getKSTDate()): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 /** Maximum backoff delay (30s) to prevent extreme waits with high retry counts. */
 const MAX_BACKOFF_MS = 30_000;
 

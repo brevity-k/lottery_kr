@@ -3,12 +3,22 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ResultsClient from "./ResultsClient";
+import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "로또 당첨번호 조회 - 전 회차 당첨번호",
   description:
     "로또 6/45 1회부터 최신 회차까지 전체 당첨번호를 확인하세요. 회차별 당첨번호, 당첨금, 당첨자 수를 제공합니다.",
   alternates: { canonical: "/lotto/results" },
+  openGraph: {
+    title: "로또 당첨번호 조회 - 전 회차 당첨번호",
+    description:
+      "로또 6/45 1회부터 최신 회차까지 전체 당첨번호를 확인하세요. 회차별 당첨번호, 당첨금, 당첨자 수를 제공합니다.",
+    url: "/lotto/results",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function ResultsPage() {

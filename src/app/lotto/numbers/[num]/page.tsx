@@ -6,7 +6,7 @@ import { getNumberDetail } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { LOTTO_MAX_NUMBER } from "@/lib/constants";
+import { LOTTO_MAX_NUMBER, SITE_NAME } from "@/lib/constants";
 
 interface Props {
   params: Promise<{ num: string }>;
@@ -22,6 +22,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `번호 ${num} 상세 통계 - 로또 6/45`,
     description: `로또 6/45 번호 ${num}의 출현 빈도, 평균 간격, 최대 간격, 최근 출현 회차 등 상세 통계를 확인하세요.`,
     alternates: { canonical: `/lotto/numbers/${num}` },
+    openGraph: {
+      title: `번호 ${num} 상세 통계 - 로또 6/45`,
+      description: `로또 6/45 번호 ${num}의 출현 빈도, 평균 간격, 최대 간격, 최근 출현 회차 등 상세 통계를 확인하세요.`,
+      url: `/lotto/numbers/${num}`,
+      siteName: SITE_NAME,
+      locale: "ko_KR",
+      type: "website",
+    },
   };
 }
 

@@ -1,12 +1,20 @@
 import type { Metadata } from "next";
 import ContactForm from "./ContactForm";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { OWNER_EMAIL } from "@/lib/constants";
+import { OWNER_EMAIL, SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "문의하기",
   description: "로또리에 문의사항이 있으시면 연락주세요.",
   alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "문의하기",
+    description: "로또리에 문의사항이 있으시면 연락주세요.",
+    url: "/contact",
+    siteName: SITE_NAME,
+    locale: "ko_KR",
+    type: "website",
+  },
 };
 
 export default function ContactPage() {

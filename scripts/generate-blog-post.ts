@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, getDrawNumbers, loadLottoData, ensureDir, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
+import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, getDrawNumbers, loadLottoData, ensureDir, getKSTDate, formatKSTDate, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
 
 interface TopicConfig {
   id: string;
@@ -67,16 +67,17 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
     };
   }
 
-  // Otherwise, rotate through other topics based on week number
+  // Otherwise, rotate through other topics based on KST week number
+  const kstNow = getKSTDate();
   const weekOfYear = Math.ceil(
-    (Date.now() - new Date(new Date().getFullYear(), 0, 1).getTime()) /
+    (kstNow.getTime() - new Date(kstNow.getFullYear(), 0, 1).getTime()) /
       (7 * 24 * 60 * 60 * 1000)
   );
   const otherTopics = topics.filter((t) => t.id !== "draw-analysis");
   const selectedTopic = otherTopics[weekOfYear % otherTopics.length];
 
   const recentCount = "20";
-  const year = new Date().getFullYear().toString();
+  const year = kstNow.getFullYear().toString();
   const dateEnd = latest.drwNoDate;
   const dateStart =
     data.draws[Math.min(4, data.draws.length - 1)]?.drwNoDate ?? dateEnd;
@@ -126,8 +127,8 @@ async function generatePost(): Promise<void> {
   const tags = topic.tags.map((t) => fillTemplate(t, vars));
   const context = buildLotteryContext(data);
 
-  // Generate slug
-  const today = new Date().toISOString().slice(0, 10);
+  // Generate slug — use KST date for Korean audience
+  const today = formatKSTDate();
   const slug =
     topic.id === "draw-analysis"
       ? `${vars.round}-draw-analysis`

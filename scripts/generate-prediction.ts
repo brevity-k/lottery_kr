@@ -9,7 +9,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoResult, LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, withTimeout, getDrawNumbers, validateBlogContent, loadLottoData, ensureDir, BLOG_DIR, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_SECTIONS } from "./lib/shared";
+import { withRetry, withTimeout, getDrawNumbers, validateBlogContent, buildLotteryContext, loadLottoData, ensureDir, formatKSTDate, BLOG_DIR, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_SECTIONS } from "./lib/shared";
 
 function computeFrequency(draws: LottoResult[]): Map<number, number> {
   const freq = new Map<number, number>();
@@ -113,22 +113,15 @@ async function generatePrediction(): Promise<void> {
     process.exit(0);
   }
 
-  // Build rich context
-  const recent10 = data.draws.slice(0, 10);
-  const recentLines = recent10.map((d) => {
-    const nums = getDrawNumbers(d);
-    return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo}`;
-  });
-
+  // Build rich context — shared base + prediction-specific data
+  const baseContext = buildLotteryContext(data);
   const recent20 = data.draws.slice(0, 20);
   const recentFreq = computeFrequency(recent20);
   const hotNumbers = getTopN(recentFreq, 8);
   const coldNumbers = getTopN(recentFreq, 8, true);
-
   const recommendedSets = generateRecommendedSets(data);
 
-  const context = `최근 10회차 당첨번호:
-${recentLines.join("\n")}
+  const context = `${baseContext}
 
 최근 20회차 핫넘버 (출현 빈도 상위): ${hotNumbers.join(", ")}
 최근 20회차 콜드넘버 (출현 빈도 하위): ${coldNumbers.join(", ")}
@@ -202,7 +195,7 @@ ${context}
     process.exit(1);
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = formatKSTDate();
   const title = `제${nextRound}회 로또 예상번호 분석 - 이번 주 추천 번호`;
 
   const firstParagraph = content

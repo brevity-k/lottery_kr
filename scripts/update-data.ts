@@ -8,7 +8,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoResult, LottoDataFile } from "../src/types/lottery";
-import { DATA_PATH, BACKUP_PATH, LOTTO_FIRST_DRAW_DATE, validateDrawData, withRetry } from "./lib/shared";
+import { DATA_PATH, BACKUP_PATH, LOTTO_FIRST_DRAW_DATE, validateDrawData, withRetry, getKSTDate } from "./lib/shared";
 
 const FETCH_TIMEOUT_MS = 30_000;
 const FIRST_DRAW_DATE = new Date(LOTTO_FIRST_DRAW_DATE);
@@ -133,9 +133,10 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
 }
 
 async function findLatestRound(): Promise<number> {
-  // Estimate current round from elapsed weeks since first draw
+  // Estimate current round from elapsed KST weeks since first draw
+  const kstNow = getKSTDate();
   const weeksSinceFirst = Math.floor(
-    (Date.now() - FIRST_DRAW_DATE.getTime()) / (7 * 24 * 60 * 60 * 1000)
+    (kstNow.getTime() - FIRST_DRAW_DATE.getTime()) / (7 * 24 * 60 * 60 * 1000)
   );
   const estimated = weeksSinceFirst;
 
@@ -255,7 +256,7 @@ async function fetchAllData(): Promise<void> {
 
   const output: LottoDataFile = {
     lottery: "lotto645",
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: getKSTDate().toISOString(),
     latestRound,
     draws: allDraws,
   };
