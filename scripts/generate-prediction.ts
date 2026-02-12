@@ -9,11 +9,11 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoResult, LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, getDrawNumbers, validateBlogContent, loadLottoData, BLOG_DIR, LOTTO_MIN, LOTTO_MAX, LOTTO_PER_SET, LOTTO_SECTIONS } from "./lib/shared";
+import { withRetry, withTimeout, getDrawNumbers, validateBlogContent, loadLottoData, ensureDir, BLOG_DIR, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_SECTIONS } from "./lib/shared";
 
 function computeFrequency(draws: LottoResult[]): Map<number, number> {
   const freq = new Map<number, number>();
-  for (let i = LOTTO_MIN; i <= LOTTO_MAX; i++) freq.set(i, 0);
+  for (let i = LOTTO_MIN_NUMBER; i <= LOTTO_MAX_NUMBER; i++) freq.set(i, 0);
   for (const draw of draws) {
     for (const n of getDrawNumbers(draw)) {
       freq.set(n, (freq.get(n) || 0) + 1);
@@ -63,7 +63,7 @@ function pickWeighted(pool: number[], count: number): number[] {
   }
   // Fill remaining from random if pool too small
   while (result.length < count) {
-    const n = Math.floor(Math.random() * LOTTO_MAX) + LOTTO_MIN;
+    const n = Math.floor(Math.random() * LOTTO_MAX_NUMBER) + LOTTO_MIN_NUMBER;
     if (!result.includes(n)) result.push(n);
   }
   return result;
@@ -80,8 +80,8 @@ function pickBalanced(coldNumbers: number[]): number[] {
     }
   }
   // Add 6th number
-  while (result.length < LOTTO_PER_SET) {
-    const n = Math.floor(Math.random() * LOTTO_MAX) + LOTTO_MIN;
+  while (result.length < LOTTO_NUMBERS_PER_SET) {
+    const n = Math.floor(Math.random() * LOTTO_MAX_NUMBER) + LOTTO_MIN_NUMBER;
     if (!result.includes(n)) result.push(n);
   }
   return result;
@@ -142,13 +142,14 @@ ${recommendedSets}`;
 
   const message = await withRetry(
     () =>
-      client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4000,
-        messages: [
-          {
-            role: "user",
-            content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 제${nextRound}회 로또 예상번호 분석 블로그 글을 작성해주세요.
+      withTimeout(
+        client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4000,
+          messages: [
+            {
+              role: "user",
+              content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 제${nextRound}회 로또 예상번호 분석 블로그 글을 작성해주세요.
 
 ${context}
 
@@ -170,9 +171,12 @@ ${context}
 - 데이터에 기반한 사실만 언급
 - "예상번호는 통계적 참고자료일 뿐 당첨을 보장하지 않습니다"라는 면책 문구를 반드시 포함
 - 마지막에: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."`,
-          },
-        ],
-      }),
+            },
+          ],
+        }),
+        120_000,
+        "Claude API"
+      ),
     3,
     "Claude API"
   );
@@ -218,10 +222,7 @@ ${context}
     tags: [`${nextRound}회`, "예상번호", "로또전망", "AI추천", "통계분석"],
   };
 
-  if (!fs.existsSync(BLOG_DIR)) {
-    fs.mkdirSync(BLOG_DIR, { recursive: true });
-  }
-
+  ensureDir(BLOG_DIR);
   fs.writeFileSync(outputPath, JSON.stringify(post, null, 2));
 
   console.log(`✅ Prediction post saved: ${outputPath}`);

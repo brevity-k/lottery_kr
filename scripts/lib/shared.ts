@@ -16,19 +16,26 @@ export const TOPICS_PATH = path.join(process.cwd(), "scripts/blog-topics.json");
 
 /**
  * Lottery constants re-exported for scripts that can't use @/ alias.
- * Mirrors src/lib/constants.ts to avoid hardcoded magic numbers in scripts.
+ * Uses the same names as src/lib/constants.ts — single naming convention
+ * across the entire codebase.
  */
-export const LOTTO_MIN = 1;
-export const LOTTO_MAX = 45;
-export const LOTTO_PER_SET = 6;
+export const LOTTO_MIN_NUMBER = 1;
+export const LOTTO_MAX_NUMBER = 45;
+export const LOTTO_NUMBERS_PER_SET = 6;
 export const LOTTO_SECTIONS: readonly [number, number][] = [
   [1, 9], [10, 18], [19, 27], [28, 36], [37, 45],
 ];
 export const LOTTO_FIRST_DRAW_DATE = "2002-12-07";
 
+/** Maximum backoff delay (30s) to prevent extreme waits with high retry counts. */
+const MAX_BACKOFF_MS = 30_000;
+
+/** Default timeout for external API calls (2 minutes). */
+const DEFAULT_API_TIMEOUT_MS = 120_000;
+
 /**
- * Generic retry wrapper with exponential backoff.
- * Retries up to `maxRetries` times with delays of 1s, 2s, 4s, etc.
+ * Generic retry wrapper with exponential backoff (capped at 30s).
+ * Retries up to `maxRetries` times with delays of 1s, 2s, 4s, … (max 30s).
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
@@ -40,7 +47,7 @@ export async function withRetry<T>(
       return await fn();
     } catch (err) {
       if (attempt < maxRetries) {
-        const delay = Math.pow(2, attempt - 1) * 1000;
+        const delay = Math.min(Math.pow(2, attempt - 1) * 1000, MAX_BACKOFF_MS);
         console.warn(
           `⚠️ ${label} failed, retrying in ${delay / 1000}s... (attempt ${attempt}/${maxRetries}): ${err}`
         );
@@ -51,6 +58,54 @@ export async function withRetry<T>(
     }
   }
   throw new Error(`${label}: exhausted all retries`);
+}
+
+/**
+ * Wraps a promise with a timeout. Rejects if the operation doesn't
+ * complete within `timeoutMs` milliseconds.
+ */
+export function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs = DEFAULT_API_TIMEOUT_MS,
+  label = "Operation"
+): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+        timeoutMs
+      )
+    ),
+  ]);
+}
+
+/**
+ * Ensures a directory exists, creating it recursively if needed.
+ * Exits with code 1 on failure to prevent silent write errors.
+ */
+export function ensureDir(dirPath: string): void {
+  if (!fs.existsSync(dirPath)) {
+    try {
+      fs.mkdirSync(dirPath, { recursive: true });
+    } catch (err) {
+      console.error(`❌ Failed to create directory ${dirPath}: ${err}`);
+      process.exit(1);
+    }
+  }
+}
+
+/**
+ * Builds a lottery context string from recent draws for AI prompts.
+ * Shared between generate-blog-post.ts and generate-prediction.ts.
+ */
+export function buildLotteryContext(data: LottoDataFile, recentCount = 10): string {
+  const recent = data.draws.slice(0, recentCount);
+  const lines = recent.map((d) => {
+    const nums = getDrawNumbers(d);
+    return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo}`;
+  });
+  return `최근 ${recentCount}회차 당첨번호:\n${lines.join("\n")}`;
 }
 
 /** Blog content validation thresholds. */
@@ -76,6 +131,13 @@ export function validateBlogContent(content: string): string[] {
     warnings.push("No markdown headings found");
   }
 
+  // Verify content looks like markdown (not HTML or plain text)
+  const hasMarkdownStructure =
+    content.includes("##") || content.includes("**") || content.includes("- ");
+  if (!hasMarkdownStructure) {
+    warnings.push("Content does not appear to be formatted as markdown");
+  }
+
   return warnings;
 }
 
@@ -98,16 +160,16 @@ export function validateDrawData(
     const nums = getDrawNumbers(draw);
 
     for (const n of nums) {
-      if (n < LOTTO_MIN || n > LOTTO_MAX) {
-        errors.push(`Round ${draw.drwNo}: number ${n} out of range ${LOTTO_MIN}-${LOTTO_MAX}`);
+      if (n < LOTTO_MIN_NUMBER || n > LOTTO_MAX_NUMBER) {
+        errors.push(`Round ${draw.drwNo}: number ${n} out of range ${LOTTO_MIN_NUMBER}-${LOTTO_MAX_NUMBER}`);
       }
     }
 
-    if (draw.bnusNo < LOTTO_MIN || draw.bnusNo > LOTTO_MAX) {
-      errors.push(`Round ${draw.drwNo}: bonus ${draw.bnusNo} out of range ${LOTTO_MIN}-${LOTTO_MAX}`);
+    if (draw.bnusNo < LOTTO_MIN_NUMBER || draw.bnusNo > LOTTO_MAX_NUMBER) {
+      errors.push(`Round ${draw.drwNo}: bonus ${draw.bnusNo} out of range ${LOTTO_MIN_NUMBER}-${LOTTO_MAX_NUMBER}`);
     }
 
-    if (new Set(nums).size !== LOTTO_PER_SET) {
+    if (new Set(nums).size !== LOTTO_NUMBERS_PER_SET) {
       errors.push(`Round ${draw.drwNo}: duplicate numbers found in ${nums.join(",")}`);
     }
 
