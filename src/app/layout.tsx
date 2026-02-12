@@ -56,8 +56,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" translate="no">
       <head>
+        <meta name="google" content="notranslate" />
+        <meta httpEquiv="Content-Language" content="ko" />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-TCRP4JXV63"
           strategy="afterInteractive"
