@@ -206,8 +206,16 @@ async function fetchAllData(): Promise<void> {
     }
 
     const results = await Promise.all(promises);
-    for (const r of results) {
-      if (r) newDraws.push(r);
+    const failedInBatch: number[] = [];
+    for (let idx = 0; idx < results.length; idx++) {
+      if (results[idx]) {
+        newDraws.push(results[idx]!);
+      } else {
+        failedInBatch.push(i + idx);
+      }
+    }
+    if (failedInBatch.length > 0) {
+      console.warn(`\n  ⚠️ Failed to fetch rounds: ${failedInBatch.join(", ")}`);
     }
 
     const progress = Math.min(
@@ -277,9 +285,23 @@ fetchAllData().catch((err) => {
         process.exit(0); // Don't block build
       }
     } catch {
-      // existing data is also broken
+      // Primary file is also broken — try backup
     }
   }
-  console.error(`\n❌ Data update failed and no existing data available: ${err}`);
+  // Last resort: attempt backup restoration
+  if (fs.existsSync(BACKUP_PATH)) {
+    try {
+      const backup = JSON.parse(fs.readFileSync(BACKUP_PATH, "utf-8")) as LottoDataFile;
+      if (backup.draws && backup.draws.length > 0) {
+        fs.copyFileSync(BACKUP_PATH, DATA_PATH);
+        console.warn(`\n⚠️ Data update failed: ${err}`);
+        console.warn(`   Restored from backup (${backup.draws.length} rounds, latest: ${backup.latestRound})`);
+        process.exit(0);
+      }
+    } catch {
+      // Backup is also broken
+    }
+  }
+  console.error(`\n❌ Data update failed and no existing/backup data available: ${err}`);
   process.exit(1);
 });

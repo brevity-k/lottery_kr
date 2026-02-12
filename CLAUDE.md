@@ -74,7 +74,7 @@ lottery_kr/
 │   └── ads.txt                        # AdSense publisher verification
 ├── scripts/
 │   ├── lib/
-│   │   └── shared.ts                  # Shared utilities (paths, constants, withRetry, validateDrawData, validateBlogContent, getDrawNumbers, loadLottoData)
+│   │   └── shared.ts                  # Shared utilities (paths, constants, withRetry, withTimeout, ensureDir, buildLotteryContext, validateDrawData, validateBlogContent, getDrawNumbers, loadLottoData)
 │   ├── update-data.ts                 # Fetches lottery data (retry + validation + backup + 30s timeout)
 │   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API (uses shared retry + validation)
 │   ├── generate-prediction.ts         # Generates weekly prediction post (uses shared retry + validation)
@@ -97,7 +97,7 @@ lottery_kr/
     │   ├── api/
     │   │   └── dhlottery.ts           # Lottery data loading (reads from local JSON)
     │   ├── blog.ts                    # Blog data loading (reads from content/blog/*.json, skips malformed)
-    │   ├── constants.ts               # App-wide constants (SITE_URL, SITE_NAME, OWNER_EMAIL, KAKAO_APP_KEY, LOTTO_*, LOTTO_SECTIONS, LOTTO_TICKET_PRICE)
+    │   ├── constants.ts               # App-wide constants (SITE_URL, SITE_NAME, OWNER_EMAIL, GA4_MEASUREMENT_ID, KAKAO_APP_KEY, LOTTO_*, LOTTO_SECTIONS, LOTTO_TICKET_PRICE)
     │   ├── lottery/
     │   │   ├── recommend.ts           # 6 recommendation algorithms (uses LOTTO_SECTIONS from constants)
     │   │   ├── stats.ts               # Statistical calculations (exports getDrawNumbers)
@@ -440,10 +440,13 @@ The site runs fully autonomously with zero user intervention. All automation inc
 
 Single source of truth for all script-side constants and utilities:
 - **File paths:** `DATA_PATH`, `BACKUP_PATH`, `BLOG_DIR`, `TOPICS_PATH` — eliminates duplicate path definitions
-- **Lottery constants:** `LOTTO_MIN`, `LOTTO_MAX`, `LOTTO_PER_SET`, `LOTTO_SECTIONS` — mirrors `src/lib/constants.ts` for scripts
-- **`withRetry()`:** Generic retry with exponential backoff (1s/2s/4s) — used by all scripts
+- **Lottery constants:** `LOTTO_MIN_NUMBER`, `LOTTO_MAX_NUMBER`, `LOTTO_NUMBERS_PER_SET`, `LOTTO_SECTIONS` — same names as `src/lib/constants.ts` (unified naming convention)
+- **`withRetry()`:** Generic retry with exponential backoff (1s/2s/4s, capped at 30s) — used by all scripts
+- **`withTimeout()`:** Promise timeout wrapper (default 120s) — prevents indefinite hangs on API calls
+- **`ensureDir()`:** Safe directory creation with error handling — exits with code 1 on failure
+- **`buildLotteryContext()`:** Builds recent-draws context string for AI prompts — shared between blog and prediction scripts
 - **`validateDrawData()`:** Number range, duplicates, date format, sequential rounds — shared between `update-data.ts` and `health-check.ts`
-- **`validateBlogContent()`:** Min length (800 chars), AI disclaimer, markdown headings
+- **`validateBlogContent()`:** Min length (800 chars), AI disclaimer, markdown headings, markdown structure
 - **`getDrawNumbers()`:** Extract 6 numbers from LottoResult — used by all scripts
 - **`loadLottoData()`:** Load + parse lotto.json with backup fallback — mirrors `dhlottery.ts` resilience
 
@@ -453,20 +456,22 @@ Single source of truth for all script-side constants and utilities:
 - **`findLatestRound()`:** Dynamic round detection based on elapsed weeks since first draw (2002-12-07) + existing data baseline — no hardcoded limits
 - **`validateDrawData()`:** Shared validation from `shared.ts` — numbers 1-45 range, no duplicates, valid dates, sequential rounds
 - **`backupExistingData()`:** Copies `lotto.json` → `lotto.json.bak` before overwrite
-- **Graceful degradation:** If fetch fails but existing data is available, exits with code 0 (doesn't block builds)
+- **Failed round tracking:** Logs which specific rounds failed to fetch in each batch for debugging
+- **Graceful degradation:** If fetch fails, falls back to existing data → then backup file → exits with code 0 (doesn't block builds)
 - **Exit code 1** on validation failure (prevents corrupt data from being committed)
 
 ### Blog Pipeline Resilience (`scripts/generate-blog-post.ts`)
 
-- **`withRetry()`:** Generic retry from `scripts/lib/shared.ts` — 3 attempts with exponential backoff
-- **`validateBlogContent()`:** Checks min length (800 chars), AI disclaimer, markdown headings — **blocks publication on failure** (exit code 1)
+- **`withRetry()` + `withTimeout()`:** Retry with exponential backoff (capped at 30s) + 120s timeout on Claude API calls — prevents indefinite hangs
+- **`validateBlogContent()`:** Checks min length (800 chars), AI disclaimer, markdown headings, markdown structure — **blocks publication on failure** (exit code 1)
+- **`ensureDir()`:** Safe blog directory creation with error handling — exits with code 1 on failure
 - **Duplicate prevention:** Skips if output slug file exists (exit code 0)
 - **Increased output:** `max_tokens: 4000`, targets 1500-2500 words
 
 ### Prediction Pipeline (`scripts/generate-prediction.ts`)
 
 - Computes hot/cold numbers from recent 20 draws using shared `getDrawNumbers()`
-- Generates 3 AI recommendation sets using shared `LOTTO_SECTIONS` and `LOTTO_MIN`/`LOTTO_MAX` constants
+- Generates 3 AI recommendation sets using shared `LOTTO_SECTIONS` and `LOTTO_MIN_NUMBER`/`LOTTO_MAX_NUMBER` constants
 - Rich context prompt with recent 10 draws + statistical analysis
 - Built-in duplicate prevention + retry
 - **Content validation:** Same `validateBlogContent()` from shared — blocks publication on failure
@@ -477,7 +482,7 @@ Single source of truth for all script-side constants and utilities:
 1. **Data freshness:** Fail if data >10 days old
 2. **Data integrity:** Uses shared `validateDrawData()` on sampled draws (first 10, middle 10, last 10)
 3. **Blog posts:** Fail if latest post >14 days old, warn if any posts have invalid JSON or missing required fields
-4. **Critical files:** 29 essential files must exist (pages, components, constants, utilities, data loaders, automation scripts + shared module)
+4. **Critical files:** 50 essential files must exist (all pages, dynamic routes, components, business logic, constants, utilities, types, data loaders, config files, automation scripts + shared module)
 
 Outputs JSON report + human-readable summary. Exit code 1 triggers GitHub Issue.
 

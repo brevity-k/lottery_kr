@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, validateBlogContent, getDrawNumbers, loadLottoData, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
+import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, getDrawNumbers, loadLottoData, ensureDir, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
 
 interface TopicConfig {
   id: string;
@@ -19,8 +19,23 @@ interface TopicConfig {
 }
 
 function loadTopics(): TopicConfig[] {
-  const raw = fs.readFileSync(TOPICS_PATH, "utf-8");
-  return JSON.parse(raw).topics;
+  try {
+    if (!fs.existsSync(TOPICS_PATH)) {
+      console.error(`❌ Blog topics file not found: ${TOPICS_PATH}`);
+      process.exit(1);
+    }
+    const raw = fs.readFileSync(TOPICS_PATH, "utf-8");
+    const parsed = JSON.parse(raw);
+    if (!parsed.topics || !Array.isArray(parsed.topics) || parsed.topics.length === 0) {
+      console.error("❌ Invalid topics file: expected non-empty .topics array");
+      process.exit(1);
+    }
+    return parsed.topics;
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("❌")) throw err;
+    console.error(`❌ Failed to load blog topics: ${err}`);
+    process.exit(1);
+  }
 }
 
 function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
@@ -39,8 +54,8 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
 
   // Prefer draw-analysis for the latest round if not already written
   const drawAnalysisSlug = `${latest.drwNo}-draw-analysis.json`;
-  if (!existingFiles.includes(drawAnalysisSlug)) {
-    const drawTopic = topics.find((t) => t.id === "draw-analysis")!;
+  const drawTopic = topics.find((t) => t.id === "draw-analysis");
+  if (!existingFiles.includes(drawAnalysisSlug) && drawTopic) {
     return {
       topic: drawTopic,
       vars: {
@@ -93,15 +108,6 @@ function fillTemplate(template: string, vars: Record<string, string>): string {
   return result;
 }
 
-function buildContext(data: LottoDataFile): string {
-  const recent = data.draws.slice(0, 10);
-  const lines = recent.map((d) => {
-    const nums = getDrawNumbers(d);
-    return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo} (1등 ${d.firstPrzwnerCo}명)`;
-  });
-  return `최근 10회차 당첨번호:\n${lines.join("\n")}`;
-}
-
 async function generatePost(): Promise<void> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -118,7 +124,7 @@ async function generatePost(): Promise<void> {
   const title = fillTemplate(topic.titleTemplate, vars);
   const prompt = fillTemplate(topic.prompt, vars);
   const tags = topic.tags.map((t) => fillTemplate(t, vars));
-  const context = buildContext(data);
+  const context = buildLotteryContext(data);
 
   // Generate slug
   const today = new Date().toISOString().slice(0, 10);
@@ -141,13 +147,14 @@ async function generatePost(): Promise<void> {
 
   const message = await withRetry(
     () =>
-      client.messages.create({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 4000,
-        messages: [
-          {
-            role: "user",
-            content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 블로그 글을 작성해주세요.
+      withTimeout(
+        client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 4000,
+          messages: [
+            {
+              role: "user",
+              content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 블로그 글을 작성해주세요.
 
 ${context}
 
@@ -162,9 +169,12 @@ ${prompt}
 - 데이터에 기반한 사실만 언급
 - 마지막에 다음 문구를 포함: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
 - "당첨을 보장하지 않는다"는 면책 문구 포함`,
-          },
-        ],
-      }),
+            },
+          ],
+        }),
+        120_000,
+        "Claude API"
+      ),
     3,
     "Claude API"
   );
@@ -208,10 +218,7 @@ ${prompt}
     tags,
   };
 
-  if (!fs.existsSync(BLOG_DIR)) {
-    fs.mkdirSync(BLOG_DIR, { recursive: true });
-  }
-
+  ensureDir(BLOG_DIR);
   fs.writeFileSync(outputPath, JSON.stringify(post, null, 2));
 
   console.log(`✅ Blog post saved: ${outputPath}`);

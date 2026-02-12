@@ -4,7 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { ToastProvider } from "@/components/ui/Toast";
-import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import { SITE_URL, SITE_NAME, GA4_MEASUREMENT_ID } from "@/lib/constants";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -67,7 +67,7 @@ export default function RootLayout({
         <meta name="google" content="notranslate" />
         <meta httpEquiv="Content-Language" content="ko" />
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-TCRP4JXV63"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA4_MEASUREMENT_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -75,7 +75,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-TCRP4JXV63');
+            gtag('config', '${GA4_MEASUREMENT_ID}');
           `}
         </Script>
         <Script

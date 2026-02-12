@@ -7,6 +7,9 @@ export const SITE_URL = "https://lottery.io.kr";
 export const SITE_NAME = "로또리";
 export const OWNER_EMAIL = "brevity1s.wos@gmail.com";
 
+/** Google Analytics 4 measurement ID */
+export const GA4_MEASUREMENT_ID = "G-TCRP4JXV63";
+
 /** Kakao JavaScript SDK app key (registered at developers.kakao.com) */
 export const KAKAO_APP_KEY = "accfcea8c90806c685d4321fa93a4501";
 
