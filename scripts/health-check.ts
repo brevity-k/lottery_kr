@@ -7,25 +7,13 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import type { LottoDataFile } from "../src/types/lottery";
+import { DATA_PATH, BLOG_DIR, validateDrawData, validateBlogContent } from "./lib/shared";
 
-interface LottoResult {
-  drwNo: number;
-  drwNoDate: string;
-  drwtNo1: number;
-  drwtNo2: number;
-  drwtNo3: number;
-  drwtNo4: number;
-  drwtNo5: number;
-  drwtNo6: number;
-  bnusNo: number;
-}
-
-interface LottoDataFile {
-  lottery: string;
-  lastUpdated: string;
-  latestRound: number;
-  draws: LottoResult[];
-}
+/** Health check thresholds (days). */
+const DATA_FRESHNESS_FAIL_DAYS = 10;
+const DATA_FRESHNESS_WARN_DAYS = 7;
+const BLOG_FRESHNESS_FAIL_DAYS = 14;
 
 interface CheckResult {
   name: string;
@@ -39,9 +27,6 @@ interface HealthReport {
   checks: CheckResult[];
 }
 
-const DATA_PATH = path.join(process.cwd(), "src/data/lotto.json");
-const BLOG_DIR = path.join(process.cwd(), "content/blog");
-
 function checkDataFreshness(): CheckResult {
   try {
     const raw = fs.readFileSync(DATA_PATH, "utf-8");
@@ -51,15 +36,15 @@ function checkDataFreshness(): CheckResult {
     const now = new Date();
     const daysSinceUpdate = (now.getTime() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
 
-    if (daysSinceUpdate > 10) {
+    if (daysSinceUpdate > DATA_FRESHNESS_FAIL_DAYS) {
       return {
         name: "Data Freshness",
         status: "fail",
-        message: `Data is ${Math.floor(daysSinceUpdate)} days old (last updated: ${data.lastUpdated}). Max allowed: 10 days.`,
+        message: `Data is ${Math.floor(daysSinceUpdate)} days old (last updated: ${data.lastUpdated}). Max allowed: ${DATA_FRESHNESS_FAIL_DAYS} days.`,
       };
     }
 
-    if (daysSinceUpdate > 7) {
+    if (daysSinceUpdate > DATA_FRESHNESS_WARN_DAYS) {
       return {
         name: "Data Freshness",
         status: "warn",
@@ -85,7 +70,6 @@ function checkDataIntegrity(): CheckResult {
   try {
     const raw = fs.readFileSync(DATA_PATH, "utf-8");
     const data: LottoDataFile = JSON.parse(raw);
-    const errors: string[] = [];
 
     if (data.draws.length === 0) {
       return {
@@ -95,43 +79,28 @@ function checkDataIntegrity(): CheckResult {
       };
     }
 
-    // Sample check: validate first 10 and last 10 draws
+    // Sample check: validate first 10, middle 10, and last 10 draws
+    const mid = Math.floor(data.draws.length / 2);
     const sampled = [
       ...data.draws.slice(0, 10),
+      ...data.draws.slice(Math.max(0, mid - 5), mid + 5),
       ...data.draws.slice(-10),
     ];
 
-    for (const draw of sampled) {
-      const nums = [
-        draw.drwtNo1, draw.drwtNo2, draw.drwtNo3,
-        draw.drwtNo4, draw.drwtNo5, draw.drwtNo6,
-      ];
-
-      for (const n of nums) {
-        if (n < 1 || n > 45) {
-          errors.push(`Round ${draw.drwNo}: number ${n} out of range`);
-        }
+    // Use shared validation for consistent checks
+    const validation = validateDrawData(sampled);
+    if (!validation.valid) {
+      // Filter out sequential round errors (expected for sampled data)
+      const realErrors = validation.errors.filter(
+        (e) => !e.startsWith("Missing round(s)")
+      );
+      if (realErrors.length > 0) {
+        return {
+          name: "Data Integrity",
+          status: "fail",
+          message: `Found ${realErrors.length} integrity issues: ${realErrors.slice(0, 3).join("; ")}`,
+        };
       }
-
-      if (draw.bnusNo < 1 || draw.bnusNo > 45) {
-        errors.push(`Round ${draw.drwNo}: bonus ${draw.bnusNo} out of range`);
-      }
-
-      if (new Set(nums).size !== 6) {
-        errors.push(`Round ${draw.drwNo}: duplicate numbers`);
-      }
-
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(draw.drwNoDate)) {
-        errors.push(`Round ${draw.drwNo}: invalid date "${draw.drwNoDate}"`);
-      }
-    }
-
-    if (errors.length > 0) {
-      return {
-        name: "Data Integrity",
-        status: "fail",
-        message: `Found ${errors.length} integrity issues: ${errors.slice(0, 3).join("; ")}`,
-      };
     }
 
     return {
@@ -168,25 +137,41 @@ function checkBlogPosts(): CheckResult {
       };
     }
 
-    // Find the most recent post by date
+    // Validate blog post structure and find the most recent post
     let latestDate = "";
+    let invalidCount = 0;
     for (const file of files) {
       try {
         const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf-8");
         const post = JSON.parse(raw);
+
+        if (!post.slug || !post.title || !post.content || !post.date || !post.description || !post.category) {
+          invalidCount++;
+        } else if (validateBlogContent(post.content).length > 0) {
+          invalidCount++;
+        }
+
         if (post.date > latestDate) latestDate = post.date;
       } catch {
-        // skip invalid files
+        invalidCount++;
       }
+    }
+
+    if (invalidCount > 0) {
+      return {
+        name: "Blog Posts",
+        status: "warn",
+        message: `${invalidCount} of ${files.length} blog posts are invalid or incomplete.`,
+      };
     }
 
     if (latestDate) {
       const daysSince = (Date.now() - new Date(latestDate).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSince > 14) {
+      if (daysSince > BLOG_FRESHNESS_FAIL_DAYS) {
         return {
           name: "Blog Posts",
           status: "fail",
-          message: `Latest blog post is ${Math.floor(daysSince)} days old (${latestDate}). Max allowed: 14 days. Total posts: ${files.length}.`,
+          message: `Latest blog post is ${Math.floor(daysSince)} days old (${latestDate}). Max allowed: ${BLOG_FRESHNESS_FAIL_DAYS} days. Total posts: ${files.length}.`,
         };
       }
     }
@@ -207,9 +192,15 @@ function checkBlogPosts(): CheckResult {
 
 function checkCriticalFiles(): CheckResult {
   const criticalFiles = [
+    // Data
     "src/data/lotto.json",
+    // Core layout and config
     "src/app/layout.tsx",
     "src/app/page.tsx",
+    "src/app/sitemap.ts",
+    "package.json",
+    "next.config.ts",
+    // Feature pages
     "src/app/lotto/page.tsx",
     "src/app/lotto/recommend/page.tsx",
     "src/app/lotto/results/page.tsx",
@@ -217,10 +208,26 @@ function checkCriticalFiles(): CheckResult {
     "src/app/lotto/tax/page.tsx",
     "src/app/lotto/simulator/page.tsx",
     "src/app/lotto/lucky/page.tsx",
+    "src/app/lotto/numbers/page.tsx",
     "src/app/blog/page.tsx",
-    "src/app/sitemap.ts",
-    "package.json",
-    "next.config.ts",
+    "src/app/faq/page.tsx",
+    // Shared components
+    "src/components/layout/Header.tsx",
+    "src/components/layout/Footer.tsx",
+    // Data loading
+    "src/lib/api/dhlottery.ts",
+    "src/lib/blog.ts",
+    // Constants and utilities
+    "src/lib/constants.ts",
+    "src/lib/utils/kst.ts",
+    "src/lib/utils/kakao.ts",
+    // Automation
+    "scripts/update-data.ts",
+    "scripts/generate-blog-post.ts",
+    "scripts/generate-prediction.ts",
+    "scripts/health-check.ts",
+    "scripts/lib/shared.ts",
+    "scripts/blog-topics.json",
   ];
 
   const missing: string[] = [];

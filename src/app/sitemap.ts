@@ -1,10 +1,10 @@
 import { MetadataRoute } from "next";
 import { getLatestRound } from "@/lib/api/dhlottery";
 import { getAllBlogPosts } from "@/lib/blog";
+import { SITE_URL, LOTTO_MAX_NUMBER } from "@/lib/constants";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://lottery.io.kr";
-  const latestRound = getLatestRound();
+  const baseUrl = SITE_URL;
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
@@ -23,21 +23,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
   ];
 
-  const roundPages: MetadataRoute.Sitemap = [];
-  const startRound = 1;
-  for (let i = latestRound; i >= startRound; i--) {
-    roundPages.push({
-      url: `${baseUrl}/lotto/results/${i}`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.5,
-    });
-  }
-
-  // Number detail pages (1-45)
+  // Number detail pages (1-45) — always available regardless of data
   const numberPages: MetadataRoute.Sitemap = [
     { url: `${baseUrl}/lotto/numbers`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
-    ...Array.from({ length: 45 }, (_, i) => ({
+    ...Array.from({ length: LOTTO_MAX_NUMBER }, (_, i) => ({
       url: `${baseUrl}/lotto/numbers/${i + 1}`,
       lastModified: new Date(),
       changeFrequency: "weekly" as const,
@@ -45,13 +34,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
   ];
 
-  const blogPosts = getAllBlogPosts();
-  const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: "monthly" as const,
-    priority: 0.6,
-  }));
+  // Round pages — only recent rounds to focus crawl budget on new site
+  // Older rounds are discoverable via internal links and pagination
+  const SITEMAP_RECENT_ROUNDS = 100;
+  let roundPages: MetadataRoute.Sitemap = [];
+  try {
+    const latestRound = getLatestRound();
+    const startRound = Math.max(1, latestRound - SITEMAP_RECENT_ROUNDS + 1);
+    for (let i = latestRound; i >= startRound; i--) {
+      roundPages.push({
+        url: `${baseUrl}/lotto/results/${i}`,
+        lastModified: new Date(),
+        changeFrequency: "monthly",
+        priority: i >= latestRound - 10 ? 0.7 : 0.5,
+      });
+    }
+  } catch (err) {
+    console.error("Sitemap: failed to load lottery data for round pages:", err);
+  }
+
+  // Blog pages — graceful fallback if data loading fails
+  let blogPages: MetadataRoute.Sitemap = [];
+  try {
+    const blogPosts = getAllBlogPosts();
+    blogPages = blogPosts.map((post) => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }));
+  } catch (err) {
+    console.error("Sitemap: failed to load blog posts:", err);
+  }
 
   return [...staticPages, ...roundPages, ...numberPages, ...blogPages];
 }

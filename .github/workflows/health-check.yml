@@ -30,7 +30,16 @@ jobs:
       - run: npm ci
 
       - name: Run health check
+        id: first_attempt
         run: npm run health-check
+        continue-on-error: true
+
+      - name: Retry after delay
+        if: steps.first_attempt.outcome == 'failure'
+        run: |
+          echo "⚠️ First attempt failed, retrying in 60s..."
+          sleep 60
+          npm run health-check
 
       - name: Create issue on failure
         if: failure()

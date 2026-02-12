@@ -54,7 +54,7 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+            className="md:hidden p-2.5 rounded-lg text-gray-600 hover:bg-gray-100"
             aria-label="메뉴 열기"
           >
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -69,22 +69,28 @@ export default function Header() {
 
         {/* Mobile Nav */}
         {menuOpen && (
-          <nav className="md:hidden pb-4 border-t border-gray-100 pt-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={`block px-4 py-3 text-sm font-medium rounded-lg ${
-                  isActive(item.href)
-                    ? "bg-blue-50 text-blue-600"
-                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <>
+            <div
+              className="fixed inset-0 bg-black/20 z-40 md:hidden"
+              onClick={() => setMenuOpen(false)}
+            />
+            <nav className="md:hidden pb-4 border-t border-gray-100 pt-2 relative z-50 bg-white">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={`block px-4 py-3 text-sm font-medium rounded-lg ${
+                    isActive(item.href)
+                      ? "bg-blue-50 text-blue-600"
+                      : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </>
         )}
       </div>
     </header>

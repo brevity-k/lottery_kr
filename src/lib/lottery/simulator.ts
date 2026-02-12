@@ -1,18 +1,6 @@
-export interface WinTierResult {
-  tier: number;
-  count: number;
-  totalPrize: number;
-}
-
-export interface SimulationResult {
-  totalSpent: number;
-  totalWon: number;
-  drawCount: number;
-  wins: WinTierResult[];
-  bestTier: number | null;
-}
-
-const TICKET_PRICE = 1000;
+import { LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_TICKET_PRICE } from "@/lib/constants";
+import type { WinTierResult, SimulationResult } from "@/types/lottery";
+export type { WinTierResult, SimulationResult };
 
 const PRIZE_AMOUNTS: Record<number, number> = {
   1: 2_000_000_000,
@@ -24,16 +12,16 @@ const PRIZE_AMOUNTS: Record<number, number> = {
 
 export function simulateDraw(): { numbers: number[]; bonus: number } {
   const pool: number[] = [];
-  for (let i = 1; i <= 45; i++) pool.push(i);
+  for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) pool.push(i);
 
   // Fisher-Yates shuffle for first 7
-  for (let i = pool.length - 1; i > pool.length - 8; i--) {
+  for (let i = pool.length - 1; i > pool.length - (LOTTO_NUMBERS_PER_SET + 2); i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
 
-  const picked = pool.slice(pool.length - 7);
-  const numbers = picked.slice(0, 6).sort((a, b) => a - b);
+  const picked = pool.slice(pool.length - (LOTTO_NUMBERS_PER_SET + 1));
+  const numbers = picked.slice(0, LOTTO_NUMBERS_PER_SET).sort((a, b) => a - b);
   const bonus = picked[6];
 
   return { numbers, bonus };
@@ -89,7 +77,7 @@ export function runSimulation(
   }
 
   return {
-    totalSpent: drawCount * TICKET_PRICE,
+    totalSpent: drawCount * LOTTO_TICKET_PRICE,
     totalWon,
     drawCount,
     wins,

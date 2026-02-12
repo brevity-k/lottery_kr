@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLottoResult, getAllResults } from "@/lib/api/dhlottery";
+import { SITE_NAME } from "@/lib/constants";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
@@ -27,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `제 ${round}회 로또 당첨번호`,
       description: `로또 6/45 제 ${round}회 당첨번호, 당첨금액, 당첨자 수를 확인하세요.`,
       url: `/lotto/results/${round}`,
-      siteName: "로또리",
+      siteName: SITE_NAME,
       locale: "ko_KR",
       type: "article",
     },

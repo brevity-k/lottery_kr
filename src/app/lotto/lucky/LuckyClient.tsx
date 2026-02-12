@@ -3,22 +3,9 @@
 import { useState, useEffect } from "react";
 import LottoBall from "@/components/lottery/LottoBall";
 import { useToast } from "@/components/ui/Toast";
-
-declare global {
-  interface Window {
-    Kakao?: {
-      init(appKey: string): void;
-      isInitialized(): boolean;
-      Share: {
-        sendDefault(settings: {
-          objectType: string;
-          text: string;
-          link: { mobileWebUrl: string; webUrl: string };
-        }): void;
-      };
-    };
-  }
-}
+import { SITE_URL, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET } from "@/lib/constants";
+import { getKSTDate } from "@/lib/utils/kst";
+import { getKakaoSDK } from "@/lib/utils/kakao";
 
 // Mulberry32 deterministic PRNG
 function mulberry32(seed: number) {
@@ -28,12 +15,6 @@ function mulberry32(seed: number) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-function getKSTDate(): Date {
-  const now = new Date();
-  const kstOffset = 9 * 60 * 60 * 1000;
-  return new Date(now.getTime() + kstOffset + now.getTimezoneOffset() * 60 * 1000);
 }
 
 function getKSTDateSeed(): number {
@@ -47,8 +28,8 @@ function getKSTDateSeed(): number {
 function generateLuckyNumbers(seed: number): number[] {
   const rng = mulberry32(seed);
   const numbers: number[] = [];
-  while (numbers.length < 6) {
-    const n = Math.floor(rng() * 45) + 1;
+  while (numbers.length < LOTTO_NUMBERS_PER_SET) {
+    const n = Math.floor(rng() * LOTTO_MAX_NUMBER) + 1;
     if (!numbers.includes(n)) {
       numbers.push(n);
     }
@@ -112,20 +93,17 @@ export default function LuckyClient() {
   };
 
   const handleKakaoShare = () => {
-    const Kakao = window.Kakao;
+    const Kakao = getKakaoSDK();
     if (!Kakao) {
       toast("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "error");
       return;
-    }
-    if (!Kakao.isInitialized()) {
-      Kakao.init("accfcea8c90806c685d4321fa93a4501");
     }
     Kakao.Share.sendDefault({
       objectType: "text",
       text: `🍀 오늘의 행운 번호 (${dateLabel})\n\n${numbersText}\n\n매일 바뀌는 행운의 번호를 확인하세요!`,
       link: {
-        mobileWebUrl: "https://lottery.io.kr/lotto/lucky",
-        webUrl: "https://lottery.io.kr/lotto/lucky",
+        mobileWebUrl: `${SITE_URL}/lotto/lucky`,
+        webUrl: `${SITE_URL}/lotto/lucky`,
       },
     });
   };
@@ -135,7 +113,7 @@ export default function LuckyClient() {
       navigator.share({
         title: "오늘의 행운 번호 - 로또리",
         text: `🍀 오늘의 행운 번호 (${dateLabel})\n${numbersText}`,
-        url: "https://lottery.io.kr/lotto/lucky",
+        url: `${SITE_URL}/lotto/lucky`,
       });
     } else {
       handleCopy();
@@ -144,16 +122,16 @@ export default function LuckyClient() {
 
   if (!mounted) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-8 shadow-sm">
         <div className="text-center mb-6">
           <p className="text-sm text-gray-500 mb-2">오늘의 날짜</p>
           <p className="text-lg font-bold text-gray-900">--년 --월 --일</p>
         </div>
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-2 sm:gap-3 mb-8">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="w-12 h-12 rounded-full bg-gray-200 animate-pulse"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full bg-gray-200 animate-pulse"
             />
           ))}
         </div>
@@ -163,15 +141,15 @@ export default function LuckyClient() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+      <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-8 shadow-sm">
         <div className="text-center mb-6">
           <p className="text-sm text-gray-500 mb-2">오늘의 날짜</p>
           <p className="text-lg font-bold text-gray-900">{dateLabel}</p>
         </div>
 
-        <div className="flex justify-center gap-3 mb-8">
+        <div className="flex justify-center gap-2 sm:gap-3 mb-8">
           {numbers.map((num, i) => (
-            <LottoBall key={i} number={num} size="lg" />
+            <LottoBall key={i} number={num} size="lg" className="max-sm:w-10 max-sm:h-10 max-sm:text-sm" />
           ))}
         </div>
 
@@ -187,7 +165,7 @@ export default function LuckyClient() {
       </div>
 
       {/* Share buttons */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <button
           onClick={handleCopy}
           className="flex-1 bg-gray-100 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm"

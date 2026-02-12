@@ -25,9 +25,16 @@ jobs:
       - name: Update lottery data
         run: npm run update-data
 
+      - name: Commit data update if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/data/lotto.json
+          git diff --staged --quiet || (git commit -m "data: auto-update lottery data" && git push)
+
       - name: Generate blog post
         id: first_attempt
-        run: npx tsx scripts/generate-blog-post.ts
+        run: npm run generate-blog
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         continue-on-error: true
@@ -37,15 +44,13 @@ jobs:
         run: |
           echo "⚠️ First attempt failed, retrying in 60s..."
           sleep 60
-          npx tsx scripts/generate-blog-post.ts
+          npm run generate-blog
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
-      - name: Commit and push
+      - name: Commit blog post
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add content/blog/ src/data/
+          git add content/blog/
           git diff --staged --quiet || (git commit -m "blog: auto-generate weekly post" && git push)
 
       - name: Create issue on failure

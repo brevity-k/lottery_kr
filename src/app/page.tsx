@@ -1,11 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getLatestRound, getLottoResult, getRecentResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import { getRecentBlogPosts } from "@/lib/blog";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 import LottoBall from "@/components/lottery/LottoBall";
 import DrawCountdown from "@/components/lottery/DrawCountdown";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const lotteryTypes = [
   {
@@ -48,8 +54,8 @@ export default function Home() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "로또리",
-    url: "https://lottery.io.kr",
+    name: SITE_NAME,
+    url: SITE_URL,
     description:
       "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서.",
     inLanguage: "ko",
@@ -99,7 +105,7 @@ export default function Home() {
             <Link
               key={type.href}
               href={type.href}
-              className={`${type.color} border rounded-2xl p-5 text-center transition-all hover:shadow-md`}
+              className={`${type.color} border rounded-2xl p-3 sm:p-5 text-center transition-all hover:shadow-md`}
             >
               <span className="text-3xl block mb-2">{type.icon}</span>
               <h3 className="font-bold text-gray-900 mb-1">{type.name}</h3>
@@ -113,7 +119,7 @@ export default function Home() {
       <section className="mb-10">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 최근 출현 통계</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-gray-900 mb-4">🔥 최근 자주 나온 번호</h3>
             <div className="flex gap-2 flex-wrap">
               {stats.hottestNumbers.map((num) => (
@@ -121,7 +127,7 @@ export default function Home() {
               ))}
             </div>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
             <h3 className="font-semibold text-gray-900 mb-4">❄️ 최근 적게 나온 번호</h3>
             <div className="flex gap-2 flex-wrap">
               {stats.coldestNumbers.map((num) => (

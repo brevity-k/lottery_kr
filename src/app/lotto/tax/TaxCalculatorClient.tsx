@@ -73,7 +73,7 @@ export default function TaxCalculatorClient() {
             <button
               key={p.value}
               onClick={() => handlePreset(p.value)}
-              className="px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
+              className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
             >
               {p.label}
             </button>
@@ -105,7 +105,7 @@ export default function TaxCalculatorClient() {
           {/* Net Amount Highlight */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6 text-center">
             <p className="text-sm text-blue-600 mb-1">실수령액</p>
-            <p className="text-3xl font-bold text-blue-700">{formatKRW(result.netAmount)}</p>
+            <p className="text-2xl sm:text-3xl font-bold text-blue-700 break-words">{formatKRW(result.netAmount)}</p>
             {result.totalTax > 0 && (
               <p className="text-sm text-gray-500 mt-2">
                 세금 {formatKRW(result.totalTax)} 공제 (실효세율 {result.effectiveRate.toFixed(1)}%)

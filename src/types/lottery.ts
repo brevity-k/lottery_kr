@@ -71,3 +71,35 @@ export interface BlogPost {
   category: string;
   tags: string[];
 }
+
+export interface LottoDataFile {
+  lottery: string;
+  lastUpdated: string;
+  latestRound: number;
+  draws: LottoResult[];
+}
+
+export interface TaxResult {
+  prizeAmount: number;
+  ticketCost: number;
+  taxableAmount: number;
+  incomeTax: number;
+  localTax: number;
+  totalTax: number;
+  netAmount: number;
+  effectiveRate: number;
+}
+
+export interface WinTierResult {
+  tier: number;
+  count: number;
+  totalPrize: number;
+}
+
+export interface SimulationResult {
+  totalSpent: number;
+  totalWon: number;
+  drawCount: number;
+  wins: WinTierResult[];
+  bestTier: number | null;
+}

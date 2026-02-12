@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllBlogPosts, getBlogPost } from "@/lib/blog";
 import { markdownToHtml } from "@/lib/utils/markdown";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: post.title,
       description: post.description,
       url: `/blog/${slug}`,
-      siteName: "로또리",
+      siteName: SITE_NAME,
       locale: "ko_KR",
       type: "article",
       publishedTime: post.date,
@@ -56,16 +57,16 @@ export default async function BlogPostPage({ params }: Props) {
     datePublished: post.date,
     author: {
       "@type": "Organization",
-      name: "로또리",
-      url: "https://lottery.io.kr",
+      name: SITE_NAME,
+      url: SITE_URL,
     },
     publisher: {
       "@type": "Organization",
-      name: "로또리",
+      name: SITE_NAME,
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://lottery.io.kr/blog/${slug}`,
+      "@id": `${SITE_URL}/blog/${slug}`,
     },
   };
 

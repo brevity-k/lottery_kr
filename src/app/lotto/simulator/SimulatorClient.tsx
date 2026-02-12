@@ -5,6 +5,8 @@ import LottoBall from "@/components/lottery/LottoBall";
 import { runSimulation, SimulationResult } from "@/lib/lottery/simulator";
 import { formatKRW } from "@/lib/utils/format";
 import { useToast } from "@/components/ui/Toast";
+import { SITE_URL, LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET } from "@/lib/constants";
+import { getKakaoSDK } from "@/lib/utils/kakao";
 
 const TIER_LABELS: Record<number, string> = {
   1: "1등 (6개 일치)",
@@ -30,7 +32,7 @@ export default function SimulatorClient() {
   const toggleNumber = (num: number) => {
     setSelectedNumbers((prev) => {
       if (prev.includes(num)) return prev.filter((n) => n !== num);
-      if (prev.length >= 6) return prev;
+      if (prev.length >= LOTTO_NUMBERS_PER_SET) return prev;
       return [...prev, num].sort((a, b) => a - b);
     });
     setResult(null);
@@ -38,12 +40,12 @@ export default function SimulatorClient() {
 
   const handleAutoSelect = () => {
     const pool: number[] = [];
-    for (let i = 1; i <= 45; i++) pool.push(i);
-    for (let i = pool.length - 1; i > pool.length - 7; i--) {
+    for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) pool.push(i);
+    for (let i = pool.length - 1; i > pool.length - (LOTTO_NUMBERS_PER_SET + 1); i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];
     }
-    setSelectedNumbers(pool.slice(pool.length - 6).sort((a, b) => a - b));
+    setSelectedNumbers(pool.slice(pool.length - LOTTO_NUMBERS_PER_SET).sort((a, b) => a - b));
     setResult(null);
   };
 
@@ -69,28 +71,25 @@ export default function SimulatorClient() {
   const handleCopy = () => {
     if (!result) return;
     const roi = (((result.totalWon - result.totalSpent) / result.totalSpent) * 100).toFixed(1);
-    const text = `🎰 로또 시뮬레이터 결과\n${result.drawCount.toLocaleString()}회 시뮬레이션\n💰 투자: ${formatKRW(result.totalSpent)}\n💸 당첨: ${formatKRW(result.totalWon)}\n📉 수익률: ${roi}%\n\nhttps://lottery.io.kr/lotto/simulator`;
+    const text = `🎰 로또 시뮬레이터 결과\n${result.drawCount.toLocaleString()}회 시뮬레이션\n💰 투자: ${formatKRW(result.totalSpent)}\n💸 당첨: ${formatKRW(result.totalWon)}\n📉 수익률: ${roi}%\n\n${SITE_URL}/lotto/simulator`;
     navigator.clipboard.writeText(text);
     toast("결과가 클립보드에 복사되었습니다!");
   };
 
   const handleKakaoShare = () => {
     if (!result) return;
-    const Kakao = window.Kakao;
+    const Kakao = getKakaoSDK();
     if (!Kakao) {
       toast("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "error");
       return;
-    }
-    if (!Kakao.isInitialized()) {
-      Kakao.init("accfcea8c90806c685d4321fa93a4501");
     }
     const roi = (((result.totalWon - result.totalSpent) / result.totalSpent) * 100).toFixed(1);
     Kakao.Share.sendDefault({
       objectType: "text",
       text: `🎰 로또 시뮬레이터 결과\n${result.drawCount.toLocaleString()}회 시뮬레이션\n💰 투자: ${formatKRW(result.totalSpent)}\n💸 당첨: ${formatKRW(result.totalWon)}\n📉 수익률: ${roi}%`,
       link: {
-        mobileWebUrl: "https://lottery.io.kr/lotto/simulator",
-        webUrl: "https://lottery.io.kr/lotto/simulator",
+        mobileWebUrl: `${SITE_URL}/lotto/simulator`,
+        webUrl: `${SITE_URL}/lotto/simulator`,
       },
     });
   };
@@ -109,14 +108,14 @@ export default function SimulatorClient() {
           </span>
         </div>
 
-        <div className="grid grid-cols-9 gap-1.5 sm:gap-2 mb-4">
-          {Array.from({ length: 45 }, (_, i) => i + 1).map((num) => {
+        <div className="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 gap-1 sm:gap-1.5 mb-4">
+          {Array.from({ length: LOTTO_MAX_NUMBER }, (_, i) => i + 1).map((num) => {
             const isSelected = selectedNumbers.includes(num);
             return (
               <button
                 key={num}
                 onClick={() => toggleNumber(num)}
-                className={`transition-all ${
+                className={`flex items-center justify-center min-h-[44px] transition-all ${
                   isSelected ? "scale-110" : selectedNumbers.length >= 6 ? "opacity-30" : "opacity-60 hover:opacity-100"
                 }`}
               >
@@ -193,7 +192,7 @@ export default function SimulatorClient() {
                 {result.drawCount.toLocaleString()}회 시뮬레이션 결과
               </p>
               <p
-                className={`text-3xl font-bold ${
+                className={`text-2xl sm:text-3xl font-bold break-words ${
                   netProfit >= 0 ? "text-green-700" : "text-red-600"
                 }`}
               >
@@ -264,7 +263,7 @@ export default function SimulatorClient() {
           </section>
 
           {/* Share & Retry */}
-          <div className="flex gap-3 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <button
               onClick={handleCopy}
               className="flex-1 bg-gray-100 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-200 transition-colors text-sm"
