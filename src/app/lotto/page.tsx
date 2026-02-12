@@ -47,6 +47,13 @@ const features = [
     href: "/lotto/simulator",
     cta: "체험하기",
   },
+  {
+    icon: "🔢",
+    title: "번호별 통계",
+    desc: "1~45 각 번호의 출현 빈도 상세 분석",
+    href: "/lotto/numbers",
+    cta: "확인하기",
+  },
 ];
 
 export default function LottoPage() {

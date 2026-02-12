@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import TaxCalculatorClient from "./TaxCalculatorClient";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "로또 세금 계산기 - 당첨금 실수령액 계산",
@@ -12,6 +13,10 @@ export const metadata: Metadata = {
 export default function TaxPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "세금 계산기" },
+      ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">💰 로또 세금 계산기</h1>
       <p className="text-gray-600 mb-8">
         당첨금을 입력하면 세금과 실수령액을 바로 확인할 수 있습니다.

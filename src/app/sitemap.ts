@@ -13,6 +13,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/lotto/results`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/lotto/stats`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/lotto/simulator`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/lotto/tax`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
     { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.2 },
@@ -21,7 +23,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const roundPages: MetadataRoute.Sitemap = [];
-  const startRound = Math.max(1, latestRound - 99);
+  const startRound = 1;
   for (let i = latestRound; i >= startRound; i--) {
     roundPages.push({
       url: `${baseUrl}/lotto/results/${i}`,
@@ -31,6 +33,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   }
 
+  // Number detail pages (1-45)
+  const numberPages: MetadataRoute.Sitemap = [
+    { url: `${baseUrl}/lotto/numbers`, lastModified: new Date(), changeFrequency: "weekly" as const, priority: 0.7 },
+    ...Array.from({ length: 45 }, (_, i) => ({
+      url: `${baseUrl}/lotto/numbers/${i + 1}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.5,
+    })),
+  ];
+
   const blogPosts = getAllBlogPosts();
   const blogPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
@@ -39,5 +52,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...roundPages, ...blogPages];
+  return [...staticPages, ...roundPages, ...numberPages, ...blogPages];
 }

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getLottoResult, getAllResults } from "@/lib/api/dhlottery";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 interface Props {
   params: Promise<{ round: string }>;
@@ -49,14 +50,11 @@ export default async function RoundDetailPage({ params }: Props) {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="flex items-center gap-4 mb-8">
-        <Link
-          href="/lotto/results"
-          className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-        >
-          ← 목록으로
-        </Link>
-      </div>
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "당첨번호", href: "/lotto/results" },
+        { label: `제${result.drwNo}회` },
+      ]} />
 
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
         제 {result.drwNo}회 로또 당첨번호

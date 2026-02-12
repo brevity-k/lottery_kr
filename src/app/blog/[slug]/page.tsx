@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { getAllBlogPosts, getBlogPost } from "@/lib/blog";
 import { markdownToHtml } from "@/lib/utils/markdown";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -74,12 +75,10 @@ export default async function BlogPostPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <Link
-        href="/blog"
-        className="text-sm text-blue-600 hover:text-blue-700 mb-6 inline-block"
-      >
-        &larr; 블로그 목록으로
-      </Link>
+      <Breadcrumb items={[
+        { label: "블로그", href: "/blog" },
+        { label: post.title },
+      ]} />
 
       <article>
         <div className="mb-6">

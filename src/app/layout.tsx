@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { ToastProvider } from "@/components/ui/Toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -81,9 +82,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen flex flex-col bg-background text-foreground">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <ToastProvider>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </ToastProvider>
         <Analytics />
       </body>
     </html>

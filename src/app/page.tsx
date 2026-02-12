@@ -5,6 +5,7 @@ import { getRecentBlogPosts } from "@/lib/blog";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import AdBanner from "@/components/ads/AdBanner";
 import LottoBall from "@/components/lottery/LottoBall";
+import DrawCountdown from "@/components/lottery/DrawCountdown";
 
 const lotteryTypes = [
   {
@@ -81,6 +82,11 @@ export default function Home() {
         >
           지금 바로 번호 추천받기 →
         </Link>
+      </section>
+
+      {/* Next Draw Countdown */}
+      <section className="mb-10">
+        <DrawCountdown nextRound={latestRound + 1} />
       </section>
 
       <AdBanner slot="home-top" format="horizontal" className="mb-10" />

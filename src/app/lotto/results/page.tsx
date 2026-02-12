@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { getLatestRound, getMultipleResults } from "@/lib/api/dhlottery";
-import LottoResultCard from "@/components/lottery/LottoResultCard";
+import { getAllResults } from "@/lib/api/dhlottery";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
+import ResultsClient from "./ResultsClient";
 
 export const metadata: Metadata = {
   title: "로또 당첨번호 조회 - 전 회차 당첨번호",
@@ -12,35 +12,24 @@ export const metadata: Metadata = {
 };
 
 export default function ResultsPage() {
-  const latestRound = getLatestRound();
-  const startRound = Math.max(1, latestRound - 19);
-  const results = getMultipleResults(startRound, latestRound).sort(
-    (a, b) => b.drwNo - a.drwNo
-  );
+  const results = getAllResults();
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "당첨번호" },
+      ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
         🔍 로또 당첨번호 조회
       </h1>
       <p className="text-gray-600 mb-8">
-        최신 회차부터 과거 당첨번호까지 확인하세요
+        1회부터 최신 회차까지 전체 당첨번호를 검색하고 확인하세요
       </p>
 
       <AdBanner slot="results-top" format="horizontal" className="mb-8" />
 
-      <div className="space-y-4">
-        {results.map((result, idx) => (
-          <div key={result.drwNo}>
-            <Link href={`/lotto/results/${result.drwNo}`}>
-              <LottoResultCard result={result} showDetails />
-            </Link>
-            {idx === 4 && (
-              <AdBanner slot="results-mid" format="horizontal" className="mt-4" />
-            )}
-          </div>
-        ))}
-      </div>
+      <ResultsClient results={results} />
 
       <AdBanner slot="results-bottom" format="horizontal" className="mt-8" />
     </div>

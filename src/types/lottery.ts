@@ -50,6 +50,18 @@ export interface LottoStats {
   coldestNumbers: number[];
 }
 
+export interface NumberDetail {
+  number: number;
+  totalAppearances: number;
+  frequencyPercent: number;
+  bonusAppearances: number;
+  lastAppearedRound: number;
+  currentGap: number;
+  maxGap: number;
+  avgGap: number;
+  recentRounds: number[];
+}
+
 export interface BlogPost {
   slug: string;
   title: string;

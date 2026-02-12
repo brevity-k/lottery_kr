@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SimulatorClient from "./SimulatorClient";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "로또 시뮬레이터 - 당첨 확률 체험",
@@ -12,6 +13,10 @@ export const metadata: Metadata = {
 export default function SimulatorPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "시뮬레이터" },
+      ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">🎰 로또 시뮬레이터</h1>
       <p className="text-gray-600 mb-8">
         로또를 수천 번 사면 결과가 어떨까요? 직접 체험해보세요.

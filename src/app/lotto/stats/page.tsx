@@ -4,6 +4,7 @@ import { calculateStats } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
 import FrequencyChart from "@/components/charts/FrequencyChart";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "로또 통계 분석 - 번호별 출현 빈도, 패턴 분석",
@@ -20,6 +21,10 @@ export default function StatsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "통계 분석" },
+      ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">📊 로또 통계 분석</h1>
       <p className="text-gray-600 mb-8">
         전체 {stats.totalDraws}회 당첨번호 기반 통계 분석

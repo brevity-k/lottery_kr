@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import LottoBall from "@/components/lottery/LottoBall";
 import { runSimulation, SimulationResult } from "@/lib/lottery/simulator";
 import { formatKRW } from "@/lib/utils/format";
+import { useToast } from "@/components/ui/Toast";
 
 const TIER_LABELS: Record<number, string> = {
   1: "1등 (6개 일치)",
@@ -24,6 +25,7 @@ export default function SimulatorClient() {
   const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const { toast } = useToast();
 
   const toggleNumber = (num: number) => {
     setSelectedNumbers((prev) => {
@@ -69,14 +71,14 @@ export default function SimulatorClient() {
     const roi = (((result.totalWon - result.totalSpent) / result.totalSpent) * 100).toFixed(1);
     const text = `🎰 로또 시뮬레이터 결과\n${result.drawCount.toLocaleString()}회 시뮬레이션\n💰 투자: ${formatKRW(result.totalSpent)}\n💸 당첨: ${formatKRW(result.totalWon)}\n📉 수익률: ${roi}%\n\nhttps://lottery.io.kr/lotto/simulator`;
     navigator.clipboard.writeText(text);
-    alert("결과가 클립보드에 복사되었습니다!");
+    toast("결과가 클립보드에 복사되었습니다!");
   };
 
   const handleKakaoShare = () => {
     if (!result) return;
     const Kakao = window.Kakao;
     if (!Kakao) {
-      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      toast("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "error");
       return;
     }
     if (!Kakao.isInitialized()) {

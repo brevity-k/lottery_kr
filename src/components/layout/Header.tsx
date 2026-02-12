@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/lotto", label: "로또 6/45" },
@@ -11,10 +12,17 @@ const navItems = [
   { href: "/lotto/tax", label: "세금 계산기" },
   { href: "/lotto/simulator", label: "시뮬레이터" },
   { href: "/blog", label: "블로그" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === "/lotto") return pathname === "/lotto";
+    return pathname.startsWith(href);
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -31,7 +39,11 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="px-4 py-2 text-sm font-medium text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                  isActive(item.href)
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                }`}
               >
                 {item.label}
               </Link>
@@ -62,7 +74,11 @@ export default function Header() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="block px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600"
+                className={`block px-4 py-3 text-sm font-medium rounded-lg ${
+                  isActive(item.href)
+                    ? "bg-blue-50 text-blue-600"
+                    : "text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                }`}
               >
                 {item.label}
               </Link>

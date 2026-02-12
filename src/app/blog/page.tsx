@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "블로그",
@@ -15,6 +16,7 @@ export default function BlogPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <Breadcrumb items={[{ label: "블로그" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">블로그</h1>
       <p className="text-gray-600 mb-8">
         로또 당첨번호 분석, 통계 심층분석, 전략 가이드 등 유용한 글을

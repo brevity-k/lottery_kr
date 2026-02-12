@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getRecentResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import AdBanner from "@/components/ads/AdBanner";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
 
 export const metadata: Metadata = {
@@ -17,6 +18,10 @@ export default function RecommendPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <Breadcrumb items={[
+        { label: "로또 6/45", href: "/lotto" },
+        { label: "번호 추천" },
+      ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
         🤖 로또 번호 추천
       </h1>

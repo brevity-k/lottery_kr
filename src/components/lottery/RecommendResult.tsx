@@ -2,6 +2,7 @@
 
 import { RecommendedSet } from "@/types/lottery";
 import LottoBall from "./LottoBall";
+import { useToast } from "@/components/ui/Toast";
 
 declare global {
   interface Window {
@@ -24,18 +25,20 @@ interface RecommendResultProps {
 }
 
 export default function RecommendResult({ sets }: RecommendResultProps) {
+  const { toast } = useToast();
+
   const handleCopy = () => {
     const text = sets
       .map((s) => `${s.label}: ${s.numbers.join(", ")}`)
       .join("\n");
     navigator.clipboard.writeText(text);
-    alert("번호가 클립보드에 복사되었습니다!");
+    toast("번호가 클립보드에 복사되었습니다!");
   };
 
   const handleKakaoShare = () => {
     const Kakao = window.Kakao;
     if (!Kakao) {
-      alert("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+      toast("카카오톡 SDK를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "error");
       return;
     }
     if (!Kakao.isInitialized()) {
