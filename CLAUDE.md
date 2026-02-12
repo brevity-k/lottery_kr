@@ -478,14 +478,136 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 
 ---
 
-## Phase Roadmap (from PLAN.md)
+## Competitive Analysis & Growth Strategy
 
-| Phase | Status | Description |
-|-------|--------|-------------|
-| Phase 1 | COMPLETE | Lotto 6/45 - core site, recommendations, stats, results |
-| Phase 2 | Not started | Add pension lottery (연금복권 720+), more lottery types |
-| Phase 3 | IN PROGRESS | Blog system (DONE), contact form (DONE), tax calculator (DONE), GA4 (DONE), KakaoTalk share (DONE), community features, push notifications |
-| Phase 4 | Not started | Mobile app (PWA), premium features |
+### Competitive Landscape
+
+| Site | Monthly Visits | Key Differentiator |
+|------|---------------|-------------------|
+| **dhlottery.co.kr** (official) | ~33.8M | Only legal online lottery purchase site |
+| **lottorich.co.kr** | ~500K-1M | Freemium model, dream interpretation, community |
+| **lotto.co.kr** | ~327K | Fortune/zodiac-based numbers |
+| **lottoen.com** | ~100K+ | Winning store locator ("명당") — their entire brand |
+| **lottoplay.co.kr** | ~49K | Mobile app, countdown timer, social login |
+| **pyony.com** | ~30K+ | Multi-lottery, store locator, simulator |
+| **lottery.io.kr** (ours) | New | Static-first speed, 6 algorithms, auto-blog, tax calculator |
+
+### Traffic-Driving Features We're Missing (by Impact)
+
+| Priority | Feature | Search Volume | Competitors |
+|----------|---------|--------------|-------------|
+| **HIGH** | 로또 명당 판매점 찾기 (winning store locator) | 20K+/mo | lottoen, pyony, lottoplay |
+| **HIGH** | 연금복권 720+ support | 10K+/mo | pyony, freetto, dhlottery |
+| **HIGH** | 로또 시뮬레이터 (lottery simulator) | 5K+/mo | Multiple standalone sites |
+| **HIGH** | 꿈해몽 번호 (dream interpretation numbers) | 15K+/mo | lottorich, dedicated apps |
+| **MEDIUM** | 운세/별자리 번호 (fortune/zodiac numbers) | 5K+/mo | lotto.co.kr, lottorich |
+| **MEDIUM** | 오늘의 행운 번호 (daily lucky numbers) | 5K+/mo | superkts, lotto.co.kr |
+| **MEDIUM** | 다음 추첨 카운트다운 (countdown timer) | — | lottoplay, pyony |
+| **MEDIUM** | FAQ 페이지 + 구조화된 데이터 | Various | Most competitors |
+| **LOW** | Community forum | — | lottorich, lottoplay |
+| **LOW** | Mobile app (iOS/Android) | — | lottorich, lottoplay |
+
+### SEO Gaps to Fix
+
+| Issue | Impact | Effort |
+|-------|--------|--------|
+| No `og:image` on any page — social shares show no preview | High | Low |
+| Sitemap only includes latest 100 rounds (1,110+ excluded) | High | Low |
+| `/lotto/tax` missing from sitemap | Medium | Low |
+| No `FAQPage` JSON-LD structured data | High | Medium |
+| No `BreadcrumbList` structured data | Medium | Low |
+| No per-number detail pages (`/lotto/numbers/[num]`) | High | Medium |
+| Blog posts don't link to site features (internal linking) | Medium | Low |
+| Tax calculator not linked from result cards | Medium | Low |
+| No Naver Blog cross-posting (70%+ Korean searches on Naver) | Very High | Ongoing |
+
+### UX Improvements Needed
+
+- Replace `alert()` with toast notifications (copy confirmation)
+- Add number generation animation (rolling/revealing effect)
+- Add results search/filter and pagination (currently only latest 20)
+- Add active navigation state to Header
+- Add breadcrumbs on detail pages
+- Improve mobile share button tap targets
+
+---
+
+## Growth Roadmap (Revised)
+
+### Phase 1: COMPLETE
+Core Lotto 6/45 — recommendations, stats, results, tax calculator, blog, contact, GA4, KakaoTalk share
+
+### Phase 2: Quick Wins (1-2 weeks each, high impact)
+
+| # | Feature | Target Keywords | Status |
+|---|---------|----------------|--------|
+| 2.1 | **Lottery simulator** (`/lotto/simulator`) — simulate 1K-100K draws, show total spent vs won | 로또 시뮬레이터 | Not started |
+| 2.2 | **OG images** — branded preview images for social sharing | — (CTR improvement) | Not started |
+| 2.3 | **Fix sitemap** — include all 1,210+ rounds + tax page | — (indexing improvement) | Not started |
+| 2.4 | **FAQ page** (`/faq`) with `FAQPage` JSON-LD | 로또 구매 방법, 당첨금 수령 | Not started |
+| 2.5 | **실수령액 계산기** branding — add alias/keyword to tax page title | 로또 실수령액 | Not started |
+| 2.6 | **Next draw countdown** on homepage | — (return visits) | Not started |
+| 2.7 | **Toast notifications** — replace `alert()` with polished toasts | — (UX) | Not started |
+| 2.8 | **Blog post length** — increase to 2,000+ chars for better ranking | — (SEO) | Not started |
+
+### Phase 3: Medium-term (1-3 months, significant traffic growth)
+
+| # | Feature | Target Keywords | Status |
+|---|---------|----------------|--------|
+| 3.1 | **꿈해몽 번호 생성기** (`/lotto/dream`) — dream symbol → number mapping | 로또 꿈해몽, 꿈 번호 추천 | Not started |
+| 3.2 | **오늘의 행운 번호** (`/lotto/lucky`) — daily changing numbers | 오늘의 로또 번호, 행운의 번호 | Not started |
+| 3.3 | **연금복권 720+** (`/pension/`) — results, stats, recommendations | 연금복권 당첨번호, 연금복권 확률 | Not started |
+| 3.4 | **Per-number detail pages** (`/lotto/numbers/[num]`) — 45 new SEO pages | 로또 번호 7 통계, 번호별 출현 빈도 | Not started |
+| 3.5 | **이번주 예상번호** — auto-generated pre-draw prediction page | 1212회 로또 예상번호 | Not started |
+| 3.6 | **Naver Blog cross-posting** — 2-3 posts/week, link back to site | — (Naver organic traffic) | Not started |
+| 3.7 | **BreadcrumbList + internal linking** improvements | — (SEO) | Not started |
+| 3.8 | **Number generation animation** — rolling/revealing ball effect | — (engagement) | Not started |
+| 3.9 | **Results search/filter/pagination** — search by round, number, date | — (UX, dwell time) | Not started |
+
+### Phase 4: Long-term (3-6 months, major features)
+
+| # | Feature | Target Keywords | Status |
+|---|---------|----------------|--------|
+| 4.1 | **로또 명당 판매점 지도** (`/lotto/stores/`) — Kakao Map integration, public data from data.go.kr | 로또 명당, [지역] 로또 판매점 | Not started |
+| 4.2 | **PWA push notifications** — Saturday draw results, weekly recommendations | — (retention, 190% increase) | Not started |
+| 4.3 | **운세/별자리 번호** (`/lotto/fortune`) — birthday, zodiac, Chinese zodiac | 로또 운세, 별자리 로또 번호 | Not started |
+| 4.4 | **My Numbers** — saved numbers with localStorage, auto-check weekly | — (retention) | Not started |
+| 4.5 | **Community features** — comments (Giscus), prediction sharing, leaderboard | — (UGC, engagement) | Not started |
+| 4.6 | **KakaoTalk Channel** — weekly draw results + recommendations to subscribers | — (retention) | Not started |
+| 4.7 | **YouTube Shorts pipeline** — automated weekly draw result videos | — (new traffic source) | Not started |
+| 4.8 | **AdSense approval + ad placement** | — (monetization) | Not started |
+
+### Content Strategy
+
+| Content Type | Target Keywords | Frequency |
+|---|---|---|
+| Weekly draw analysis | "1211회 당첨번호 분석" | Weekly (automated) |
+| Pre-draw predictions | "이번주 로또 예상번호" | Weekly (new) |
+| Dream interpretation guides | "로또 꿈해몽", "돼지꿈 번호" | 2-3/month |
+| Winner store stories | "[지역] 로또 명당" | Monthly |
+| Comparison content | "로또 vs 연금복권", "로또 vs 주식" | Monthly |
+| Purchase/claim guides | "로또 온라인 구매 방법", "당첨금 수령" | Quarterly |
+| Seasonal content | "설날 로또", "추석 로또" | Seasonal |
+
+### Social Media Strategy
+
+| Channel | Strategy | Frequency |
+|---------|----------|-----------|
+| **Naver Blog** | Cross-post abbreviated analysis, link back to site | 2-3/week |
+| **KakaoTalk** | Share buttons on all interactive tools, viral loop | Per interaction |
+| **YouTube Shorts** | 15-sec draw results, simulator shock videos | Weekly |
+| **DCInside 로또갤** | Share genuine analysis, build reputation | Weekly |
+| **Threads/Instagram** | Weekly "핫넘버" infographics, draw result 속보 | Weekly |
+
+### Monetization Path
+
+| Phase | Strategy | Expected Revenue |
+|-------|----------|-----------------|
+| Current | None | $0 |
+| After traffic growth | Google AdSense | $50-500/month |
+| Parallel | Naver Ad (네이버 광고) | Korea-specific, may outperform AdSense |
+| Later | Premium features (ad-free, advanced filters) | $1K+/month at scale |
+| Later | Coupang Partners affiliate | Supplementary |
 
 ---
 
