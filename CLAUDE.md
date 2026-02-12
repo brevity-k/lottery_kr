@@ -554,6 +554,14 @@ Out of 1,210 rounds: 1,196 have prize data, 14 have `firstWinamnt: 0` (no 1st pr
 
 In Next.js 16, dynamic route `params` is a `Promise` that must be `await`ed. Both `[round]/page.tsx` and `[slug]/page.tsx` use `params: Promise<{...}>` with `await params`.
 
+### Browser Translation Popup Disabled
+
+iOS Safari and Chrome show automatic translation popups even on Korean-only sites. Three measures in `layout.tsx` prevent this:
+
+- `<html lang="ko" translate="no">` — HTML5 standard attribute
+- `<meta name="google" content="notranslate" />` — Chrome-specific suppression
+- `<meta httpEquiv="Content-Language" content="ko" />` — Reinforces content language to Safari
+
 ### Git Push Authentication
 
 The remote URL includes the GitHub PAT for auth (avoids macOS Keychain conflict with `psychemistz` account):
@@ -644,6 +652,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 - ~~Add results search/filter and pagination~~ — **DONE**
 - ~~Add active navigation state to Header~~ — **DONE**
 - ~~Add breadcrumbs on detail pages~~ — **DONE**
+- ~~Disable iOS translation popup~~ — **DONE** (`translate="no"`, `notranslate` meta, `Content-Language` meta)
 - Improve mobile share button tap targets
 
 ---
