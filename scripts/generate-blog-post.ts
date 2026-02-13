@@ -184,11 +184,17 @@ ${prompt}
     console.error("❌ API에서 예상치 못한 응답 형식을 받았습니다.");
     process.exit(1);
   }
-  const content = message.content[0].text;
+  let content = message.content[0].text;
 
   if (!content) {
     console.error("❌ API에서 빈 응답을 받았습니다.");
     process.exit(1);
+  }
+
+  // Ensure AI disclaimer is present — append if the model omitted it
+  const AI_DISCLAIMER = "\n\n---\n\n*이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다.*";
+  if (!content.includes("AI 분석 도구") && !content.includes("AI가")) {
+    content += AI_DISCLAIMER;
   }
 
   // Validate content — block publication on failure
