@@ -30,7 +30,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/data/lotto.json
-          git diff --staged --quiet || (git commit -m "data: auto-update lottery data" && git push)
+          git diff --staged --quiet || (git commit -m "data: auto-update lottery data" && git pull --rebase && git push)
 
       - name: Generate prediction post
         id: first_attempt
@@ -51,7 +51,7 @@ jobs:
       - name: Commit prediction post
         run: |
           git add content/blog/
-          git diff --staged --quiet || (git commit -m "blog: auto-generate prediction post" && git push)
+          git diff --staged --quiet || (git commit -m "blog: auto-generate prediction post" && git pull --rebase && git push)
 
       - name: Create issue on failure
         if: failure()
