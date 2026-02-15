@@ -25,6 +25,7 @@ npm run update-data         # Fetch latest lottery data from superkts.com
 npm run generate-blog       # Generate a blog post via Claude Haiku API (needs ANTHROPIC_API_KEY)
 npm run generate-prediction # Generate prediction post for next draw (needs ANTHROPIC_API_KEY)
 npm run health-check        # Run health checks (data freshness, integrity, blog, critical files)
+npm run post-to-x           # Post latest unposted blog to X/Twitter (needs X_CONSUMER_KEY, X_SECRET_KEY, X_ACCESS_TOKEN, X_ACCESS_TOKEN_SECRET)
 npm run lint                # Run ESLint
 ```
 
@@ -79,6 +80,8 @@ lottery_kr/
 │   ├── generate-blog-post.ts          # Generates blog post via Claude Haiku API (uses shared retry + validation)
 │   ├── generate-prediction.ts         # Generates weekly prediction post (uses shared retry + validation)
 │   ├── health-check.ts               # Validates data freshness, integrity, blog, critical files (29 files)
+│   ├── post-to-x.ts                  # Posts latest unposted blog to X/Twitter (OAuth 1.0a, zero deps)
+│   ├── x-posted.json                 # Tracking file for already-posted slugs (git-tracked)
 │   └── blog-topics.json               # 12 topic templates for blog rotation
 ├── content/
 │   └── blog/                          # Blog post JSON files (auto-generated weekly)
@@ -87,6 +90,7 @@ lottery_kr/
 │       ├── update-data.yml            # Weekly data update (Sunday 00:00 KST) + retry + failure notification
 │       ├── generate-blog-post.yml     # Weekly blog generation (Sunday 10:00 KST) + retry + failure notification
 │       ├── generate-prediction.yml    # Weekly prediction post (Friday 19:00 KST) + retry + failure notification
+│       ├── post-to-x.yml             # Auto-post to X/Twitter (after blog/prediction workflows + manual)
 │       └── health-check.yml           # Health monitoring (after workflows + Monday 12:00 KST)
 └── src/
     ├── data/
@@ -358,7 +362,15 @@ All workflows include: retry with 60s delay on first failure, auto-create GitHub
 - **Output:** `content/blog/{nextRound}-prediction.json`
 - **Resilience:** Data update committed independently so it's not lost if prediction generation fails
 
-### 4. Health Check (`health-check.yml`)
+### 4. X/Twitter Posting (`post-to-x.yml`)
+
+- **Triggers:** After blog-generation / prediction workflows complete (`workflow_run`, only on success), plus `workflow_dispatch`
+- **Action:** Posts latest unposted blog to X using OAuth 1.0a (zero dependencies), commits tracking file
+- **Permissions:** `contents: write`, `issues: write`
+- **Requires:** `X_CONSUMER_KEY`, `X_SECRET_KEY`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET` GitHub Actions secrets
+- **Tracking:** `scripts/x-posted.json` (git-tracked, prevents duplicate posts)
+
+### 5. Health Check (`health-check.yml`)
 
 - **Triggers:** After data-update / blog-generation / prediction workflows complete (`workflow_run`), plus weekly Monday 03:00 UTC = Monday 12:00 KST
 - **Checks:** Data freshness (>10 days = fail), data integrity via shared `validateDrawData()`, blog posts (>14 days = fail), critical file existence (29 files)
@@ -370,9 +382,11 @@ All workflows include: retry with 60s delay on first failure, auto-create GitHub
 | Day | Time (KST) | Event | Workflow |
 |-----|-----------|-------|----------|
 | Friday | 19:00 | Generate prediction blog post | `generate-prediction.yml` |
+| Friday | ~19:05 | **Tweet prediction post** | `post-to-x.yml` (workflow_run) |
 | Saturday | 20:45 | Lotto draw (external) | — |
 | Sunday | 00:00 | Fetch new draw data (with retry) | `update-data.yml` |
 | Sunday | 10:00 | Generate draw analysis blog post | `generate-blog-post.yml` |
+| Sunday | ~10:05 | **Tweet blog post** | `post-to-x.yml` (workflow_run) |
 | Monday | 12:00 | Health check (validates everything) | `health-check.yml` |
 | Daily | Midnight KST | Lucky numbers auto-rotate | Client-side (no workflow) |
 
@@ -563,6 +577,10 @@ Blog and prediction workflows commit data updates **separately** before content 
 | Secret | Purpose |
 |--------|---------|
 | `ANTHROPIC_API_KEY` | Weekly auto blog generation |
+| `X_CONSUMER_KEY` | X/Twitter API consumer key (OAuth 1.0a) |
+| `X_SECRET_KEY` | X/Twitter API consumer secret |
+| `X_ACCESS_TOKEN` | X/Twitter user access token |
+| `X_ACCESS_TOKEN_SECRET` | X/Twitter user access token secret |
 
 ### Setup Checklist
 

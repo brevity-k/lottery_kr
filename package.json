@@ -11,6 +11,7 @@
     "generate-blog": "tsx scripts/generate-blog-post.ts",
     "generate-prediction": "tsx scripts/generate-prediction.ts",
     "health-check": "tsx scripts/health-check.ts",
+    "post-to-x": "tsx scripts/post-to-x.ts",
     "prebuild": "tsx scripts/update-data.ts"
   },
   "dependencies": {
