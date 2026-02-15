@@ -13,6 +13,7 @@ import { withRetry, withTimeout, BLOG_DIR, formatKSTDate } from "./lib/shared";
 const TRACKING_PATH = path.join(process.cwd(), "scripts/x-posted.json");
 const SITE_URL = "https://lottery.io.kr";
 const T_CO_URL_LENGTH = 23; // X wraps all URLs to 23 chars via t.co
+const X_MAX_WEIGHTED_CHARS = 280;
 
 interface PostedEntry {
   slug: string;
@@ -69,6 +70,33 @@ function loadBlogPosts(): BlogPost[] {
   return posts;
 }
 
+/**
+ * Calculates X's weighted character count.
+ * CJK/emoji = 2, Latin/number/space/punctuation = 1, URLs = 23 (t.co).
+ */
+function weightedLength(text: string): number {
+  const urlRegex = /https?:\/\/\S+/g;
+  const urls = text.match(urlRegex) || [];
+  const noUrls = text.replace(urlRegex, "");
+  let weight = urls.length * T_CO_URL_LENGTH;
+  for (const ch of noUrls) {
+    const code = ch.codePointAt(0) ?? 0;
+    // CJK Jamo, CJK Symbols, CJK Unified, Hangul Syllables, CJK Compat, Emoji
+    if (
+      (code >= 0x1100 && code <= 0x11ff) ||
+      (code >= 0x3000 && code <= 0x9fff) ||
+      (code >= 0xac00 && code <= 0xd7ff) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0x1f000 && code <= 0x1ffff)
+    ) {
+      weight += 2;
+    } else {
+      weight += 1;
+    }
+  }
+  return weight;
+}
+
 function buildTweetText(post: BlogPost): string {
   const emoji = CATEGORY_EMOJI[post.category] ?? DEFAULT_EMOJI;
   const link = `${SITE_URL}/blog/${post.slug}`;
@@ -82,26 +110,42 @@ function buildTweetText(post: BlogPost): string {
   }
   const hashtags = [...tagSet].join(" ");
 
-  // Calculate available space for description
   // Format: "{emoji} {title}\n\n{description}\n\n{link}\n\n{hashtags}"
   const prefix = `${emoji} ${post.title}`;
   const suffix = `\n\n${hashtags}`;
-  // URL always counts as T_CO_URL_LENGTH chars on X
-  const fixedLength = prefix.length + 2 + T_CO_URL_LENGTH + suffix.length;
-  const maxDescLength = 280 - fixedLength - 2; // -2 for the \n\n before link
+  const skeleton = `${prefix}\n\n\n\n${link}${suffix}`; // with empty desc placeholder
+  const fixedWeight = weightedLength(skeleton);
+  const maxDescWeight = X_MAX_WEIGHTED_CHARS - fixedWeight;
 
-  if (maxDescLength <= 0) {
-    // Title + hashtags already fill the tweet; skip description
+  if (maxDescWeight <= 0) {
     return `${prefix}\n\n${link}${suffix}`;
   }
 
   let description = post.description || "";
-  if (description.length > maxDescLength) {
-    description = description.slice(0, maxDescLength - 1) + "…";
+  // Trim description to fit weighted budget
+  let trimmed = "";
+  let descWeight = 0;
+  for (const ch of description) {
+    const code = ch.codePointAt(0) ?? 0;
+    const w =
+      (code >= 0x1100 && code <= 0x11ff) ||
+      (code >= 0x3000 && code <= 0x9fff) ||
+      (code >= 0xac00 && code <= 0xd7ff) ||
+      (code >= 0xf900 && code <= 0xfaff) ||
+      (code >= 0x1f000 && code <= 0x1ffff)
+        ? 2
+        : 1;
+    if (descWeight + w > maxDescWeight - 2) {
+      // -2 for "…"
+      trimmed += "…";
+      break;
+    }
+    trimmed += ch;
+    descWeight += w;
   }
 
-  if (description) {
-    return `${prefix}\n\n${description}\n\n${link}${suffix}`;
+  if (trimmed) {
+    return `${prefix}\n\n${trimmed}\n\n${link}${suffix}`;
   }
   return `${prefix}\n\n${link}${suffix}`;
 }
@@ -239,7 +283,7 @@ async function main(): Promise<void> {
 
   const tweetText = buildTweetText(unposted);
   console.log(`🐦 Posting to X: ${unposted.slug}`);
-  console.log(`   Tweet (${tweetText.length} chars):\n${tweetText}\n`);
+  console.log(`   Tweet (${weightedLength(tweetText)} weighted chars):\n${tweetText}\n`);
 
   const tweetId = await withRetry(
     () =>
