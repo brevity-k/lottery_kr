@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "개인정보처리방침",
   description: "로또리의 개인정보처리방침을 안내합니다.",
   alternates: { canonical: "/privacy" },
+  robots: { index: false, follow: true },
   openGraph: {
     title: "개인정보처리방침",
     description: "로또리의 개인정보처리방침을 안내합니다.",

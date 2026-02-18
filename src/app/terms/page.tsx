@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: "이용약관",
   description: "로또리의 이용약관을 안내합니다.",
   alternates: { canonical: "/terms" },
+  robots: { index: false, follow: true },
   openGraph: {
     title: "이용약관",
     description: "로또리의 이용약관을 안내합니다.",
