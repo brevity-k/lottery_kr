@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /apple-icon
+Disallow: /icon
+Disallow: /favicon.ico
+Disallow: /manifest.webmanifest
 
 Sitemap: https://lottery.io.kr/sitemap.xml
