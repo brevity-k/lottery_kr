@@ -71,7 +71,7 @@ lottery_kr/
 ├── tsconfig.json                      # TypeScript configuration
 ├── postcss.config.mjs                 # PostCSS + Tailwind
 ├── public/
-│   ├── robots.txt                     # Search engine crawl rules (lottery.io.kr)
+│   ├── robots.txt                     # Search engine crawl rules (blocks /api/, asset URLs to save crawl budget)
 │   └── ads.txt                        # AdSense publisher verification
 ├── scripts/
 │   ├── lib/
@@ -126,7 +126,7 @@ lottery_kr/
     │   ├── charts/
     │   │   └── FrequencyChart.tsx     # Chart.js bar chart
     │   └── ads/
-    │       └── AdBanner.tsx           # AdSense wrapper (placeholder in dev)
+    │       └── AdBanner.tsx           # AdSense wrapper (placeholder in dev, returns null in prod with fake ID)
     └── app/
         ├── layout.tsx                 # Root layout (Korean, Pretendard font, GA4, Kakao SDK)
         ├── page.tsx                   # Homepage (includes 최근 블로그 글 section)
@@ -142,7 +142,7 @@ lottery_kr/
         │   │   └── RecommendClient.tsx # Recommendation UI (client)
         │   ├── results/
         │   │   ├── page.tsx           # Latest 20 results
-        │   │   └── [round]/page.tsx   # Round detail (statically generated)
+        │   │   └── [round]/page.tsx   # Round detail (enriched analysis, JSON-LD, clickable balls)
         │   ├── stats/page.tsx         # Statistics & frequency analysis
         │   ├── lucky/
         │   │   ├── page.tsx           # Daily lucky numbers (server, metadata)
@@ -154,8 +154,8 @@ lottery_kr/
         │   ├── page.tsx               # Blog list page
         │   └── [slug]/page.tsx        # Blog detail (async params, statically generated)
         ├── about/page.tsx             # About page
-        ├── privacy/page.tsx           # Privacy policy
-        ├── terms/page.tsx             # Terms of service
+        ├── privacy/page.tsx           # Privacy policy (noindex)
+        ├── terms/page.tsx             # Terms of service (noindex)
         └── contact/
             ├── page.tsx               # Contact page (server, metadata)
             └── ContactForm.tsx        # Contact form (client component)
@@ -617,6 +617,8 @@ Blog and prediction workflows commit data updates **separately** before content 
 
 The site already has AdSense-required pages (`/about`, `/privacy`, `/terms`, `/contact`) and 5+ ad placement slots ready.
 
+**Current behavior:** `AdBanner.tsx` returns `null` in production while the publisher ID is the placeholder `ca-pub-XXXXXXXXXXXXXXXX`. Once a real AdSense client ID is obtained, update the `ADSENSE_CLIENT_ID` constant in the component to enable ad rendering.
+
 ---
 
 ## Known Issues & Technical Notes
@@ -642,6 +644,20 @@ Out of 1,210 rounds: 1,196 have prize data, 14 have `firstWinamnt: 0` (no 1st pr
 - **1등 당첨자:** winner count from `firstPrzwnerCo`
 - **총 1등 당첨금:** calculated as `firstWinamnt * firstPrzwnerCo`
 - Rounds with no winners show "해당 없음"
+
+### Result Detail Page Enrichment (Google Indexing Fix)
+
+57 pages were being crawled but not indexed by Google. To address this, result detail pages (`/lotto/results/[round]`) were enriched with:
+
+- **Per-round statistical analysis:** number sum (vs avg 135), odd/even ratio, section distribution (1-9, 10-18, 19-27, 28-36, 37-45), consecutive number pairs
+- **Clickable LottoBall links** to `/lotto/numbers/[num]` for each winning and bonus number
+- **Prize context:** per-winner amount, winner count, total prize, comparison to historical average, link to tax calculator
+- **Natural Korean summary** paragraph describing the round's characteristics
+- **`Article` JSON-LD** structured data with draw date, numbers, and analysis
+- **Enriched metadata:** title includes winning numbers, description includes numbers + prize amount for better CTR
+- **`robots.txt`** blocks `/api/`, `/apple-icon`, `/icon`, `/favicon.ico`, `/manifest.webmanifest` to save crawl budget
+- **`AdBanner.tsx`** returns `null` in production when publisher ID is still placeholder (`ca-pub-XXXXXXXXXXXXXXXX`)
+- **Boilerplate pages** (`/privacy`, `/terms`) have `robots: { index: false, follow: true }` metadata
 
 ### Next.js 16 Async Params
 
@@ -735,7 +751,11 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 | ~~No `BreadcrumbList` structured data~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | ~~No per-number detail pages (`/lotto/numbers/[num]`)~~ | ~~High~~ | ~~Medium~~ | **FIXED** |
 | Blog posts don't link to site features (internal linking) | Medium | Low | Open |
-| Tax calculator not linked from result cards | Medium | Low | Open |
+| ~~Tax calculator not linked from result cards~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
+| ~~Result detail pages have thin/duplicate content~~ | ~~High~~ | ~~Medium~~ | **FIXED** |
+| ~~Placeholder AdSense containers with fake publisher ID~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
+| ~~Boilerplate pages (/privacy, /terms) wasting crawl budget~~ | ~~Low~~ | ~~Low~~ | **FIXED** |
+| ~~robots.txt not blocking asset URLs (/icon, /apple-icon, etc.)~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | No Naver Blog cross-posting (70%+ Korean searches on Naver) | Very High | Ongoing | Open |
 
 ### UX Improvements Needed
