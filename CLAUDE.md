@@ -157,7 +157,7 @@ lottery_kr/
         ├── privacy/page.tsx           # Privacy policy (noindex)
         ├── terms/page.tsx             # Terms of service (noindex)
         └── contact/
-            ├── page.tsx               # Contact page (server, metadata)
+            ├── page.tsx               # Contact page (server, metadata, noindex)
             └── ContactForm.tsx        # Contact form (client component)
 ```
 
@@ -657,7 +657,10 @@ Out of 1,210 rounds: 1,196 have prize data, 14 have `firstWinamnt: 0` (no 1st pr
 - **Enriched metadata:** title includes winning numbers, description includes numbers + prize amount for better CTR
 - **`robots.txt`** blocks `/api/`, `/apple-icon`, `/icon`, `/favicon.ico`, `/manifest.webmanifest` to save crawl budget
 - **`AdBanner.tsx`** returns `null` in production when publisher ID is still placeholder (`ca-pub-XXXXXXXXXXXXXXXX`)
-- **Boilerplate pages** (`/privacy`, `/terms`) have `robots: { index: false, follow: true }` metadata
+- **Boilerplate pages** (`/privacy`, `/terms`, `/contact`) have `robots: { index: false, follow: true }` metadata
+- **Sitemap excludes noindex pages** (`/privacy`, `/terms`, `/contact`) — avoids contradictory signals to Google
+- **Sitemap uses real dates** — static pages use fixed date, result pages use actual draw dates, blog posts use post dates (not `new Date()` which falsely signals freshness on every build)
+- **Sitemap includes all rounds** — all 1,211+ rounds included with `changeFrequency: "never"` and real `lastModified` dates
 
 ### Next.js 16 Async Params
 
@@ -745,7 +748,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 | Issue | Impact | Effort | Status |
 |-------|--------|--------|--------|
 | ~~No `og:image` on any page — social shares show no preview~~ | ~~High~~ | ~~Low~~ | **FIXED** |
-| ~~Sitemap only includes latest 100 rounds (1,110+ excluded)~~ | ~~High~~ | ~~Low~~ | **FIXED** |
+| ~~Sitemap only includes latest 100 rounds (1,110+ excluded)~~ | ~~High~~ | ~~Low~~ | **FIXED** (all rounds with real dates) |
 | ~~`/lotto/tax` missing from sitemap~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | ~~No `FAQPage` JSON-LD structured data~~ | ~~High~~ | ~~Medium~~ | **FIXED** |
 | ~~No `BreadcrumbList` structured data~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
@@ -754,7 +757,7 @@ Data from superkts.com was cross-verified against 4 independent sources for roun
 | ~~Tax calculator not linked from result cards~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | ~~Result detail pages have thin/duplicate content~~ | ~~High~~ | ~~Medium~~ | **FIXED** |
 | ~~Placeholder AdSense containers with fake publisher ID~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
-| ~~Boilerplate pages (/privacy, /terms) wasting crawl budget~~ | ~~Low~~ | ~~Low~~ | **FIXED** |
+| ~~Boilerplate pages (/privacy, /terms, /contact) wasting crawl budget~~ | ~~Low~~ | ~~Low~~ | **FIXED** (noindex + excluded from sitemap) |
 | ~~robots.txt not blocking asset URLs (/icon, /apple-icon, etc.)~~ | ~~Medium~~ | ~~Low~~ | **FIXED** |
 | No Naver Blog cross-posting (70%+ Korean searches on Naver) | Very High | Ongoing | Open |
 
