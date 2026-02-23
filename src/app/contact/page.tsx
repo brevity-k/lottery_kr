@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: "문의하기",
   description: "로또리에 문의사항이 있으시면 연락주세요.",
   alternates: { canonical: "/contact" },
+  robots: { index: false, follow: true },
   openGraph: {
     title: "문의하기",
     description: "로또리에 문의사항이 있으시면 연락주세요.",
