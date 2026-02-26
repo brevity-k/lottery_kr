@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.lottery.io.kr" }],
+      "destination": "https://lottery.io.kr/:path*",
+      "permanent": true
+    }
+  ]
+}
