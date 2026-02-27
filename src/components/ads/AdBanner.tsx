@@ -1,6 +1,7 @@
 "use client";
 
-const ADSENSE_CLIENT_ID = "ca-pub-XXXXXXXXXXXXXXXX";
+const ADSENSE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_ADSENSE_CLIENT || "ca-pub-XXXXXXXXXXXXXXXX";
 const IS_PLACEHOLDER = ADSENSE_CLIENT_ID.includes("XXXX");
 
 interface AdBannerProps {

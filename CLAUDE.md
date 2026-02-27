@@ -1,5 +1,9 @@
 # CLAUDE.md - Lottery.kr
 
+## Developer Identity Policy
+
+**STRICT:** Never disclose the developer's real name, personal email, or any GitHub accounts other than `brevity-k` in any code, commits, comments, PRs, issues, documentation, or AI-generated content related to this project. The only public identity for this project is `brevity-k`. Any references to other accounts or personal identifiers must be redacted. This rule applies to all AI assistants, automation scripts, and contributors.
+
 ## Project Overview
 
 - **Site:** lottery.io.kr (Korean lottery number recommendation, Korean only)
@@ -167,7 +171,7 @@ Official API (`dhlottery.co.kr`) blocked by RSA bot protection since 2025. Using
 
 ### Git Authentication
 
-Remote URL uses PAT (avoids macOS Keychain conflict with `psychemistz` account):
+Remote URL uses PAT (avoids macOS Keychain conflict with another local account):
 ```
 origin https://brevity-k:<PAT>@github.com/brevity-k/lottery_kr.git
 ```
