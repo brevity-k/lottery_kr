@@ -82,12 +82,13 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │   │   └── utils/                 # format.ts, kakao.ts, kst.ts, markdown.ts
 │   ├── components/
 │   │   ├── layout/                # Header.tsx, Footer.tsx
-│   │   ├── lottery/               # LottoBall, LottoResultCard, RecommendResult, ResultsCountdown
+│   │   ├── lottery/               # LottoBall, LottoResultCard, RecommendResult, ResultsCountdown, DrawCountdown
 │   │   ├── blog/                  # PredictionResults.tsx
 │   │   ├── charts/                # FrequencyChart.tsx (Chart.js)
+│   │   ├── ui/                    # Breadcrumb.tsx, Toast.tsx (+ ToastProvider)
 │   │   └── ads/                   # AdBanner.tsx (returns null until real AdSense ID)
 │   └── app/
-│       ├── layout.tsx             # Root (Korean, Pretendard, GA4, Kakao SDK)
+│       ├── layout.tsx             # Root (Korean, Pretendard, GA4, Kakao SDK, AdSense)
 │       ├── page.tsx               # Homepage
 │       ├── sitemap.ts             # Dynamic (all rounds + blog, excludes noindex pages)
 │       ├── api/contact/route.ts   # Contact form (Resend)
@@ -155,7 +156,7 @@ Single source of truth for scripts: file paths, lottery constants, `withRetry()`
 
 ## Environment Variables
 
-**Vercel:** `RESEND_API_KEY`
+**Vercel:** `RESEND_API_KEY`, `NEXT_PUBLIC_ADSENSE_CLIENT`
 
 **GitHub Actions Secrets:** `ANTHROPIC_API_KEY`, `X_CONSUMER_KEY`, `X_SECRET_KEY`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`
 
@@ -217,5 +218,5 @@ Update on expiry: `git remote set-url origin https://brevity-k:<NEW_PAT>@github.
 
 ## Dependencies
 
-**Production:** next ^16.1.6, react ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^1.6.1, resend
-**Dev:** typescript ^5, tailwindcss ^4, @anthropic-ai/sdk ^0.74.0, tsx ^4.21.0, eslint ^9
+**Production:** next ^16.1.6, react ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^1.6.1, resend ^6.9.2
+**Dev:** typescript ^5, tailwindcss ^4, @tailwindcss/typography ^0.5.19, @anthropic-ai/sdk ^0.74.0, tsx ^4.21.0, eslint ^9
