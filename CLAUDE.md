@@ -50,7 +50,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 - **Next.js 16 async params:** Dynamic routes use `params: Promise<{...}>` with `await params`
 - **KST timezone:** All dates use KST. `src/lib/utils/kst.ts` (app), `scripts/lib/shared.ts` (scripts)
 - **Kakao SDK:** Lazy init via `getKakaoSDK()` from `src/lib/utils/kakao.ts` (App Key: `accfcea8c90806c685d4321fa93a4501`)
-- **Share pattern:** 3 buttons (Copy / KakaoTalk / Web Share API) used in RecommendResult, LuckyClient, SimulatorClient
+- **Share pattern:** 3 buttons (Copy / KakaoTalk / Web Share API) used in RecommendResult, LuckyClient, SimulatorClient, DreamClient
 - **Hydration-safe:** Client components use `mounted` state pattern for SSR compatibility
 - **Translation popup disabled:** `translate="no"` + `notranslate` meta + `Content-Language` meta in `layout.tsx`
 
@@ -69,7 +69,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 ├── content/blog/                  # Blog post JSON files (auto-generated)
 ├── src/
 │   ├── data/lotto.json            # All lottery rounds (1,212+, with prizes)
-│   ├── types/lottery.ts           # LottoResult, LottoDataFile, BlogPost, etc.
+│   ├── types/lottery.ts           # LottoResult, LottoDataFile, BlogPost, DreamCategory, etc.
 │   ├── lib/
 │   │   ├── api/dhlottery.ts       # Lottery data loading (local JSON)
 │   │   ├── blog.ts                # Blog data loading (content/blog/*.json)
@@ -78,6 +78,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │   │   │   ├── recommend.ts       # 6 recommendation algorithms
 │   │   │   ├── stats.ts           # Statistical calculations
 │   │   │   ├── simulator.ts       # Lottery simulator
+│   │   │   ├── dream.ts           # Dream interpretation data + number generation
 │   │   │   └── tax.ts             # Tax calculation (Korean brackets)
 │   │   └── utils/                 # format.ts, kakao.ts, kst.ts, markdown.ts
 │   ├── components/
@@ -97,6 +98,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │       │   ├── results/           # Latest results + [round] detail (enriched, JSON-LD)
 │       │   ├── stats/             # Statistics & frequency
 │       │   ├── lucky/             # Daily lucky numbers (client-side PRNG)
+│       │   ├── dream/            # Dream interpretation number generator
 │       │   ├── tax/               # Tax calculator
 │       │   └── simulator/         # Lottery simulator
 │       ├── blog/                  # Blog list + [slug] detail
@@ -174,11 +176,11 @@ Official API (`dhlottery.co.kr`) blocked by RSA bot protection since 2025. Using
 
 ### Git Authentication
 
-Remote URL uses PAT (avoids macOS Keychain conflict with another local account):
+Remote URL uses plain HTTPS; authentication is handled by `gh auth` (GitHub CLI keyring):
 ```
-origin https://brevity-k:<PAT>@github.com/brevity-k/lottery_kr.git
+origin https://github.com/brevity-k/lottery_kr.git
 ```
-Update on expiry: `git remote set-url origin https://brevity-k:<NEW_PAT>@github.com/brevity-k/lottery_kr.git`
+Local git config uses the project email (`rottery0.kr@gmail.com`) to comply with the Developer Identity Policy. Do **not** embed PATs in the remote URL.
 
 ### SEO Notes
 
@@ -201,7 +203,6 @@ Update on expiry: `git remote set-url origin https://brevity-k:<NEW_PAT>@github.
 ## Remaining Roadmap
 
 ### High Priority
-- 꿈해몽 번호 생성기 (`/lotto/dream`) — dream → number mapping (15K+/mo search)
 - 로또 명당 판매점 지도 (`/lotto/stores/`) — Kakao Map + data.go.kr (20K+/mo search)
 - 연금복권 720+ (`/pension/`) — results, stats, recommendations (10K+/mo search)
 - Naver Blog cross-posting (70%+ Korean searches on Naver)
