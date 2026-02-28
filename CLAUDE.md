@@ -68,7 +68,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │   └── blog-topics.json          # 12 topic templates for blog rotation
 ├── content/blog/                  # Blog post JSON files (auto-generated)
 ├── src/
-│   ├── data/lotto.json            # All lottery rounds (~1,210+, with prizes)
+│   ├── data/lotto.json            # All lottery rounds (1,212+, with prizes)
 │   ├── types/lottery.ts           # LottoResult, LottoDataFile, BlogPost, etc.
 │   ├── lib/
 │   │   ├── api/dhlottery.ts       # Lottery data loading (local JSON)
@@ -125,12 +125,14 @@ All workflows: retry with 60s delay, auto-create GitHub Issue on failure.
 | Day | Time (KST) | Event | Workflow |
 |-----|-----------|-------|----------|
 | Friday | 19:00 | Generate prediction post | `generate-prediction.yml` |
-| Friday | ~19:05 | Tweet prediction | `post-to-x.yml` |
+| Friday | after prediction | Tweet prediction | `post-to-x.yml` (workflow_run) |
 | Saturday | 20:45 | Lotto draw (external) | — |
 | Sunday | 00:00 | Fetch new draw data | `update-data.yml` |
 | Sunday | 10:00 | Generate blog post | `generate-blog-post.yml` |
-| Sunday | ~10:05 | Tweet blog post | `post-to-x.yml` |
+| Sunday | after blog | Tweet blog post | `post-to-x.yml` (workflow_run) |
 | Monday | 12:00 | Health check | `health-check.yml` |
+
+`post-to-x.yml` triggers via `workflow_run` after blog/prediction workflows complete. `health-check.yml` also triggers via `workflow_run` after all three content workflows.
 
 Blog/prediction workflows commit data updates **separately** before content generation (data not lost if AI fails).
 
@@ -184,7 +186,8 @@ Update on expiry: `git remote set-url origin https://brevity-k:<NEW_PAT>@github.
 - `/privacy`, `/terms`, `/contact` have `noindex` + excluded from sitemap
 - `robots.txt` blocks `/api/`, asset URLs to save crawl budget
 - Sitemap uses real dates (draw dates, post dates — not `new Date()`)
-- `AdBanner.tsx` returns `null` until real AdSense publisher ID replaces `ca-pub-XXXXXXXXXXXXXXXX`
+- `AdBanner.tsx` returns `null` unless `NEXT_PUBLIC_ADSENSE_CLIENT` env var is set (fallback `ca-pub-XXXXXXXXXXXXXXXX` is detected as placeholder)
+- `ads.txt` configured with real publisher ID `pub-7561681382580308` (awaiting AdSense approval)
 
 ### Prediction Lifecycle
 
@@ -218,5 +221,5 @@ Update on expiry: `git remote set-url origin https://brevity-k:<NEW_PAT>@github.
 
 ## Dependencies
 
-**Production:** next ^16.1.6, react ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^1.6.1, resend ^6.9.2
-**Dev:** typescript ^5, tailwindcss ^4, @tailwindcss/typography ^0.5.19, @anthropic-ai/sdk ^0.74.0, tsx ^4.21.0, eslint ^9
+**Production:** next ^16.1.6, react ^19.2.4, react-dom ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^1.6.1, resend ^6.9.2, @tailwindcss/typography ^0.5.19
+**Dev:** typescript ^5, tailwindcss ^4, @tailwindcss/postcss ^4, @anthropic-ai/sdk ^0.74.0, tsx ^4.21.0, eslint ^9, eslint-config-next 16.2.0-canary.35
