@@ -103,3 +103,19 @@ export interface SimulationResult {
   wins: WinTierResult[];
   bestTier: number | null;
 }
+
+export interface DreamKeyword {
+  id: string;
+  emoji: string;
+  name: string;
+  interpretation: string;
+  numbers: number[];
+}
+
+export interface DreamCategory {
+  id: string;
+  emoji: string;
+  name: string;
+  description: string;
+  keywords: DreamKeyword[];
+}

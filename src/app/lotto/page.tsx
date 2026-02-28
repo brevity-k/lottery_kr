@@ -64,6 +64,13 @@ const features = [
     cta: "확인하기",
   },
   {
+    icon: "🔮",
+    title: "꿈해몽 번호",
+    desc: "간밤의 꿈으로 행운 번호 생성",
+    href: "/lotto/dream",
+    cta: "번호 뽑기",
+  },
+  {
     icon: "🔢",
     title: "번호별 통계",
     desc: "1~45 각 번호의 출현 빈도 상세 분석",

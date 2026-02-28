@@ -12,6 +12,7 @@ const navItems = [
   { href: "/lotto/tax", label: "세금 계산기" },
   { href: "/lotto/simulator", label: "시뮬레이터" },
   { href: "/lotto/lucky", label: "오늘의 행운" },
+  { href: "/lotto/dream", label: "꿈해몽" },
   { href: "/blog", label: "블로그" },
   { href: "/faq", label: "FAQ" },
 ];
