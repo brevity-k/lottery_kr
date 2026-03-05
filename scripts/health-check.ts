@@ -11,8 +11,8 @@ import type { LottoDataFile } from "../src/types/lottery";
 import { DATA_PATH, BLOG_DIR, validateDrawData, validateBlogContent, getKSTDate } from "./lib/shared";
 
 /** Health check thresholds (days). */
-const DATA_FRESHNESS_FAIL_DAYS = 10;
-const DATA_FRESHNESS_WARN_DAYS = 7;
+const DATA_FRESHNESS_FAIL_DAYS = 14;
+const DATA_FRESHNESS_WARN_DAYS = 8;
 const BLOG_FRESHNESS_FAIL_DAYS = 14;
 
 interface CheckResult {
