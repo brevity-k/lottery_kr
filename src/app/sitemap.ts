@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/lotto/simulator`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/lotto/lucky`, lastModified: siteLastUpdated, changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/lotto/dream`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/lotto/my-numbers`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/lotto/tax`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/faq`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/blog`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.7 },
