@@ -213,6 +213,7 @@ function checkCriticalFiles(): CheckResult {
     "src/app/lotto/stats/page.tsx",
     "src/app/lotto/tax/page.tsx",
     "src/app/lotto/simulator/page.tsx",
+    "src/app/lotto/my-numbers/page.tsx",
     "src/app/lotto/lucky/page.tsx",
     "src/app/lotto/numbers/page.tsx",
     "src/app/lotto/numbers/[num]/page.tsx",
