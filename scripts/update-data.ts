@@ -1,6 +1,8 @@
 /**
- * Fetches all lotto 6/45 historical data from superkts.com
- * and saves it to src/data/lotto.json for build-time use.
+ * Fetches all lotto 6/45 historical data and saves it to src/data/lotto.json.
+ *
+ * Primary source: smok95.github.io (static GitHub Pages JSON, reliable from CI)
+ * Fallback source: superkts.com (HTML scraping)
  *
  * Run: npx tsx scripts/update-data.ts
  */
@@ -12,6 +14,11 @@ import { DATA_PATH, BACKUP_PATH, LOTTO_FIRST_DRAW_DATE, validateDrawData, withRe
 
 const FETCH_TIMEOUT_MS = 30_000;
 const FIRST_DRAW_DATE = new Date(LOTTO_FIRST_DRAW_DATE);
+
+// --- Data sources ---
+
+const SMOK95_BASE = "https://smok95.github.io/lotto/results";
+const SUPERKTS_BASE = "https://superkts.com/lotto";
 
 async function fetchWithTimeout(
   url: string,
@@ -38,6 +45,60 @@ function backupExistingData(): void {
   }
 }
 
+// --- smok95 source (primary) ---
+
+interface Smok95Result {
+  draw_no: number;
+  numbers: number[];
+  bonus_no: number;
+  date: string;
+  divisions?: { prize: number; winners: number }[];
+  total_sales_amount?: number;
+}
+
+function smok95ToLottoResult(data: Smok95Result): LottoResult | null {
+  if (!data.draw_no || !data.numbers || data.numbers.length !== 6 || !data.bonus_no) {
+    return null;
+  }
+  const sorted = [...data.numbers].sort((a, b) => a - b);
+  const date = data.date ? data.date.split("T")[0] : "";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
+
+  const firstDiv = data.divisions?.[0];
+  return {
+    drwNo: data.draw_no,
+    drwNoDate: date,
+    drwtNo1: sorted[0],
+    drwtNo2: sorted[1],
+    drwtNo3: sorted[2],
+    drwtNo4: sorted[3],
+    drwtNo5: sorted[4],
+    drwtNo6: sorted[5],
+    bnusNo: data.bonus_no,
+    firstWinamnt: firstDiv?.prize ?? 0,
+    firstPrzwnerCo: firstDiv?.winners ?? 0,
+    totSellamnt: data.total_sales_amount ?? 0,
+    returnValue: "success",
+  };
+}
+
+async function fetchRoundSmok95(round: number): Promise<LottoResult | null> {
+  try {
+    const res = await withRetry(
+      () => fetchWithTimeout(`${SMOK95_BASE}/${round}.json`),
+      3,
+      `Fetch round ${round} (smok95)`
+    );
+    if (!res.ok) return null;
+    const data: Smok95Result = await res.json();
+    return smok95ToLottoResult(data);
+  } catch {
+    return null;
+  }
+}
+
+// --- superkts source (fallback) ---
+
 function parseKoreanAmount(text: string): number {
   let amount = 0;
   const eokMatch = text.match(/(\d+)억/);
@@ -59,33 +120,27 @@ function parseCommaNumber(text: string): number {
   return parseInt(text.replace(/,/g, ""), 10) || 0;
 }
 
-async function fetchRound(round: number): Promise<LottoResult | null> {
+async function fetchRoundSuperkts(round: number): Promise<LottoResult | null> {
   try {
     const res = await withRetry(
-      () => fetchWithTimeout(`https://superkts.com/lotto/${round}`, {
+      () => fetchWithTimeout(`${SUPERKTS_BASE}/${round}`, {
         headers: { "User-Agent": "Mozilla/5.0" },
       }),
-      3,
-      `Fetch round ${round}`
+      2,
+      `Fetch round ${round} (superkts)`
     );
     if (!res.ok) return null;
     const html = await res.text();
 
-    // Parse from meta description:
-    // "1205회 로또는 2026년 1월 3일에 추첨하였고 당첨번호는 1,4,16,23,31,41 보너스 2 입니다. 1등 당첨자는 10명이며 32억2638만6263원씩"
-    const metaMatch = html.match(
-      /name="description"\s+content="([^"]+)"/
-    );
+    const metaMatch = html.match(/name="description"\s+content="([^"]+)"/);
     if (!metaMatch) return null;
 
     const desc = metaMatch[1];
 
-    // Extract date
     const dateMatch = desc.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
     if (!dateMatch) return null;
     const date = `${dateMatch[1]}-${dateMatch[2].padStart(2, "0")}-${dateMatch[3].padStart(2, "0")}`;
 
-    // Extract numbers
     const numMatch = desc.match(/당첨번호는\s*([\d,]+)\s*보너스\s*(\d+)/);
     if (!numMatch) return null;
 
@@ -94,16 +149,12 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
 
     if (numbers.length !== 6) return null;
 
-    // Extract winners count
     const winnerMatch = desc.match(/1등\s*당첨자는\s*(\d+)명/);
     const winners = winnerMatch ? parseInt(winnerMatch[1]) : 0;
 
-    // Extract prize amount from meta description (format: "이며 11억229만8407원씩")
     const prizeDescMatch = desc.match(/이며\s*(.+?)원씩/);
     let prize = prizeDescMatch ? parseKoreanAmount(prizeDescMatch[1] + "원") : 0;
 
-    // Try to get exact prize from HTML body (format: "1,102,298,407원")
-    // Only if we know there are winners, to avoid picking up 2nd prize amounts
     if (winners > 0) {
       const exactPrizeMatches = html.match(/([\d,]{10,})원/g);
       if (exactPrizeMatches) {
@@ -132,15 +183,36 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
   }
 }
 
+// --- Unified fetch with fallback ---
+
+// Track consecutive superkts failures to avoid wasting time on a down source
+let superktsFailCount = 0;
+const SUPERKTS_MAX_FAILS = 3;
+
+async function fetchRound(round: number): Promise<LottoResult | null> {
+  // Try smok95 first (reliable from CI)
+  const result = await fetchRoundSmok95(round);
+  if (result) return result;
+
+  // Fallback to superkts (skip if it's been consistently failing)
+  if (superktsFailCount >= SUPERKTS_MAX_FAILS) return null;
+
+  const fallback = await fetchRoundSuperkts(round);
+  if (fallback) {
+    superktsFailCount = 0;
+    return fallback;
+  }
+  superktsFailCount++;
+  return null;
+}
+
 async function findLatestRound(): Promise<number> {
-  // Estimate current round from elapsed KST weeks since first draw
   const kstNow = getKSTDate();
   const weeksSinceFirst = Math.floor(
     (kstNow.getTime() - FIRST_DRAW_DATE.getTime()) / (7 * 24 * 60 * 60 * 1000)
   );
   const estimated = weeksSinceFirst;
 
-  // Check existing data for a known baseline (no hardcoded fallback — rely on estimation)
   let knownLatest = estimated;
   try {
     if (fs.existsSync(DATA_PATH)) {
@@ -151,7 +223,6 @@ async function findLatestRound(): Promise<number> {
     // ignore — use estimated value
   }
 
-  // Search forward from max of known and estimated, with buffer
   const searchStart = Math.max(knownLatest, estimated) + 5;
   for (let round = searchStart; round >= knownLatest; round--) {
     const result = await fetchRound(round);
@@ -166,7 +237,6 @@ async function fetchAllData(): Promise<void> {
   const latestRound = await findLatestRound();
   console.log(`📌 Latest round: ${latestRound}`);
 
-  // Check existing data
   let existingData: LottoDataFile | null = null;
   let startRound = 1;
 
@@ -174,7 +244,6 @@ async function fetchAllData(): Promise<void> {
     const existing = fs.readFileSync(DATA_PATH, "utf-8");
     existingData = JSON.parse(existing) as LottoDataFile;
 
-    // Check if prize data is missing (all firstWinamnt = 0) -> force full re-fetch
     const hasPrizeData = existingData.draws.some((d) => d.firstWinamnt > 0);
     if (!hasPrizeData && existingData.draws.length > 0) {
       console.log("⚠️ Prize amount data is missing. Re-fetching all rounds...");
