@@ -79,6 +79,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │   │   │   ├── stats.ts           # Statistical calculations
 │   │   │   ├── simulator.ts       # Lottery simulator
 │   │   │   ├── dream.ts           # Dream interpretation data + number generation
+│   │   │   ├── my-numbers.ts      # Personal number tracking & analysis engine
 │   │   │   └── tax.ts             # Tax calculation (Korean brackets)
 │   │   └── utils/                 # format.ts, kakao.ts, kst.ts, markdown.ts
 │   ├── components/
@@ -99,6 +100,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │       │   ├── stats/             # Statistics & frequency
 │       │   ├── lucky/             # Daily lucky numbers (client-side PRNG)
 │       │   ├── dream/            # Dream interpretation number generator
+│       │   ├── my-numbers/        # Personal number tracking & analysis
 │       │   ├── tax/               # Tax calculator
 │       │   └── simulator/         # Lottery simulator
 │       ├── blog/                  # Blog list + [slug] detail
