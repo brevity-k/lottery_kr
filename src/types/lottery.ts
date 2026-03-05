@@ -119,3 +119,45 @@ export interface DreamCategory {
   description: string;
   keywords: DreamKeyword[];
 }
+
+export interface MyGame {
+  id: string;
+  numbers: number[];
+  round: number;
+  createdAt: string;
+}
+
+export interface MyNumbersData {
+  version: 1;
+  games: MyGame[];
+}
+
+export interface BacktestResult {
+  round: number;
+  date: string;
+  matchCount: number;
+  matchedNumbers: number[];
+  bonusMatch: boolean;
+  tier: number | null;
+  prize: number;
+}
+
+export interface PatternAnalysis {
+  totalGames: number;
+  numberFrequencies: { number: number; count: number; percentage: number }[];
+  topNumbers: number[];
+  oddRatio: number;
+  evenRatio: number;
+  highRatio: number;
+  lowRatio: number;
+  sectionCoverage: { section: string; count: number; percentage: number }[];
+  avgConsecutivePairs: number;
+  avgSpread: number;
+}
+
+export interface NumberReport {
+  patterns: PatternAnalysis;
+  story: string;
+  suggestions: number[];
+  suggestionReason: string;
+}
