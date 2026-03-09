@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { WinningStore } from "@/types/store";
 
 interface Props {
@@ -10,8 +10,8 @@ interface Props {
 }
 
 interface LeafletMap {
-  setView: (latlng: [number, number], zoom: number) => LeafletMap;
-  fitBounds: (bounds: unknown) => LeafletMap;
+  setView: (latlng: [number, number], zoom: number, options?: { animate: boolean }) => LeafletMap;
+  fitBounds: (bounds: unknown, options?: { padding: [number, number]; animate: boolean }) => LeafletMap;
   remove: () => void;
 }
 
@@ -21,6 +21,16 @@ interface LeafletMarker {
   openPopup: () => LeafletMarker;
   remove: () => void;
   on: (event: string, handler: () => void) => LeafletMarker;
+  getLatLng: () => { lat: number; lng: number };
+}
+
+interface LeafletLayerGroup {
+  addTo: (map: LeafletMap) => LeafletLayerGroup;
+  addLayer: (layer: LeafletMarker) => LeafletLayerGroup;
+  removeLayer: (layer: LeafletMarker) => LeafletLayerGroup;
+  clearLayers: () => LeafletLayerGroup;
+  getLayers: () => LeafletMarker[];
+  getBounds: () => unknown;
 }
 
 interface LeafletStatic {
@@ -28,6 +38,7 @@ interface LeafletStatic {
   tileLayer: (url: string, options: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
   marker: (latlng: [number, number]) => LeafletMarker;
   latLngBounds: (latlngs: [number, number][]) => unknown;
+  layerGroup: () => LeafletLayerGroup;
 }
 
 declare global {
@@ -36,73 +47,143 @@ declare global {
   }
 }
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debounced;
+}
+
 export default function StoresClient({ stores, topStores, regions }: Props) {
   const [mounted, setMounted] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState("전체");
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [selectedStore, setSelectedStore] = useState<WinningStore | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [mapReady, setMapReady] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<LeafletMap | null>(null);
-  const markersRef = useRef<LeafletMarker[]>([]);
+  const layerGroupRef = useRef<LeafletLayerGroup | null>(null);
+  // Map store index → marker for O(1) lookup
+  const markerMapRef = useRef<Map<number, LeafletMarker>>(new Map());
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const filteredStores = stores.filter((s) => {
-    const matchRegion =
-      selectedRegion === "전체" || s.region === selectedRegion;
-    const matchSearch =
-      !searchQuery ||
-      s.name.includes(searchQuery) ||
-      s.address.includes(searchQuery);
-    return matchRegion && matchSearch;
-  });
+  // Memoize filtered stores to prevent unnecessary marker updates
+  const filteredStores = useMemo(() => {
+    return stores.filter((s) => {
+      const matchRegion =
+        selectedRegion === "전체" || s.region === selectedRegion;
+      const matchSearch =
+        !debouncedSearch ||
+        s.name.includes(debouncedSearch) ||
+        s.address.includes(debouncedSearch);
+      return matchRegion && matchSearch;
+    });
+  }, [stores, selectedRegion, debouncedSearch]);
 
-  const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
-  }, []);
+  // Also compute for instant list filtering (no debounce for list view)
+  const listFilteredStores = useMemo(() => {
+    return stores.filter((s) => {
+      const matchRegion =
+        selectedRegion === "전체" || s.region === selectedRegion;
+      const matchSearch =
+        !searchQuery ||
+        s.name.includes(searchQuery) ||
+        s.address.includes(searchQuery);
+      return matchRegion && matchSearch;
+    });
+  }, [stores, selectedRegion, searchQuery]);
 
-  const addMarkers = useCallback(
-    (map: LeafletMap, storesToMark: WinningStore[]) => {
-      clearMarkers();
-      if (storesToMark.length === 0) return;
+  // Create all markers once when map is ready, then show/hide based on filter
+  useEffect(() => {
+    if (!mapReady || !leafletMapRef.current || !window.L) return;
 
-      const L = window.L;
-      const coords: [number, number][] = [];
+    const L = window.L;
+    const group = L.layerGroup().addTo(leafletMapRef.current);
+    layerGroupRef.current = group;
+    const markerMap = new Map<number, LeafletMarker>();
 
-      storesToMark.forEach((store) => {
-        const latlng: [number, number] = [store.lat, store.lng];
-        coords.push(latlng);
+    stores.forEach((store, idx) => {
+      const marker = L.marker([store.lat, store.lng]);
+      marker.bindPopup(
+        `<div style="font-size:13px;min-width:180px;line-height:1.5;">
+          <strong>${escapeHtml(store.name)}</strong><br/>
+          <span style="color:#666;font-size:12px;">${escapeHtml(store.address)}</span><br/>
+          <span style="color:#2563eb;font-weight:600;">1등 당첨 ${store.totalWins}회</span>
+        </div>`
+      );
+      marker.on("click", () => setSelectedStore(store));
+      markerMap.set(idx, marker);
+    });
 
-        const marker = L.marker(latlng).addTo(map);
-        marker.bindPopup(
-          `<div style="font-size:13px;min-width:180px;line-height:1.5;">
-            <strong>${escapeHtml(store.name)}</strong><br/>
-            <span style="color:#666;font-size:12px;">${escapeHtml(store.address)}</span><br/>
-            <span style="color:#2563eb;font-weight:600;">1등 당첨 ${store.totalWins}회</span>
-          </div>`
-        );
+    markerMapRef.current = markerMap;
 
-        marker.on("click", () => {
-          setSelectedStore(store);
-        });
+    return () => {
+      group.clearLayers();
+    };
+    // Only create markers once when map becomes ready
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapReady]);
 
-        markersRef.current.push(marker);
-      });
+  // Show/hide markers based on filter — no DOM removal, just layer add/remove
+  const prevFilterRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    const group = layerGroupRef.current;
+    if (!group || !mapReady || !leafletMapRef.current) return;
 
-      if (coords.length > 1) {
-        map.fitBounds(L.latLngBounds(coords));
-      } else {
-        map.setView(coords[0], 15);
+    const filteredSet = new Set<number>();
+    stores.forEach((store, idx) => {
+      const matchRegion =
+        selectedRegion === "전체" || store.region === selectedRegion;
+      const matchSearch =
+        !debouncedSearch ||
+        store.name.includes(debouncedSearch) ||
+        store.address.includes(debouncedSearch);
+      if (matchRegion && matchSearch) filteredSet.add(idx);
+    });
+
+    const prevSet = prevFilterRef.current;
+
+    // Remove markers no longer visible
+    for (const idx of prevSet) {
+      if (!filteredSet.has(idx)) {
+        const marker = markerMapRef.current.get(idx);
+        if (marker) group.removeLayer(marker);
       }
-    },
-    [clearMarkers]
-  );
+    }
+    // Add newly visible markers
+    for (const idx of filteredSet) {
+      if (!prevSet.has(idx)) {
+        const marker = markerMapRef.current.get(idx);
+        if (marker) group.addLayer(marker);
+      }
+    }
+
+    prevFilterRef.current = filteredSet;
+
+    // Fit bounds only when region changes (not on search)
+    if (filteredSet.size > 0) {
+      const coords: [number, number][] = [];
+      for (const idx of filteredSet) {
+        coords.push([stores[idx].lat, stores[idx].lng]);
+      }
+      if (coords.length > 1) {
+        leafletMapRef.current.fitBounds(
+          window.L.latLngBounds(coords),
+          { padding: [20, 20], animate: false }
+        );
+      } else if (coords.length === 1) {
+        leafletMapRef.current.setView(coords[0], 15, { animate: false });
+      }
+    }
+  }, [stores, selectedRegion, debouncedSearch, mapReady]);
 
   // Load Leaflet and initialize map
   useEffect(() => {
@@ -128,7 +209,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
       return;
     }
 
-    // Load Leaflet CSS + JS in parallel from jsdelivr (faster than unpkg)
+    // Load Leaflet CSS + JS from jsdelivr
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css";
@@ -147,26 +228,26 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
     };
   }, [mounted]);
 
-  // Update markers when filter changes
-  useEffect(() => {
-    if (!mapReady || !leafletMapRef.current) return;
-    addMarkers(leafletMapRef.current, filteredStores);
-  }, [mapReady, filteredStores, addMarkers]);
-
-  const handleStoreClick = (store: WinningStore) => {
+  const handleStoreClick = useCallback((store: WinningStore) => {
     setSelectedStore(store);
-    if (leafletMapRef.current && mapReady) {
-      leafletMapRef.current.setView([store.lat, store.lng], 15);
+    if (!leafletMapRef.current || !mapReady) return;
 
-      const idx = filteredStores.findIndex(
-        (s) => s.name === store.name && s.address === store.address
-      );
-      if (idx >= 0 && markersRef.current[idx]) {
-        markersRef.current[idx].openPopup();
-      }
+    leafletMapRef.current.setView([store.lat, store.lng], 15, { animate: false });
+
+    // Find and open popup for this store
+    const idx = stores.findIndex(
+      (s) => s.name === store.name && s.address === store.address
+    );
+    const marker = markerMapRef.current.get(idx);
+    if (marker) {
+      // Ensure marker is on map
+      const group = layerGroupRef.current;
+      if (group) group.addLayer(marker);
+      marker.openPopup();
     }
+
     setViewMode("map");
-  };
+  }, [stores, mapReady]);
 
   if (!mounted) {
     return (
@@ -224,7 +305,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
       </div>
 
       <p className="text-xs text-gray-500 mb-3">
-        검색 결과: <strong>{filteredStores.length}곳</strong>
+        검색 결과: <strong>{listFilteredStores.length}곳</strong>
       </p>
 
       {/* Map View */}
@@ -238,7 +319,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
       {/* List View */}
       {viewMode === "list" && (
         <div className="space-y-2 max-h-[500px] overflow-y-auto">
-          {filteredStores.map((store, idx) => (
+          {listFilteredStores.map((store, idx) => (
             <button
               key={`${store.name}-${idx}`}
               onClick={() => handleStoreClick(store)}
