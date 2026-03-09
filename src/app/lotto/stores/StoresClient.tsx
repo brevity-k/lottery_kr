@@ -308,13 +308,13 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
         검색 결과: <strong>{listFilteredStores.length}곳</strong>
       </p>
 
-      {/* Map View */}
-      {viewMode === "map" && (
-        <div
-          ref={mapRef}
-          className="w-full h-[500px] rounded-2xl border border-gray-200 shadow-sm z-0"
-        />
-      )}
+      {/* Map View — always mounted to preserve Leaflet instance */}
+      <div
+        ref={mapRef}
+        className={`w-full h-[500px] rounded-2xl border border-gray-200 shadow-sm z-0 ${
+          viewMode === "map" ? "" : "hidden"
+        }`}
+      />
 
       {/* List View */}
       {viewMode === "list" && (
