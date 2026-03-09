@@ -3,7 +3,7 @@ import TaxCalculatorClient from "./TaxCalculatorClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
-import RelatedFeatures from "@/components/ui/RelatedFeatures";
+
 
 export const metadata: Metadata = {
   title: "로또 세금 계산기 - 당첨금 실수령액 즉시 확인",
@@ -39,7 +39,6 @@ export default function TaxPage() {
 
       <AdBanner slot="tax-bottom" format="horizontal" className="mt-6" />
 
-      <RelatedFeatures currentPath="/lotto/tax" />
     </div>
   );
 }

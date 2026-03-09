@@ -5,7 +5,7 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
-import RelatedFeatures from "@/components/ui/RelatedFeatures";
+
 
 export const metadata: Metadata = {
   title: "로또 번호 추천 생성기 - 6가지 통계 기반 추천 [무료]",
@@ -66,7 +66,6 @@ export default function RecommendPage() {
         </p>
       </div>
 
-      <RelatedFeatures currentPath="/lotto/recommend" />
     </div>
   );
 }

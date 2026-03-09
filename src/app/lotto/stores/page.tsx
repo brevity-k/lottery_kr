@@ -3,7 +3,7 @@ import { getAllWinningStores, getTopStores, getRegions } from "@/lib/lottery/sto
 import StoresClient from "./StoresClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import RelatedFeatures from "@/components/ui/RelatedFeatures";
+
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
@@ -104,7 +104,6 @@ export default function StoresPage() {
         </div>
       </section>
 
-      <RelatedFeatures currentPath="/lotto/stores" />
     </div>
   );
 }
