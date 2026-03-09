@@ -13,6 +13,7 @@ const navItems = [
   { href: "/lotto/simulator", label: "시뮬레이터" },
   { href: "/lotto/lucky", label: "오늘의 행운" },
   { href: "/lotto/dream", label: "꿈해몽" },
+  { href: "/lotto/stores", label: "명당" },
   { href: "/lotto/my-numbers", label: "내 번호" },
   { href: "/blog", label: "블로그" },
   { href: "/faq", label: "FAQ" },

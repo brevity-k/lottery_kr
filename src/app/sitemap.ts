@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { MetadataRoute } from "next";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { getAllBlogPosts } from "@/lib/blog";
@@ -6,8 +8,15 @@ import { SITE_URL, LOTTO_MAX_NUMBER } from "@/lib/constants";
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = SITE_URL;
 
-  // Fixed date for pages that rarely change (avoids new Date() which signals false freshness)
-  const siteLastUpdated = "2026-02-23";
+  // Use lotto.json modification time so sitemap reflects actual data freshness
+  let siteLastUpdated = "2026-02-23";
+  try {
+    const dataFilePath = path.join(process.cwd(), "src/data/lotto.json");
+    const stat = fs.statSync(dataFilePath);
+    siteLastUpdated = stat.mtime.toISOString().split("T")[0];
+  } catch {
+    // fallback to hardcoded date
+  }
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: siteLastUpdated, changeFrequency: "daily", priority: 1.0 },
@@ -20,6 +29,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/lotto/dream`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/lotto/my-numbers`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/lotto/tax`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/lotto/stores`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/faq`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/blog`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/about`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.3 },

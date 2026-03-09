@@ -3,18 +3,19 @@ import MyNumbersClient from "./MyNumbersClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 
 export const metadata: Metadata = {
-  title: "내 번호 분석 - 나만의 로또 통계",
+  title: "내 로또 번호 분석 - 나만의 번호 통계 및 당첨 확인",
   description:
-    "매주 구매한 로또 번호를 기록하고, 당첨 결과 비교, 패턴 분석, 맞춤 전략 추천까지. 나만의 로또 통계를 확인해보세요.",
+    "매주 구매한 로또 번호를 기록하고, 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 결과 백테스트를 제공합니다.",
   alternates: { canonical: "/lotto/my-numbers" },
   openGraph: {
-    title: "내 번호 분석 - 나만의 로또 통계",
+    title: "내 로또 번호 분석 - 나만의 번호 통계 및 당첨 확인",
     description:
-      "매주 구매한 로또 번호를 기록하고, 당첨 결과 비교, 패턴 분석, 맞춤 전략 추천까지. 나만의 로또 통계를 확인해보세요.",
+      "매주 구매한 로또 번호를 기록하고, 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 결과 백테스트를 제공합니다.",
     url: "/lotto/my-numbers",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -48,6 +49,8 @@ export default function MyNumbersPage() {
       />
 
       <AdBanner slot="my-numbers-bottom" format="horizontal" className="mt-6" />
+
+      <RelatedFeatures currentPath="/lotto/my-numbers" />
     </div>
   );
 }

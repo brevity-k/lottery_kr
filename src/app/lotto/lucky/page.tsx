@@ -3,16 +3,17 @@ import LuckyClient from "./LuckyClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "오늘의 행운 번호 - 매일 바뀌는 로또 번호",
+  title: "오늘의 로또 행운 번호 - 매일 바뀌는 추천 번호",
   description:
-    "매일 자정에 바뀌는 오늘의 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 로또 6/45 행운의 번호 추천.",
+    "매일 자정에 바뀌는 오늘의 로또 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 무료 로또 번호 추천.",
   alternates: { canonical: "/lotto/lucky" },
   openGraph: {
-    title: "오늘의 행운 번호 - 매일 바뀌는 로또 번호",
+    title: "오늘의 로또 행운 번호 - 매일 바뀌는 추천 번호",
     description:
-      "매일 자정에 바뀌는 오늘의 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 로또 6/45 행운의 번호 추천.",
+      "매일 자정에 바뀌는 오늘의 로또 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 무료 로또 번호 추천.",
     url: "/lotto/lucky",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -56,6 +57,8 @@ export default function LuckyPage() {
           </p>
         </div>
       </section>
+
+      <RelatedFeatures currentPath="/lotto/lucky" />
     </div>
   );
 }

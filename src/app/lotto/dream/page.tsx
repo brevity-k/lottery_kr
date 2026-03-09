@@ -3,16 +3,17 @@ import DreamClient from "./DreamClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
+  title: "로또 꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
   description:
-    "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천해 드립니다. 돼지꿈, 용꿈, 물꿈 등 꿈 종류별 행운의 번호를 확인하세요.",
+    "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천합니다. 돼지꿈, 용꿈, 물꿈, 뱀꿈 등 꿈 종류별 행운의 번호.",
   alternates: { canonical: "/lotto/dream" },
   openGraph: {
-    title: "꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
+    title: "로또 꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
     description:
-      "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천해 드립니다. 돼지꿈, 용꿈, 물꿈 등 꿈 종류별 행운의 번호를 확인하세요.",
+      "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천합니다. 돼지꿈, 용꿈, 물꿈, 뱀꿈 등 꿈 종류별 행운의 번호.",
     url: "/lotto/dream",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -28,7 +29,7 @@ export default function DreamPage() {
         { label: "꿈해몽 번호 생성기" },
       ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        🔮 꿈해몽 번호 생성기
+        🔮 로또 꿈해몽 번호 생성기
       </h1>
       <p className="text-gray-600 mb-8">
         간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 행운의 로또 번호를 추천해 드립니다.
@@ -57,6 +58,8 @@ export default function DreamPage() {
           </p>
         </div>
       </section>
+
+      <RelatedFeatures currentPath="/lotto/dream" />
     </div>
   );
 }

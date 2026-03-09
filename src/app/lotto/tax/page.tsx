@@ -3,16 +3,17 @@ import TaxCalculatorClient from "./TaxCalculatorClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "로또 세금 계산기 - 당첨금 실수령액 계산",
+  title: "로또 세금 계산기 - 당첨금 실수령액 자동 계산",
   description:
-    "로또 당첨금에 대한 세금(소득세, 지방소득세)을 계산하고 실수령액을 확인하세요. 2023년 개정 세법 기준 정확한 복권 세금 계산기.",
+    "로또 당첨금 세금을 자동으로 계산합니다. 소득세, 지방소득세 공제 후 실수령액을 확인하세요. 최신 세법 기준 복권 당첨금 세금 계산기.",
   alternates: { canonical: "/lotto/tax" },
   openGraph: {
-    title: "로또 세금 계산기 - 당첨금 실수령액 계산",
+    title: "로또 세금 계산기 - 당첨금 실수령액 자동 계산",
     description:
-      "로또 당첨금에 대한 세금(소득세, 지방소득세)을 계산하고 실수령액을 확인하세요. 2023년 개정 세법 기준 정확한 복권 세금 계산기.",
+      "로또 당첨금 세금을 자동으로 계산합니다. 소득세, 지방소득세 공제 후 실수령액을 확인하세요. 최신 세법 기준 복권 당첨금 세금 계산기.",
     url: "/lotto/tax",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -37,6 +38,8 @@ export default function TaxPage() {
       <TaxCalculatorClient />
 
       <AdBanner slot="tax-bottom" format="horizontal" className="mt-6" />
+
+      <RelatedFeatures currentPath="/lotto/tax" />
     </div>
   );
 }
