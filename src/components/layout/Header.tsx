@@ -5,28 +5,18 @@ import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/lotto", label: "로또 6/45" },
-  { href: "/lotto/recommend", label: "번호 추천" },
   { href: "/lotto/results", label: "당첨번호" },
-  { href: "/lotto/stats", label: "통계 분석" },
-  { href: "/lotto/tax", label: "세금 계산기" },
-  { href: "/lotto/simulator", label: "시뮬레이터" },
-  { href: "/lotto/lucky", label: "오늘의 행운" },
-  { href: "/lotto/dream", label: "꿈해몽" },
+  { href: "/lotto/recommend", label: "번호 추천" },
   { href: "/lotto/stores", label: "명당" },
-  { href: "/lotto/my-numbers", label: "내 번호" },
+  { href: "/lotto/tax", label: "세금 계산기" },
   { href: "/blog", label: "블로그" },
-  { href: "/faq", label: "FAQ" },
 ];
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
 
-  const isActive = (href: string) => {
-    if (href === "/lotto") return pathname === "/lotto";
-    return pathname.startsWith(href);
-  };
+  const isActive = (href: string) => pathname.startsWith(href);
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
