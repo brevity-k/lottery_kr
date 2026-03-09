@@ -9,51 +9,31 @@ interface Props {
   regions: string[];
 }
 
+interface LeafletMap {
+  setView: (latlng: [number, number], zoom: number) => LeafletMap;
+  fitBounds: (bounds: unknown) => LeafletMap;
+  remove: () => void;
+}
+
+interface LeafletMarker {
+  addTo: (map: LeafletMap) => LeafletMarker;
+  bindPopup: (content: string) => LeafletMarker;
+  openPopup: () => LeafletMarker;
+  remove: () => void;
+  on: (event: string, handler: () => void) => LeafletMarker;
+}
+
+interface LeafletStatic {
+  map: (el: HTMLElement) => LeafletMap;
+  tileLayer: (url: string, options: Record<string, unknown>) => { addTo: (map: LeafletMap) => void };
+  marker: (latlng: [number, number]) => LeafletMarker;
+  latLngBounds: (latlngs: [number, number][]) => unknown;
+}
+
 declare global {
   interface Window {
-    kakao: {
-      maps: {
-        load: (callback: () => void) => void;
-        Map: new (
-          container: HTMLElement,
-          options: { center: unknown; level: number }
-        ) => KakaoMap;
-        LatLng: new (lat: number, lng: number) => unknown;
-        Marker: new (options: { position: unknown; map?: KakaoMap }) => KakaoMarker;
-        InfoWindow: new (options: {
-          content: string;
-          removable?: boolean;
-        }) => KakaoInfoWindow;
-        LatLngBounds: new () => KakaoLatLngBounds;
-        event: {
-          addListener: (
-            target: unknown,
-            type: string,
-            handler: () => void
-          ) => void;
-        };
-      };
-    };
+    L: LeafletStatic;
   }
-}
-
-interface KakaoMap {
-  setCenter: (latlng: unknown) => void;
-  setLevel: (level: number) => void;
-  setBounds: (bounds: KakaoLatLngBounds) => void;
-}
-
-interface KakaoMarker {
-  setMap: (map: KakaoMap | null) => void;
-}
-
-interface KakaoInfoWindow {
-  open: (map: KakaoMap, marker: KakaoMarker) => void;
-  close: () => void;
-}
-
-interface KakaoLatLngBounds {
-  extend: (latlng: unknown) => void;
 }
 
 export default function StoresClient({ stores, topStores, regions }: Props) {
@@ -65,9 +45,8 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
   const [mapReady, setMapReady] = useState(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
-  const kakaoMapRef = useRef<KakaoMap | null>(null);
-  const markersRef = useRef<KakaoMarker[]>([]);
-  const infoWindowRef = useRef<KakaoInfoWindow | null>(null);
+  const leafletMapRef = useRef<LeafletMap | null>(null);
+  const markersRef = useRef<LeafletMarker[]>([]);
 
   useEffect(() => {
     setMounted(true);
@@ -84,113 +63,111 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
   });
 
   const clearMarkers = useCallback(() => {
-    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
-    if (infoWindowRef.current) {
-      infoWindowRef.current.close();
-      infoWindowRef.current = null;
-    }
   }, []);
 
   const addMarkers = useCallback(
-    (map: KakaoMap, storesToMark: WinningStore[]) => {
+    (map: LeafletMap, storesToMark: WinningStore[]) => {
       clearMarkers();
-
       if (storesToMark.length === 0) return;
 
-      const bounds = new window.kakao.maps.LatLngBounds();
+      const L = window.L;
+      const coords: [number, number][] = [];
 
       storesToMark.forEach((store) => {
-        const position = new window.kakao.maps.LatLng(store.lat, store.lng);
-        const marker = new window.kakao.maps.Marker({ position, map });
+        const latlng: [number, number] = [store.lat, store.lng];
+        coords.push(latlng);
 
-        bounds.extend(position);
+        const marker = L.marker(latlng).addTo(map);
+        marker.bindPopup(
+          `<div style="font-size:13px;min-width:180px;line-height:1.5;">
+            <strong>${escapeHtml(store.name)}</strong><br/>
+            <span style="color:#666;font-size:12px;">${escapeHtml(store.address)}</span><br/>
+            <span style="color:#2563eb;font-weight:600;">1등 당첨 ${store.totalWins}회</span>
+          </div>`
+        );
 
-        window.kakao.maps.event.addListener(marker, "click", () => {
-          if (infoWindowRef.current) infoWindowRef.current.close();
-
-          const infoWindow = new window.kakao.maps.InfoWindow({
-            content: `<div style="padding:8px 12px;font-size:13px;min-width:180px;line-height:1.5;">
-              <strong>${escapeHtml(store.name)}</strong><br/>
-              <span style="color:#666;font-size:12px;">${escapeHtml(store.address)}</span><br/>
-              <span style="color:#2563eb;font-weight:600;">1등 당첨 ${store.totalWins}회</span>
-            </div>`,
-            removable: true,
-          });
-
-          infoWindow.open(map, marker);
-          infoWindowRef.current = infoWindow;
+        marker.on("click", () => {
           setSelectedStore(store);
         });
 
         markersRef.current.push(marker);
       });
 
-      if (storesToMark.length > 1) {
-        map.setBounds(bounds);
+      if (coords.length > 1) {
+        map.fitBounds(L.latLngBounds(coords));
       } else {
-        map.setCenter(
-          new window.kakao.maps.LatLng(
-            storesToMark[0].lat,
-            storesToMark[0].lng
-          )
-        );
-        map.setLevel(5);
+        map.setView(coords[0], 15);
       }
     },
     [clearMarkers]
   );
 
-  // Initialize map
+  // Load Leaflet and initialize map
   useEffect(() => {
     if (!mounted || !mapRef.current) return;
-    if (typeof window === "undefined" || !window.kakao?.maps) return;
 
-    window.kakao.maps.load(() => {
-      if (!mapRef.current) return;
+    const initMap = () => {
+      if (!window.L || !mapRef.current) return;
 
-      const center = new window.kakao.maps.LatLng(36.5, 127.8);
-      const map = new window.kakao.maps.Map(mapRef.current, {
-        center,
-        level: 13,
-      });
+      const L = window.L;
+      const map = L.map(mapRef.current).setView([36.5, 127.8], 7);
 
-      kakaoMapRef.current = map;
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 19,
+      }).addTo(map);
+
+      leafletMapRef.current = map;
       setMapReady(true);
-    });
+    };
+
+    if (window.L) {
+      initMap();
+      return;
+    }
+
+    // Load Leaflet CSS
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    link.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=";
+    link.crossOrigin = "";
+    document.head.appendChild(link);
+
+    // Load Leaflet JS
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=";
+    script.crossOrigin = "";
+    script.onload = initMap;
+    document.head.appendChild(script);
+
+    return () => {
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+      }
+    };
   }, [mounted]);
 
   // Update markers when filter changes
   useEffect(() => {
-    if (!mapReady || !kakaoMapRef.current) return;
-    addMarkers(kakaoMapRef.current, filteredStores);
+    if (!mapReady || !leafletMapRef.current) return;
+    addMarkers(leafletMapRef.current, filteredStores);
   }, [mapReady, filteredStores, addMarkers]);
 
   const handleStoreClick = (store: WinningStore) => {
     setSelectedStore(store);
-    if (kakaoMapRef.current && mapReady) {
-      const position = new window.kakao.maps.LatLng(store.lat, store.lng);
-      kakaoMapRef.current.setCenter(position);
-      kakaoMapRef.current.setLevel(4);
+    if (leafletMapRef.current && mapReady) {
+      leafletMapRef.current.setView([store.lat, store.lng], 15);
 
-      if (infoWindowRef.current) infoWindowRef.current.close();
-
-      const marker = markersRef.current.find((_, idx) => {
-        const s = filteredStores[idx];
-        return s && s.name === store.name && s.address === store.address;
-      });
-
-      if (marker) {
-        const infoWindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:8px 12px;font-size:13px;min-width:180px;line-height:1.5;">
-            <strong>${escapeHtml(store.name)}</strong><br/>
-            <span style="color:#666;font-size:12px;">${escapeHtml(store.address)}</span><br/>
-            <span style="color:#2563eb;font-weight:600;">1등 당첨 ${store.totalWins}회</span>
-          </div>`,
-          removable: true,
-        });
-        infoWindow.open(kakaoMapRef.current, marker);
-        infoWindowRef.current = infoWindow;
+      const idx = filteredStores.findIndex(
+        (s) => s.name === store.name && s.address === store.address
+      );
+      if (idx >= 0 && markersRef.current[idx]) {
+        markersRef.current[idx].openPopup();
       }
     }
     setViewMode("map");
@@ -259,7 +236,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
       {viewMode === "map" && (
         <div
           ref={mapRef}
-          className="w-full h-[500px] rounded-2xl border border-gray-200 shadow-sm"
+          className="w-full h-[500px] rounded-2xl border border-gray-200 shadow-sm z-0"
         />
       )}
 
