@@ -20,13 +20,24 @@ export const metadata: Metadata = {
     "로또 번호 추천",
     "로또 당첨번호",
     "로또 6/45",
-    "연금복권",
-    "복권 번호 추천",
+    "로또 번호 생성기",
+    "로또 당첨번호 조회",
     "로또 통계",
+    "로또 시뮬레이터",
+    "로또 세금 계산기",
+    "꿈해몽 로또",
+    "로또 명당",
+    "복권 번호 추천",
     "당첨번호 조회",
   ],
   alternates: {
     canonical: "/",
+    languages: {
+      ko: "/",
+    },
+    types: {
+      "application/rss+xml": "/feed.xml",
+    },
   },
   openGraph: {
     title: "로또리 - 한국 복권 번호 추천",
@@ -44,7 +55,7 @@ export const metadata: Metadata = {
   verification: {
     google: "l9x3-7Ka7vQqGyceePwBraUm1GpiQxsWF0MhGyLDNVQ",
     other: {
-      "naver-site-verification": ["f850dc4f90a4d1aca1e3d93539678a1a18fcd8ea"],
+      "naver-site-verification": ["4d2b1b57bfa30e4b39180942c18dcd707a256e8a"],
     },
   },
   other: {
@@ -90,8 +101,13 @@ export default function RootLayout({
           strategy="afterInteractive"
         />
         <link
-          rel="stylesheet"
+          rel="preload"
           as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+        <link
+          rel="stylesheet"
           crossOrigin="anonymous"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />

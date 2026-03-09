@@ -4,17 +4,18 @@ import { calculateStats } from "@/lib/lottery/stats";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "로또 번호 추천 - AI 통계 기반 스마트 추천",
+  title: "로또 번호 추천 및 생성기 - AI 통계 기반 스마트 추천",
   description:
-    "6가지 추천 알고리즘으로 로또 6/45 번호를 추천받으세요. 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형, AI 종합 추천을 제공합니다.",
+    "로또 번호 추천, 번호 생성기를 무료로 이용하세요. 6가지 알고리즘(랜덤, 통계, 핫넘버, 콜드넘버, 균형, AI)으로 로또 6/45 당첨 번호를 추천합니다.",
   alternates: { canonical: "/lotto/recommend" },
   openGraph: {
-    title: "로또 번호 추천 - AI 통계 기반 스마트 추천",
+    title: "로또 번호 추천 및 생성기 - AI 통계 기반 스마트 추천",
     description:
-      "6가지 추천 알고리즘으로 로또 6/45 번호를 추천받으세요. 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형, AI 종합 추천을 제공합니다.",
+      "로또 번호 추천, 번호 생성기를 무료로 이용하세요. 6가지 알고리즘(랜덤, 통계, 핫넘버, 콜드넘버, 균형, AI)으로 로또 6/45 당첨 번호를 추천합니다.",
     url: "/lotto/recommend",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -26,14 +27,27 @@ export default function RecommendPage() {
   const results = getRecentResults(100);
   const stats = calculateStats(results, 20);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "로또 번호 추천 · 생성기",
+    url: `${SITE_URL}/lotto/recommend`,
+    applicationCategory: "UtilityApplication",
+    operatingSystem: "Web",
+    description: "6가지 알고리즘으로 로또 6/45 번호를 추천하는 무료 웹 서비스",
+    inLanguage: "ko",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Breadcrumb items={[
         { label: "로또 6/45", href: "/lotto" },
         { label: "번호 추천" },
       ]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
-        🤖 로또 번호 추천
+        🤖 로또 번호 추천 · 생성기
       </h1>
       <p className="text-gray-600 mb-8">
         다양한 알고리즘으로 이번 주 로또 번호를 추천받으세요
@@ -51,6 +65,8 @@ export default function RecommendPage() {
           하에 이루어져야 합니다.
         </p>
       </div>
+
+      <RelatedFeatures currentPath="/lotto/recommend" />
     </div>
   );
 }

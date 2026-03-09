@@ -71,6 +71,13 @@ const features = [
     cta: "번호 뽑기",
   },
   {
+    icon: "🏪",
+    title: "명당 판매점",
+    desc: "1등 당첨 판매점 지도에서 찾기",
+    href: "/lotto/stores",
+    cta: "찾아보기",
+  },
+  {
     icon: "🔢",
     title: "번호별 통계",
     desc: "1~45 각 번호의 출현 빈도 상세 분석",

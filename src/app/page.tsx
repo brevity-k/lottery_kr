@@ -43,6 +43,13 @@ const lotteryTypes = [
     icon: "📊",
     color: "bg-amber-50 border-amber-200 hover:border-amber-400",
   },
+  {
+    name: "명당 판매점",
+    desc: "1등 당첨 판매점 찾기",
+    href: "/lotto/stores",
+    icon: "🏪",
+    color: "bg-red-50 border-red-200 hover:border-red-400",
+  },
 ];
 
 export default function Home() {
@@ -60,6 +67,11 @@ export default function Home() {
     description:
       "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서.",
     inLanguage: "ko",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/lotto/results/{search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
   };
 
   return (

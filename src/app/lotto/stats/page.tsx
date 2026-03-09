@@ -5,17 +5,18 @@ import LottoBall from "@/components/lottery/LottoBall";
 import FrequencyChart from "@/components/charts/FrequencyChart";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "로또 통계 분석 - 번호별 출현 빈도, 패턴 분석",
+  title: "로또 통계 분석 - 번호별 출현 빈도, 핫넘버, 콜드넘버",
   description:
-    "로또 6/45 역대 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버/콜드넘버를 확인하세요.",
+    "로또 6/45 역대 전체 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버·콜드넘버, 최근 20회 트렌드를 확인하세요.",
   alternates: { canonical: "/lotto/stats" },
   openGraph: {
-    title: "로또 통계 분석 - 번호별 출현 빈도, 패턴 분석",
+    title: "로또 통계 분석 - 번호별 출현 빈도, 핫넘버, 콜드넘버",
     description:
-      "로또 6/45 역대 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버/콜드넘버를 확인하세요.",
+      "로또 6/45 역대 전체 당첨번호 통계 분석. 번호별 출현 빈도, 홀짝 비율, 구간 분포, 핫넘버·콜드넘버, 최근 20회 트렌드를 확인하세요.",
     url: "/lotto/stats",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -129,6 +130,8 @@ export default function StatsPage() {
           통계 데이터는 참고 자료로만 활용하시기 바랍니다.
         </p>
       </div>
+
+      <RelatedFeatures currentPath="/lotto/stats" />
     </div>
   );
 }

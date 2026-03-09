@@ -7,3 +7,6 @@ Disallow: /favicon.ico
 Disallow: /manifest.webmanifest
 
 Sitemap: https://lottery.io.kr/sitemap.xml
+
+# RSS Feed
+# https://lottery.io.kr/feed.xml
