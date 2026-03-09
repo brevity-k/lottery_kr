@@ -10,25 +10,21 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "로또리 - 한국 복권 번호 추천 | 로또 6/45 당첨번호 분석",
+    default: "내 로또 번호 역대 당첨 검사 - 로또리",
     template: "%s | 로또리",
   },
   description:
-    "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서. 통계 기반 스마트한 번호 추천으로 행운을 잡으세요!",
+    "나의 로또 번호가 역대 1,200회 이상의 당첨번호와 얼마나 일치하는지 즉시 검사하세요. 가장 가까웠던 순간, 수익 분석까지 무료 제공.",
   keywords: [
+    "로또 번호 검사",
+    "로또 번호 비교",
+    "로또 역대 당첨",
+    "내 번호 확인",
     "로또",
+    "로또 6/45",
     "로또 번호 추천",
     "로또 당첨번호",
-    "로또 6/45",
-    "로또 번호 생성기",
-    "로또 당첨번호 조회",
     "로또 통계",
-    "로또 시뮬레이터",
-    "로또 세금 계산기",
-    "꿈해몽 로또",
-    "로또 명당",
-    "복권 번호 추천",
-    "당첨번호 조회",
   ],
   alternates: {
     canonical: "/",
@@ -40,8 +36,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "로또리 - 한국 복권 번호 추천",
-    description: "통계 기반 스마트한 로또 번호 추천 서비스",
+    title: "내 로또 번호 역대 당첨 검사 - 로또리",
+    description: "나의 로또 번호가 역대 1,200회 이상의 당첨번호와 얼마나 일치하는지 즉시 검사하세요. 가장 가까웠던 순간, 수익 분석까지 무료 제공.",
     url: "/",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -49,8 +45,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "로또리 - 한국 복권 번호 추천",
-    description: "통계 기반 스마트한 로또 번호 추천 서비스",
+    title: "내 로또 번호 역대 당첨 검사 - 로또리",
+    description: "나의 로또 번호가 역대 1,200회 이상의 당첨번호와 얼마나 일치하는지 즉시 검사하세요. 가장 가까웠던 순간, 수익 분석까지 무료 제공.",
   },
   verification: {
     google: "l9x3-7Ka7vQqGyceePwBraUm1GpiQxsWF0MhGyLDNVQ",

@@ -3,18 +3,18 @@ import { getAllWinningStores, getTopStores, getRegions } from "@/lib/lottery/sto
 import StoresClient from "./StoresClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import RelatedFeatures from "@/components/ui/RelatedFeatures";
+
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "로또 명당 판매점 지도 - 1등 당첨 판매점 찾기",
+  title: "로또 명당 판매점 지도 - 1등 당첨 매장 찾기 [전국]",
   description:
-    "로또 1등 당첨이 나온 명당 판매점을 지도에서 찾아보세요. 전국 로또 명당 위치, 당첨 횟수, 지역별 검색을 제공합니다.",
+    "전국 로또 1등 당첨 명당 판매점을 지도에서 찾아보세요. 지역별 검색, 당첨 횟수 순위, 내 주변 명당을 바로 확인할 수 있습니다.",
   alternates: { canonical: "/lotto/stores" },
   openGraph: {
-    title: "로또 명당 판매점 지도 - 1등 당첨 판매점 찾기",
+    title: "로또 명당 판매점 지도 - 1등 당첨 매장 찾기 [전국]",
     description:
-      "로또 1등 당첨이 나온 명당 판매점을 지도에서 찾아보세요. 전국 로또 명당 위치, 당첨 횟수, 지역별 검색을 제공합니다.",
+      "전국 로또 1등 당첨 명당 판매점을 지도에서 찾아보세요. 지역별 검색, 당첨 횟수 순위, 내 주변 명당을 바로 확인할 수 있습니다.",
     url: "/lotto/stores",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -104,7 +104,6 @@ export default function StoresPage() {
         </div>
       </section>
 
-      <RelatedFeatures currentPath="/lotto/stores" />
     </div>
   );
 }

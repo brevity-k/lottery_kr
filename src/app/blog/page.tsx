@@ -6,14 +6,14 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "블로그",
+  title: "로또 분석 블로그 - 당첨번호 분석 & 통계 전략",
   description:
-    "로또 6/45 당첨번호 분석, 통계 심층분석, 번호 선택 전략 등 유용한 정보를 제공합니다.",
+    "매주 업데이트되는 로또 당첨번호 분석, 통계 심층분석, 번호 선택 전략을 확인하세요. 데이터 기반 로또 정보 블로그.",
   alternates: { canonical: "/blog" },
   openGraph: {
-    title: "블로그",
+    title: "로또 분석 블로그 - 당첨번호 분석 & 통계 전략",
     description:
-      "로또 6/45 당첨번호 분석, 통계 심층분석, 번호 선택 전략 등 유용한 정보를 제공합니다.",
+      "매주 업데이트되는 로또 당첨번호 분석, 통계 심층분석, 번호 선택 전략을 확인하세요. 데이터 기반 로또 정보 블로그.",
     url: "/blog",
     siteName: SITE_NAME,
     locale: "ko_KR",

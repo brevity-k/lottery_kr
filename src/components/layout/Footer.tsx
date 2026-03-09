@@ -11,23 +11,19 @@ export default function Footer() {
               <span className="text-lg font-bold text-white">로또리</span>
             </div>
             <p className="text-sm leading-relaxed">
-              한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.
-              통계 기반의 스마트한 번호 추천을 경험해보세요.
+              내 로또 번호가 역대 당첨번호와 얼마나 일치하는지 검사하세요.
+              무료 분석 서비스를 제공합니다.
             </p>
           </div>
 
           <div>
             <h3 className="text-white font-semibold mb-4">서비스</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/lotto" className="hover:text-white transition-colors">로또 6/45</Link></li>
-              <li><Link href="/lotto/recommend" className="hover:text-white transition-colors">번호 추천</Link></li>
+              <li><Link href="/" className="hover:text-white transition-colors">내 번호 검사</Link></li>
               <li><Link href="/lotto/results" className="hover:text-white transition-colors">당첨번호 조회</Link></li>
-              <li><Link href="/lotto/stats" className="hover:text-white transition-colors">통계 분석</Link></li>
-              <li><Link href="/lotto/tax" className="hover:text-white transition-colors">세금 계산기</Link></li>
-              <li><Link href="/lotto/simulator" className="hover:text-white transition-colors">시뮬레이터</Link></li>
-              <li><Link href="/lotto/lucky" className="hover:text-white transition-colors">오늘의 행운 번호</Link></li>
+              <li><Link href="/lotto/recommend" className="hover:text-white transition-colors">번호 추천</Link></li>
               <li><Link href="/lotto/stores" className="hover:text-white transition-colors">명당 판매점</Link></li>
-              <li><Link href="/lotto/numbers" className="hover:text-white transition-colors">번호별 통계</Link></li>
+              <li><Link href="/lotto/tax" className="hover:text-white transition-colors">세금 계산기</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">블로그</Link></li>
             </ul>
           </div>

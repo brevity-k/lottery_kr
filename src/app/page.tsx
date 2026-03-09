@@ -1,189 +1,71 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
-import { getLatestRound, getLottoResult, getRecentResults } from "@/lib/api/dhlottery";
-import { calculateStats } from "@/lib/lottery/stats";
+import { getAllResults } from "@/lib/api/dhlottery";
 import { getRecentBlogPosts } from "@/lib/blog";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
-import LottoResultCard from "@/components/lottery/LottoResultCard";
+import BacktestClient from "./BacktestClient";
 import AdBanner from "@/components/ads/AdBanner";
-import LottoBall from "@/components/lottery/LottoBall";
-import DrawCountdown from "@/components/lottery/DrawCountdown";
-import ResultsCountdown from "@/components/lottery/ResultsCountdown";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const lotteryTypes = [
-  {
-    name: "로또 6/45",
-    desc: "1~45 중 6개 번호 선택",
-    href: "/lotto",
-    icon: "🎱",
-    color: "bg-blue-50 border-blue-200 hover:border-blue-400",
-  },
-  {
-    name: "번호 추천",
-    desc: "AI 통계 기반 번호 추천",
-    href: "/lotto/recommend",
-    icon: "🤖",
-    color: "bg-purple-50 border-purple-200 hover:border-purple-400",
-  },
-  {
-    name: "당첨번호 조회",
-    desc: "전 회차 당첨번호 확인",
-    href: "/lotto/results",
-    icon: "🔍",
-    color: "bg-green-50 border-green-200 hover:border-green-400",
-  },
-  {
-    name: "통계 분석",
-    desc: "번호별 출현 빈도 분석",
-    href: "/lotto/stats",
-    icon: "📊",
-    color: "bg-amber-50 border-amber-200 hover:border-amber-400",
-  },
-  {
-    name: "명당 판매점",
-    desc: "1등 당첨 판매점 찾기",
-    href: "/lotto/stores",
-    icon: "🏪",
-    color: "bg-red-50 border-red-200 hover:border-red-400",
-  },
-];
-
 export default function Home() {
-  const latestRound = getLatestRound();
-  const latestResult = getLottoResult(latestRound);
-  const recentResults = getRecentResults(50);
-  const stats = calculateStats(recentResults, 10);
+  const allResults = getAllResults();
   const recentPosts = getRecentBlogPosts(3);
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "WebSite",
-    name: SITE_NAME,
+    "@type": "WebApplication",
+    name: "내 번호 역대 당첨 검사 - 로또리",
     url: SITE_URL,
-    description:
-      "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서.",
+    applicationCategory: "UtilityApplication",
+    operatingSystem: "Web",
+    description: `나의 로또 번호가 역대 ${allResults.length}회 추첨결과와 얼마나 일치하는지 즉시 검사합니다.`,
     inLanguage: "ko",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${SITE_URL}/lotto/results/{search_term_string}`,
-      "query-input": "required name=search_term_string",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "KRW",
     },
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
+        // JSON-LD is serialized from a trusted static object, not user input
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+
       {/* Hero */}
-      <section className="text-center mb-10">
+      <section className="text-center mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          🎯 로또리 - 스마트한 번호 추천
+          내 로또 번호, 역대 당첨번호와 비교하세요
         </h1>
-        <p className="text-gray-600 text-lg mb-8">
-          통계 기반 분석으로 로또 번호를 추천받으세요
+        <p className="text-gray-600 text-lg">
+          {allResults.length.toLocaleString()}회 전체 추첨 결과에서 당신의 번호를 검사합니다
         </p>
-
-        {latestResult && (
-          <div className="max-w-lg mx-auto">
-            <LottoResultCard result={latestResult} showDetails size="lg" />
-          </div>
-        )}
-
-        <Link
-          href="/lotto/recommend"
-          className="inline-block mt-6 bg-blue-600 text-white font-semibold px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors text-lg shadow-lg shadow-blue-600/25"
-        >
-          지금 바로 번호 추천받기 →
-        </Link>
       </section>
 
-      {/* Next Draw Countdown */}
-      <section className="mb-10">
-        <DrawCountdown nextRound={latestRound + 1} />
-        <ResultsCountdown round={latestRound + 1} hasResult={false} />
-      </section>
+      {/* Backtest Feature */}
+      <Suspense fallback={null}>
+        <BacktestClient allResults={allResults} />
+      </Suspense>
 
-      <AdBanner slot="home-top" format="horizontal" className="mb-10" />
-
-      {/* Lottery Types Grid */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">서비스 바로가기</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {lotteryTypes.map((type) => (
-            <Link
-              key={type.href}
-              href={type.href}
-              className={`${type.color} border rounded-2xl p-3 sm:p-5 text-center transition-all hover:shadow-md`}
-            >
-              <span className="text-3xl block mb-2">{type.icon}</span>
-              <h3 className="font-bold text-gray-900 mb-1">{type.name}</h3>
-              <p className="text-xs text-gray-500">{type.desc}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Quick Stats */}
-      <section className="mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">📊 최근 출현 통계</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-4">🔥 최근 자주 나온 번호</h3>
-            <div className="flex gap-2 flex-wrap">
-              {stats.hottestNumbers.map((num) => (
-                <LottoBall key={num} number={num} size="lg" />
-              ))}
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-sm">
-            <h3 className="font-semibold text-gray-900 mb-4">❄️ 최근 적게 나온 번호</h3>
-            <div className="flex gap-2 flex-wrap">
-              {stats.coldestNumbers.map((num) => (
-                <LottoBall key={num} number={num} size="lg" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <AdBanner slot="home-mid" format="horizontal" className="mb-10" />
-
-      {/* Recent Results */}
-      <section className="mb-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">최근 당첨번호</h2>
-          <Link
-            href="/lotto/results"
-            className="text-blue-600 text-sm font-medium hover:text-blue-700"
-          >
-            전체보기 →
-          </Link>
-        </div>
-        <div className="space-y-4">
-          {recentResults.slice(0, 5).map((result) => (
-            <LottoResultCard key={result.drwNo} result={result} />
-          ))}
-        </div>
-      </section>
-
-      <AdBanner slot="home-bottom" format="horizontal" className="mb-10" />
+      <AdBanner slot="home-bottom" format="horizontal" className="mt-8" />
 
       {/* Recent Blog Posts */}
       {recentPosts.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">최근 블로그 글</h2>
+        <section className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-gray-900">최근 블로그</h2>
             <Link
               href="/blog"
               className="text-blue-600 text-sm font-medium hover:text-blue-700"
             >
-              전체보기 &rarr;
+              전체보기 →
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -206,21 +88,22 @@ export default function Home() {
         </section>
       )}
 
-      {/* Info Section for SEO */}
-      <section className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm mb-10">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">로또리 소개</h2>
-        <div className="prose prose-gray max-w-none text-sm leading-relaxed space-y-3">
+      {/* SEO Text */}
+      <section className="mt-10 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900 mb-3">내 번호 역대 당첨 검사란?</h2>
+        <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
           <p>
-            <strong>로또리</strong>는 한국 로또 6/45의 당첨번호 조회, 통계 분석, 번호 추천 서비스를 제공합니다.
-            역대 전 회차 당첨번호 데이터를 기반으로 번호별 출현 빈도, 홀짝 비율, 구간 분포 등
-            다양한 통계를 분석하여 스마트한 번호 추천을 제공합니다.
+            <strong>내 번호 역대 당첨 검사</strong>는 나만의 로또 번호가 역대 모든 추첨 결과에서
+            얼마나 일치했는지 한눈에 확인할 수 있는 무료 서비스입니다.
+            6개 번호를 입력하면 {allResults.length.toLocaleString()}회 이상의 전체 데이터를 즉시 분석합니다.
           </p>
           <p>
-            랜덤 추천부터 통계 기반 추천, 핫넘버, 콜드넘버, 균형 추천, AI 종합 추천까지
-            6가지 추천 방식으로 나에게 맞는 번호를 찾아보세요.
+            등수별 당첨 현황, 가장 근접했던 순간, 그리고 매주 1장씩 구매했을 때의 수익 분석까지
+            스토리 형식으로 드라마틱하게 보여드립니다. 결과는 링크로 공유할 수 있어 친구, 가족과 함께 즐길 수 있습니다.
           </p>
-          <p className="text-xs text-gray-400">
-            ※ 본 사이트의 번호 추천은 통계적 분석을 기반으로 한 참고 자료이며, 당첨을 보장하지 않습니다.
+          <p className="text-gray-500 text-xs">
+            ※ 본 서비스는 과거 당첨 데이터를 기반으로 한 분석 도구이며, 미래 당첨을 보장하지 않습니다.
+            복권 구매는 개인의 판단과 책임 하에 이루어져야 합니다.
           </p>
         </div>
       </section>

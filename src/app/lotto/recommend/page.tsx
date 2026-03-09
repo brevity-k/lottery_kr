@@ -5,17 +5,17 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
-import RelatedFeatures from "@/components/ui/RelatedFeatures";
+
 
 export const metadata: Metadata = {
-  title: "로또 번호 추천 및 생성기 - AI 통계 기반 스마트 추천",
+  title: "로또 번호 추천 생성기 - 6가지 통계 기반 추천 [무료]",
   description:
-    "로또 번호 추천, 번호 생성기를 무료로 이용하세요. 6가지 알고리즘(랜덤, 통계, 핫넘버, 콜드넘버, 균형, AI)으로 로또 6/45 당첨 번호를 추천합니다.",
+    "랜덤·통계·핫넘버·콜드넘버·균형·AI 6가지 알고리즘으로 로또 번호를 무료 추천합니다. 1,200회+ 당첨 데이터 기반, 지금 바로 이번 주 번호를 받아보세요!",
   alternates: { canonical: "/lotto/recommend" },
   openGraph: {
-    title: "로또 번호 추천 및 생성기 - AI 통계 기반 스마트 추천",
+    title: "로또 번호 추천 생성기 - 6가지 통계 기반 추천 [무료]",
     description:
-      "로또 번호 추천, 번호 생성기를 무료로 이용하세요. 6가지 알고리즘(랜덤, 통계, 핫넘버, 콜드넘버, 균형, AI)으로 로또 6/45 당첨 번호를 추천합니다.",
+      "랜덤·통계·핫넘버·콜드넘버·균형·AI 6가지 알고리즘으로 로또 번호를 무료 추천합니다. 1,200회+ 당첨 데이터 기반, 지금 바로 이번 주 번호를 받아보세요!",
     url: "/lotto/recommend",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -66,7 +66,6 @@ export default function RecommendPage() {
         </p>
       </div>
 
-      <RelatedFeatures currentPath="/lotto/recommend" />
     </div>
   );
 }
