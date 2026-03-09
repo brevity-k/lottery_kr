@@ -6,14 +6,14 @@ import { SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "로또 꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
+  title: "꿈해몽 로또 번호 - 꿈풀이로 번호 추천 [42가지 꿈]",
   description:
-    "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천합니다. 돼지꿈, 용꿈, 물꿈, 뱀꿈 등 꿈 종류별 행운의 번호.",
+    "돼지꿈, 용꿈, 물꿈, 뱀꿈 등 42가지 꿈해몽으로 로또 번호를 추천받으세요. 전통 꿈풀이 기반 행운의 번호를 지금 확인하세요!",
   alternates: { canonical: "/lotto/dream" },
   openGraph: {
-    title: "로또 꿈해몽 번호 생성기 - 꿈으로 로또 번호 추천",
+    title: "꿈해몽 로또 번호 - 꿈풀이로 번호 추천 [42가지 꿈]",
     description:
-      "간밤에 꾼 꿈을 선택하면 전통 꿈해몽을 기반으로 로또 번호를 추천합니다. 돼지꿈, 용꿈, 물꿈, 뱀꿈 등 꿈 종류별 행운의 번호.",
+      "돼지꿈, 용꿈, 물꿈, 뱀꿈 등 42가지 꿈해몽으로 로또 번호를 추천받으세요. 전통 꿈풀이 기반 행운의 번호를 지금 확인하세요!",
     url: "/lotto/dream",
     siteName: SITE_NAME,
     locale: "ko_KR",

@@ -6,14 +6,14 @@ import { SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 
 export const metadata: Metadata = {
-  title: "오늘의 로또 행운 번호 - 매일 바뀌는 추천 번호",
+  title: "오늘의 로또 행운 번호 - 매일 새로운 번호 추천",
   description:
-    "매일 자정에 바뀌는 오늘의 로또 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 무료 로또 번호 추천.",
+    "매일 자정에 바뀌는 오늘의 로또 행운 번호를 지금 확인하세요. 같은 날이면 누구나 같은 번호! 무료 로또 번호 추천 서비스.",
   alternates: { canonical: "/lotto/lucky" },
   openGraph: {
-    title: "오늘의 로또 행운 번호 - 매일 바뀌는 추천 번호",
+    title: "오늘의 로또 행운 번호 - 매일 새로운 번호 추천",
     description:
-      "매일 자정에 바뀌는 오늘의 로또 행운 번호를 확인하세요. 같은 날이면 누구나 같은 번호를 받습니다. 무료 로또 번호 추천.",
+      "매일 자정에 바뀌는 오늘의 로또 행운 번호를 지금 확인하세요. 같은 날이면 누구나 같은 번호! 무료 로또 번호 추천 서비스.",
     url: "/lotto/lucky",
     siteName: SITE_NAME,
     locale: "ko_KR",

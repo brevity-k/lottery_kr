@@ -8,14 +8,14 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 
 export const metadata: Metadata = {
-  title: "내 로또 번호 분석 - 나만의 번호 통계 및 당첨 확인",
+  title: "내 로또 번호 관리 - 번호 저장·통계·당첨 확인",
   description:
-    "매주 구매한 로또 번호를 기록하고, 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 결과 백테스트를 제공합니다.",
+    "내가 구매한 로또 번호를 저장하고 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 백테스트까지 바로 확인!",
   alternates: { canonical: "/lotto/my-numbers" },
   openGraph: {
-    title: "내 로또 번호 분석 - 나만의 번호 통계 및 당첨 확인",
+    title: "내 로또 번호 관리 - 번호 저장·통계·당첨 확인",
     description:
-      "매주 구매한 로또 번호를 기록하고, 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 결과 백테스트를 제공합니다.",
+      "내가 구매한 로또 번호를 저장하고 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 백테스트까지 바로 확인!",
     url: "/lotto/my-numbers",
     siteName: SITE_NAME,
     locale: "ko_KR",

@@ -10,11 +10,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "로또리 - 한국 복권 번호 추천 | 로또 6/45 당첨번호 분석",
+    default: "로또 번호 추천 & 당첨번호 조회 - 로또리 [2026 최신]",
     template: "%s | 로또리",
   },
   description:
-    "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서. 통계 기반 스마트한 번호 추천으로 행운을 잡으세요!",
+    "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서. 1,200회+ 데이터 기반 6가지 추천 방식으로 이번 주 번호를 지금 확인하세요!",
   keywords: [
     "로또",
     "로또 번호 추천",
@@ -40,8 +40,8 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "로또리 - 한국 복권 번호 추천",
-    description: "통계 기반 스마트한 로또 번호 추천 서비스",
+    title: "로또 번호 추천 & 당첨번호 조회 - 로또리 [2026 최신]",
+    description: "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서. 1,200회+ 데이터 기반 6가지 추천 방식으로 이번 주 번호를 지금 확인하세요!",
     url: "/",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "로또리 - 한국 복권 번호 추천",
-    description: "통계 기반 스마트한 로또 번호 추천 서비스",
+    title: "로또 번호 추천 & 당첨번호 조회 - 로또리 [2026 최신]",
+    description: "로또 6/45 번호 추천, 당첨번호 조회, 통계 분석을 한 곳에서. 1,200회+ 데이터 기반 6가지 추천 방식으로 이번 주 번호를 지금 확인하세요!",
   },
   verification: {
     google: "l9x3-7Ka7vQqGyceePwBraUm1GpiQxsWF0MhGyLDNVQ",
