@@ -45,6 +45,16 @@ export default function StoresPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      <link
+        rel="preload"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+        as="script"
+      />
+      <link
+        rel="preload"
+        href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+        as="style"
+      />
       <script
         type="application/ld+json"
         // JSON-LD is serialized from a trusted static object, not user input
