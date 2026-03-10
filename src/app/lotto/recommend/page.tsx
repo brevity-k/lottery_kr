@@ -37,6 +37,13 @@ export default function RecommendPage() {
     description: "6가지 알고리즘으로 로또 6/45 번호를 추천하는 무료 웹 서비스",
     inLanguage: "ko",
     offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "번호 추천", item: `${SITE_URL}/lotto/recommend` },
+      ],
+    },
   };
 
   return (

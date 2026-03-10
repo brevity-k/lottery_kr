@@ -1,8 +1,7 @@
 import { ImageResponse } from "next/og";
-import { SITE_URL } from "@/lib/constants";
 
 export const runtime = "edge";
-export const alt = "로또리 - 한국 복권 번호 추천";
+export const alt = "로또리 - 로또 번호 추천 및 당첨번호 분석";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -17,74 +16,56 @@ export default function Image() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%)",
+          background: "linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%)",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ fontSize: 80, marginBottom: 16 }}>🎯</div>
+        {/* Site name */}
         <div
           style={{
-            fontSize: 64,
+            fontSize: 96,
             fontWeight: 800,
             color: "white",
-            marginBottom: 16,
+            letterSpacing: "-0.02em",
+            marginBottom: 24,
           }}
         >
           로또리
         </div>
+
+        {/* Subtitle */}
         <div
           style={{
-            fontSize: 28,
-            color: "rgba(255,255,255,0.9)",
+            fontSize: 32,
+            fontWeight: 400,
+            color: "rgba(255, 255, 255, 0.85)",
+            marginBottom: 48,
+          }}
+        >
+          로또 번호 추천 · 당첨번호 분석 · 통계
+        </div>
+
+        {/* Divider line */}
+        <div
+          style={{
+            width: 80,
+            height: 3,
+            background: "rgba(255, 255, 255, 0.4)",
+            borderRadius: 2,
             marginBottom: 32,
           }}
-        >
-          통계 기반 스마트한 로또 번호 추천
-        </div>
+        />
+
+        {/* URL */}
         <div
           style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: 32,
+            fontSize: 24,
+            fontWeight: 500,
+            color: "rgba(255, 255, 255, 0.6)",
+            letterSpacing: "0.05em",
           }}
         >
-          {[7, 14, 21, 33, 40, 45].map((num) => (
-            <div
-              key={num}
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 24,
-                fontWeight: 700,
-                color: "white",
-                background:
-                  num <= 10
-                    ? "#FBC400"
-                    : num <= 20
-                      ? "#69C8F2"
-                      : num <= 30
-                        ? "#FF7272"
-                        : num <= 40
-                          ? "#AAAAAA"
-                          : "#B0D840",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-              }}
-            >
-              {num}
-            </div>
-          ))}
-        </div>
-        <div
-          style={{
-            fontSize: 20,
-            color: "rgba(255,255,255,0.7)",
-          }}
-        >
-          {SITE_URL.replace(/^https?:\/\//, "")}
+          lottery.io.kr
         </div>
       </div>
     ),

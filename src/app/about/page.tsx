@@ -3,12 +3,12 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "소개",
-  description: "로또리는 한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.",
+  title: "로또리 소개 - 로또 번호 추천 · 당첨번호 분석 무료 서비스",
+  description: "로또리는 역대 1,200회+ 당첨번호 분석, 6가지 번호 추천, 세금 계산기, 명당 판매점 지도까지 제공하는 무료 서비스입니다. 회원가입 없이 바로 이용하세요.",
   alternates: { canonical: "/about" },
   openGraph: {
-    title: "소개",
-    description: "로또리는 한국 복권 번호 추천 및 당첨번호 분석 서비스입니다.",
+    title: "로또리 소개 - 로또 번호 추천 · 당첨번호 분석 무료 서비스",
+    description: "로또리는 역대 1,200회+ 당첨번호 분석, 6가지 번호 추천, 세금 계산기, 명당 판매점 지도까지 제공하는 무료 서비스입니다. 회원가입 없이 바로 이용하세요.",
     url: "/about",
     siteName: SITE_NAME,
     locale: "ko_KR",

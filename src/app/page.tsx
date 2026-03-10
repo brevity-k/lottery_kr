@@ -15,21 +15,31 @@ export default function Home() {
   const allResults = getAllResults();
   const recentPosts = getRecentBlogPosts(3);
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: "내 번호 역대 당첨 검사 - 로또리",
-    url: SITE_URL,
-    applicationCategory: "UtilityApplication",
-    operatingSystem: "Web",
-    description: `나의 로또 번호가 역대 ${allResults.length}회 추첨결과와 얼마나 일치하는지 즉시 검사합니다.`,
-    inLanguage: "ko",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "KRW",
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: "내 번호 역대 당첨 검사 - 로또리",
+      url: SITE_URL,
+      applicationCategory: "UtilityApplication",
+      operatingSystem: "Web",
+      description: `나의 로또 번호가 역대 ${allResults.length}회 추첨결과와 얼마나 일치하는지 즉시 검사합니다.`,
+      inLanguage: "ko",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "KRW",
+      },
     },
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: "로또 번호 추천, 당첨번호 분석, 통계, 명당 판매점 지도 등 무료 서비스",
+      inLanguage: "ko",
+    },
+  ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

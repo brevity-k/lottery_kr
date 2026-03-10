@@ -136,19 +136,30 @@ export default async function RoundDetailPage({ params }: Props) {
         : "역대 평균보다 낮은 당첨금"
       : "";
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: `제${result.drwNo}회 로또 6/45 당첨번호 분석`,
-    description: `제${result.drwNo}회 당첨번호 ${numbers.join(", ")} + 보너스 ${result.bnusNo}. 번호합 ${sum}, 홀짝비 ${oddCount}:${evenCount}, 구간별 분포 분석.`,
-    datePublished: result.drwNoDate,
-    author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
-    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
-    mainEntityOfPage: {
-      "@type": "WebPage",
-      "@id": `${SITE_URL}/lotto/results/${result.drwNo}`,
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: `제${result.drwNo}회 로또 6/45 당첨번호 분석`,
+      description: `제${result.drwNo}회 당첨번호 ${numbers.join(", ")} + 보너스 ${result.bnusNo}. 번호합 ${sum}, 홀짝비 ${oddCount}:${evenCount}, 구간별 분포 분석.`,
+      datePublished: result.drwNoDate,
+      author: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+      publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+      mainEntityOfPage: {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/lotto/results/${result.drwNo}`,
+      },
     },
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "당첨번호 조회", item: `${SITE_URL}/lotto/results` },
+        { "@type": "ListItem", position: 3, name: `제${result.drwNo}회`, item: `${SITE_URL}/lotto/results/${result.drwNo}` },
+      ],
+    },
+  ];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">

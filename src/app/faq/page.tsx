@@ -83,18 +83,28 @@ const faqs = [
 ];
 
 export default function FaqPage() {
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
-      "@type": "Question",
-      name: faq.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: faq.answer.replace(/<[^>]*>/g, ""),
-      },
-    })),
-  };
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((faq) => ({
+        "@type": "Question",
+        name: faq.question,
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: faq.answer.replace(/<[^>]*>/g, ""),
+        },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: "https://lottery.io.kr" },
+        { "@type": "ListItem", position: 2, name: "자주 묻는 질문", item: "https://lottery.io.kr/faq" },
+      ],
+    },
+  ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

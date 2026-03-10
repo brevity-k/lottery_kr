@@ -34,12 +34,19 @@ export default function StoresPage() {
     url: `${SITE_URL}/lotto/stores`,
     applicationCategory: "UtilityApplication",
     operatingSystem: "Web",
-    description: "전국 로또 1등 당첨 명당 판매점을 지도에서 찾는 서비스",
+    description: `전국 ${stores.length}곳 로또 1등 당첨 명당 판매점을 지도에서 찾는 서비스`,
     inLanguage: "ko",
     offers: {
       "@type": "Offer",
       price: "0",
       priceCurrency: "KRW",
+    },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "명당 판매점", item: `${SITE_URL}/lotto/stores` },
+      ],
     },
   };
 

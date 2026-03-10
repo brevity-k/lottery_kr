@@ -3,7 +3,7 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ResultsClient from "./ResultsClient";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "로또 당첨번호 조회 - 1회~최신 전체 회차 확인",
@@ -24,8 +24,30 @@ export const metadata: Metadata = {
 export default function ResultsPage() {
   const results = getAllResults();
 
+  // JSON-LD is serialized from a trusted static object, not user input
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "로또 당첨번호 조회",
+    url: `${SITE_URL}/lotto/results`,
+    description: `로또 6/45 1회부터 제${results[0]?.drwNo ?? ""}회까지 전체 당첨번호 조회`,
+    isPartOf: { "@type": "WebSite", name: SITE_NAME, url: SITE_URL },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "당첨번호 조회", item: `${SITE_URL}/lotto/results` },
+      ],
+    },
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        // JSON-LD is serialized from a trusted static object, not user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Breadcrumb items={[
         { label: "로또 6/45", href: "/lotto" },
         { label: "당첨번호" },

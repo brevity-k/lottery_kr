@@ -25,6 +25,8 @@ export const metadata: Metadata = {
     "로또 번호 추천",
     "로또 당첨번호",
     "로또 통계",
+    "로또 명당",
+    "로또 세금 계산기",
   ],
   alternates: {
     canonical: "/",

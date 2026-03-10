@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import TaxCalculatorClient from "./TaxCalculatorClient";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 
 export const metadata: Metadata = {
@@ -22,8 +22,33 @@ export const metadata: Metadata = {
 };
 
 export default function TaxPage() {
+  // JSON-LD is serialized from a trusted static object, not user input
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "로또 세금 계산기",
+    url: `${SITE_URL}/lotto/tax`,
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    description: "로또 당첨금 세금(소득세·지방소득세) 공제 후 실수령액을 즉시 계산합니다.",
+    inLanguage: "ko",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "KRW" },
+    breadcrumb: {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "홈", item: SITE_URL },
+        { "@type": "ListItem", position: 2, name: "세금 계산기", item: `${SITE_URL}/lotto/tax` },
+      ],
+    },
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        // JSON-LD is serialized from a trusted static object, not user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Breadcrumb items={[
         { label: "로또 6/45", href: "/lotto" },
         { label: "세금 계산기" },

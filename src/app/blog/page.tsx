@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { SITE_NAME } from "@/lib/constants";
+import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "로또 분석 블로그 - 당첨번호 분석 & 통계 전략",
@@ -24,8 +24,30 @@ export const metadata: Metadata = {
 export default function BlogPage() {
   const posts = getAllBlogPosts();
 
+  // JSON-LD is serialized from a trusted static object, not user input
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "로또 분석 블로그",
+    url: `${SITE_URL}/blog`,
+    description: "매주 업데이트되는 로또 당첨번호 분석, 통계 심층분석, 번호 선택 전략 블로그",
+    publisher: { "@type": "Organization", name: SITE_NAME, url: SITE_URL },
+    inLanguage: "ko",
+    blogPost: posts.slice(0, 10).map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      url: `${SITE_URL}/blog/${post.slug}`,
+      datePublished: post.date,
+    })),
+  };
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        // JSON-LD is serialized from a trusted static object, not user input
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Breadcrumb items={[{ label: "블로그" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">블로그</h1>
       <p className="text-gray-600 mb-8">
