@@ -85,6 +85,24 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
   // Pick a random target number for deep-dive topics
   const targetNumber = String(numbers[Math.floor(Math.random() * 6)]);
 
+  // Generate random test numbers for what-if backtest topics
+  const testNums: number[] = [];
+  while (testNums.length < 6) {
+    const n = Math.floor(Math.random() * 45) + 1;
+    if (!testNums.includes(n)) testNums.push(n);
+  }
+  testNums.sort((a, b) => a - b);
+  const testNumbers = testNums.join(", ");
+  const testNumbersParam = testNums.join(",");
+  const totalCost = `${(data.draws.length * 1000).toLocaleString()}원`;
+
+  // Jackpot info from latest draw
+  const jackpot = latest.firstWinamnt > 0
+    ? String(latest.firstWinamnt)
+    : "2000000000";
+  const jackpotNum = Number(jackpot);
+  const netJackpot = String(Math.round(jackpotNum * 0.67));
+
   return {
     topic: selectedTopic,
     vars: {
@@ -97,8 +115,25 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
       totalDraws: String(data.draws.length),
       targetNumber,
       nextRound,
+      testNumbers,
+      testNumbersParam,
+      totalCost,
+      jackpot: formatAmount(jackpotNum),
+      netJackpot: formatAmount(Number(netJackpot)),
     },
   };
+}
+
+function formatAmount(amount: number): string {
+  if (amount >= 100000000) {
+    const eok = Math.floor(amount / 100000000);
+    const man = Math.floor((amount % 100000000) / 10000);
+    return man > 0 ? `${eok}억 ${man.toLocaleString()}만` : `${eok}억`;
+  }
+  if (amount >= 10000) {
+    return `${Math.floor(amount / 10000).toLocaleString()}만`;
+  }
+  return amount.toLocaleString();
 }
 
 function fillTemplate(template: string, vars: Record<string, string>): string {
@@ -151,11 +186,20 @@ async function generatePost(): Promise<void> {
       withTimeout(
         client.messages.create({
           model: "claude-haiku-4-5-20251001",
-          max_tokens: 4000,
+          max_tokens: 6000,
           messages: [
             {
               role: "user",
-              content: `당신은 한국 로또 6/45 분석 블로그의 전문 작가입니다. 아래 데이터를 참고하여 블로그 글을 작성해주세요.
+              content: `당신은 한국 로또 블로그의 인기 작가입니다. 딱딱한 통계 나열이 아니라, 독자가 "오 재밌다"며 끝까지 읽고 친구에게 공유하고 싶은 글을 씁니다.
+
+톤앤매너:
+- 친근하고 대화하듯이 (존댓말 기반이되, 가끔 "~인데요", "~거든요" 같은 구어체 사용)
+- 첫 문장에서 호기심을 확 잡아야 합니다. 통계 요약으로 시작하지 마세요.
+- 숫자를 나열하지 말고, 숫자에 "의미"를 부여하세요. ("19번이 5주 연속 출현" → "19번은 요즘 매주 빠지지 않는 단골손님입니다")
+- 독자에게 직접 말하세요 ("당신의 번호에 19가 있나요?")
+- 글 마지막에 반드시 "내 번호 역대 당첨 검사" 기능으로 유도하는 CTA를 포함하세요. (예: "내 번호의 역대 성적이 궁금하다면? → https://lottery.io.kr 에서 바로 검사해보세요")
+
+아래 데이터를 참고하여 블로그 글을 작성해주세요.
 
 ${context}
 
@@ -167,9 +211,10 @@ ${prompt}
 - 한국어로 작성
 - 마크다운 형식 (##, **, -, 등)
 - 1500~2500단어
-- 데이터에 기반한 사실만 언급
+- 데이터에 기반한 사실만 언급 (없는 데이터를 지어내지 마세요)
 - 마지막에 다음 문구를 포함: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
-- "당첨을 보장하지 않는다"는 면책 문구 포함`,
+- "당첨을 보장하지 않는다"는 면책 문구 포함
+- 글 끝에 "내 번호도 검사해보세요 → https://lottery.io.kr" CTA 포함`,
             },
           ],
         }),
