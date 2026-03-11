@@ -206,17 +206,11 @@ function checkCriticalFiles(): CheckResult {
     // API routes
     "src/app/api/contact/route.ts",
     // Feature pages
-    "src/app/lotto/page.tsx",
     "src/app/lotto/recommend/page.tsx",
     "src/app/lotto/results/page.tsx",
     "src/app/lotto/results/[round]/page.tsx",
-    "src/app/lotto/stats/page.tsx",
     "src/app/lotto/tax/page.tsx",
-    "src/app/lotto/simulator/page.tsx",
-    "src/app/lotto/my-numbers/page.tsx",
-    "src/app/lotto/lucky/page.tsx",
-    "src/app/lotto/numbers/page.tsx",
-    "src/app/lotto/numbers/[num]/page.tsx",
+    "src/app/lotto/stores/page.tsx",
     "src/app/blog/page.tsx",
     "src/app/blog/[slug]/page.tsx",
     "src/app/faq/page.tsx",
