@@ -8,12 +8,12 @@ import RelatedFeatures from "@/components/ui/RelatedFeatures";
 export const metadata: Metadata = {
   title: "로또 시뮬레이터 - 당첨될 때까지 돌려보기 [무료]",
   description:
-    "로또 6/45를 수천 번 사면 얼마나 벌까? 100회~10만회 가상 추첨으로 당첨 확률과 수익률을 직접 체험해보세요. 무료 시뮬레이터!",
+    "실제 로또와 동일한 확률로 시뮬레이션합니다. 1등이 나올 때까지 몇 번을 사야 하는지 직접 체험해 보세요.",
   alternates: { canonical: "/lotto/simulator" },
   openGraph: {
     title: "로또 시뮬레이터 - 당첨될 때까지 돌려보기 [무료]",
     description:
-      "로또 6/45를 수천 번 사면 얼마나 벌까? 100회~10만회 가상 추첨으로 당첨 확률과 수익률을 직접 체험해보세요. 무료 시뮬레이터!",
+      "실제 로또와 동일한 확률로 시뮬레이션합니다. 1등이 나올 때까지 몇 번을 사야 하는지 직접 체험해 보세요.",
     url: "/lotto/simulator",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -52,6 +52,27 @@ export default function SimulatorPage() {
       <SimulatorClient />
 
       <AdBanner slot="simulator-bottom" format="horizontal" className="mt-6" />
+
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "로또 시뮬레이터란 무엇인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "실제 로또와 동일한 확률로 번호를 추첨하는 시뮬레이션입니다. 실제 돈을 쓰지 않고 로또의 당첨 확률을 체험할 수 있습니다." },
+            },
+            {
+              "@type": "Question",
+              name: "시뮬레이터에서 1등이 나올 확률은?",
+              acceptedAnswer: { "@type": "Answer", text: "실제 로또와 동일하게 약 814만분의 1입니다. 1,000원씩 1만 번을 구매해도 1등 당첨 확률은 약 0.12%입니다." },
+            },
+          ],
+        }) }}
+      />
 
       <RelatedFeatures currentPath="/lotto/simulator" />
     </div>

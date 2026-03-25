@@ -132,3 +132,11 @@ export function generateDreamNumbers(keywordId: string): number[] {
   }
   return [];
 }
+
+export function getDreamCategory(categoryId: string) {
+  return DREAM_CATEGORIES.find((c) => c.id === categoryId) ?? null;
+}
+
+export function getAllDreamCategoryIds(): string[] {
+  return DREAM_CATEGORIES.map((c) => c.id);
+}

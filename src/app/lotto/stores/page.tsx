@@ -106,6 +106,26 @@ export default function StoresPage() {
         </div>
       </section>
 
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "로또 명당이란 무엇인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "1등 당첨이 여러 번 나온 로또 판매점을 '명당'이라고 부릅니다. 판매량이 많은 매장일수록 당첨자가 나올 확률이 높습니다." },
+            },
+            {
+              "@type": "Question",
+              name: "명당에서 사면 당첨 확률이 높나요?",
+              acceptedAnswer: { "@type": "Answer", text: "명당의 높은 당첨 빈도는 주로 판매량이 많기 때문입니다. 어느 매장에서 구매하든 당첨 확률 자체는 동일합니다." },
+            },
+          ],
+        }) }}
+      />
     </div>
   );
 }

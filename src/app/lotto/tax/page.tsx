@@ -59,6 +59,31 @@ export default function TaxPage() {
 
       <TaxCalculatorClient />
 
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "로또 당첨금 세금은 얼마인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "3억원 이하는 22% (소득세 20% + 주민세 2%), 3억원 초과분은 33% (소득세 30% + 주민세 3%)가 부과됩니다. 5만원 이하 당첨금은 비과세입니다." },
+            },
+            {
+              "@type": "Question",
+              name: "로또 3등도 세금을 내나요?",
+              acceptedAnswer: { "@type": "Answer", text: "3등 당첨금은 보통 150만원 내외로, 5만원을 초과하므로 22%의 세금이 부과됩니다. 4등(5만원)과 5등(5천원)은 비과세입니다." },
+            },
+            {
+              "@type": "Question",
+              name: "세금은 어떻게 납부하나요?",
+              acceptedAnswer: { "@type": "Answer", text: "당첨금 수령 시 자동으로 원천징수됩니다. 별도로 세금을 납부할 필요 없이, 세후 실수령액을 받게 됩니다." },
+            },
+          ],
+        }) }}
+      />
     </div>
   );
 }

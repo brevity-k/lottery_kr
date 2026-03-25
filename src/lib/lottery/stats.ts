@@ -130,3 +130,39 @@ export function getNumberDetail(num: number, results: LottoResult[]): NumberDeta
     recentRounds,
   };
 }
+
+export function getCompanionNumbers(
+  targetNum: number,
+  results: LottoResult[],
+  topN = 5
+): { number: number; count: number }[] {
+  const counts: Record<number, number> = {};
+  for (const r of results) {
+    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    if (!nums.includes(targetNum)) continue;
+    for (const n of nums) {
+      if (n !== targetNum) counts[n] = (counts[n] || 0) + 1;
+    }
+  }
+  return Object.entries(counts)
+    .map(([num, count]) => ({ number: Number(num), count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
+}
+
+export function getNumberGaps(
+  targetNum: number,
+  results: LottoResult[]
+): { lastSeen: number; gaps: number[] } {
+  const appearances: number[] = [];
+  for (const r of results) {
+    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    if (nums.includes(targetNum)) appearances.push(r.drwNo);
+  }
+  appearances.sort((a, b) => b - a);
+  const gaps: number[] = [];
+  for (let i = 0; i < Math.min(appearances.length - 1, 10); i++) {
+    gaps.push(appearances[i] - appearances[i + 1]);
+  }
+  return { lastSeen: appearances[0] || 0, gaps };
+}

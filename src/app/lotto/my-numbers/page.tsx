@@ -8,14 +8,14 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 
 export const metadata: Metadata = {
-  title: "내 로또 번호 관리 - 번호 저장·통계·당첨 확인",
+  title: "내 로또 번호 분석 - 역대 당첨번호와 비교 [무료]",
   description:
-    "내가 구매한 로또 번호를 저장하고 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 백테스트까지 바로 확인!",
+    "자주 쓰는 로또 번호를 등록하고 역대 모든 당첨번호와 자동 비교하세요. 몇 개가 일치했는지 한눈에 확인할 수 있습니다.",
   alternates: { canonical: "/lotto/my-numbers" },
   openGraph: {
-    title: "내 로또 번호 관리 - 번호 저장·통계·당첨 확인",
+    title: "내 로또 번호 분석 - 역대 당첨번호와 비교 [무료]",
     description:
-      "내가 구매한 로또 번호를 저장하고 역대 당첨번호와 비교하세요. 패턴 분석, 번호별 통계, 과거 당첨 백테스트까지 바로 확인!",
+      "자주 쓰는 로또 번호를 등록하고 역대 모든 당첨번호와 자동 비교하세요. 몇 개가 일치했는지 한눈에 확인할 수 있습니다.",
     url: "/lotto/my-numbers",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -49,6 +49,27 @@ export default function MyNumbersPage() {
       />
 
       <AdBanner slot="my-numbers-bottom" format="horizontal" className="mt-6" />
+
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "내 번호 분석이란 무엇인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "자주 사용하는 로또 번호를 등록하면 역대 당첨번호와 자동으로 비교하여 일치 결과를 분석해 드리는 서비스입니다." },
+            },
+            {
+              "@type": "Question",
+              name: "과거 당첨번호와 비교할 수 있나요?",
+              acceptedAnswer: { "@type": "Answer", text: "네, 등록한 번호를 1회부터 최신 회차까지 모든 당첨번호와 비교하여 몇 개가 일치했는지 확인할 수 있습니다." },
+            },
+          ],
+        }) }}
+      />
 
       <RelatedFeatures currentPath="/lotto/my-numbers" />
     </div>

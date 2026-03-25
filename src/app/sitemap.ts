@@ -4,6 +4,7 @@ import { MetadataRoute } from "next";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { getAllBlogPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/constants";
+import { getAllDreamCategoryIds } from "@/lib/lottery/dream";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = SITE_URL;
@@ -72,5 +73,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.4,
   }));
 
-  return [...staticPages, ...numberPages, ...roundPages, ...blogPages];
+  // Dream category pages
+  const dreamCategoryPages: MetadataRoute.Sitemap = getAllDreamCategoryIds().map((id) => ({
+    url: `${baseUrl}/lotto/dream/${id}`,
+    lastModified: siteLastUpdated,
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...numberPages, ...dreamCategoryPages, ...roundPages, ...blogPages];
 }

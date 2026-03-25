@@ -11,12 +11,12 @@ import RelatedFeatures from "@/components/ui/RelatedFeatures";
 export const metadata: Metadata = {
   title: "로또 통계 분석 - 핫넘버·콜드넘버·출현 빈도 [1,200회 데이터]",
   description:
-    "1,200회+ 역대 당첨번호 통계 분석. 핫넘버, 콜드넘버, 번호별 출현 빈도, 홀짝 비율, 구간 분포를 차트로 지금 확인하세요.",
+    "역대 로또 6/45 전체 회차 통계를 분석합니다. 번호별 출현 빈도, 핫넘버, 콜드넘버, 구간별 분석을 한눈에 확인하세요.",
   alternates: { canonical: "/lotto/stats" },
   openGraph: {
     title: "로또 통계 분석 - 핫넘버·콜드넘버·출현 빈도 [1,200회 데이터]",
     description:
-      "1,200회+ 역대 당첨번호 통계 분석. 핫넘버, 콜드넘버, 번호별 출현 빈도, 홀짝 비율, 구간 분포를 차트로 지금 확인하세요.",
+      "역대 로또 6/45 전체 회차 통계를 분석합니다. 번호별 출현 빈도, 핫넘버, 콜드넘버, 구간별 분석을 한눈에 확인하세요.",
     url: "/lotto/stats",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -130,6 +130,32 @@ export default function StatsPage() {
           통계 데이터는 참고 자료로만 활용하시기 바랍니다.
         </p>
       </div>
+
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "로또에서 가장 많이 나온 번호는 무엇인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "역대 1,200회 이상의 추첨 데이터를 기반으로 가장 많이 출현한 번호를 확인할 수 있습니다. 통계 페이지에서 전체 빈도를 확인하세요." },
+            },
+            {
+              "@type": "Question",
+              name: "핫넘버와 콜드넘버란 무엇인가요?",
+              acceptedAnswer: { "@type": "Answer", text: "핫넘버는 최근 20회 추첨에서 자주 나온 번호이고, 콜드넘버는 오랫동안 나오지 않은 번호입니다. 두 가지 모두 번호 선택의 참고 자료로 활용됩니다." },
+            },
+            {
+              "@type": "Question",
+              name: "통계를 보면 당첨 확률이 올라가나요?",
+              acceptedAnswer: { "@type": "Answer", text: "로또는 매 회차 독립적인 무작위 추첨이므로, 과거 통계가 미래 결과를 예측하지 못합니다. 다만 번호 선택의 참고 자료로 활용할 수 있습니다." },
+            },
+          ],
+        }) }}
+      />
 
       <RelatedFeatures currentPath="/lotto/stats" />
     </div>

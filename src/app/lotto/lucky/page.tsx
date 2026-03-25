@@ -8,12 +8,12 @@ import RelatedFeatures from "@/components/ui/RelatedFeatures";
 export const metadata: Metadata = {
   title: "오늘의 로또 행운 번호 - 매일 새로운 번호 추천",
   description:
-    "매일 자정에 바뀌는 오늘의 로또 행운 번호를 지금 확인하세요. 같은 날이면 누구나 같은 번호! 무료 로또 번호 추천 서비스.",
+    "매일 바뀌는 오늘의 로또 행운 번호를 확인하세요. 날짜 기반으로 생성되는 특별한 번호 조합을 무료로 제공합니다.",
   alternates: { canonical: "/lotto/lucky" },
   openGraph: {
     title: "오늘의 로또 행운 번호 - 매일 새로운 번호 추천",
     description:
-      "매일 자정에 바뀌는 오늘의 로또 행운 번호를 지금 확인하세요. 같은 날이면 누구나 같은 번호! 무료 로또 번호 추천 서비스.",
+      "매일 바뀌는 오늘의 로또 행운 번호를 확인하세요. 날짜 기반으로 생성되는 특별한 번호 조합을 무료로 제공합니다.",
     url: "/lotto/lucky",
     siteName: SITE_NAME,
     locale: "ko_KR",
@@ -57,6 +57,27 @@ export default function LuckyPage() {
           </p>
         </div>
       </section>
+
+      {/* FAQPage JSON-LD — trusted static content, no user input */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: [
+            {
+              "@type": "Question",
+              name: "오늘의 행운 번호는 매일 바뀌나요?",
+              acceptedAnswer: { "@type": "Answer", text: "네, 날짜를 기반으로 매일 새로운 행운 번호 조합이 생성됩니다. 같은 날짜에는 동일한 번호가 표시됩니다." },
+            },
+            {
+              "@type": "Question",
+              name: "행운 번호로 로또를 사면 당첨되나요?",
+              acceptedAnswer: { "@type": "Answer", text: "행운 번호는 재미를 위한 것으로, 당첨을 보장하지 않습니다. 로또는 완전한 무작위 추첨이므로 어떤 번호든 당첨 확률은 동일합니다." },
+            },
+          ],
+        }) }}
+      />
 
       <RelatedFeatures currentPath="/lotto/lucky" />
     </div>
