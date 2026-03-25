@@ -13,10 +13,53 @@ interface Props {
   params: Promise<{ round: string }>;
 }
 
-export function generateStaticParams() {
-  const results = getAllResults();
-  return results.map((r) => ({ round: r.drwNo.toString() }));
+// --- Year archive helpers ---
+
+function isYearParam(value: string): boolean {
+  const num = parseInt(value, 10);
+  return value.length === 4 && num >= 2002 && num <= 2099;
 }
+
+function getResultsByYear(year: number) {
+  const allResults = getAllResults();
+  return allResults.filter((r) => {
+    return parseInt(r.drwNoDate.substring(0, 4), 10) === year;
+  });
+}
+
+function getAvailableYears(): number[] {
+  const allResults = getAllResults();
+  const years = new Set<number>();
+  for (const r of allResults) {
+    years.add(parseInt(r.drwNoDate.substring(0, 4), 10));
+  }
+  return [...years].sort((a, b) => a - b);
+}
+
+function getAvailableMonths(year: number): number[] {
+  const results = getResultsByYear(year);
+  const months = new Set<number>();
+  for (const r of results) {
+    months.add(parseInt(r.drwNoDate.substring(5, 7), 10));
+  }
+  return [...months].sort((a, b) => a - b);
+}
+
+function getTopNumbers(results: { drwtNo1: number; drwtNo2: number; drwtNo3: number; drwtNo4: number; drwtNo5: number; drwtNo6: number }[], count: number) {
+  const freq = new Map<number, number>();
+  for (const r of results) {
+    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    for (const n of nums) {
+      freq.set(n, (freq.get(n) ?? 0) + 1);
+    }
+  }
+  return [...freq.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, count)
+    .map(([num, cnt]) => ({ number: num, count: cnt }));
+}
+
+// --- Round detail helpers ---
 
 function getRoundAnalysis(round: number) {
   const result = getLottoResult(round);
@@ -63,8 +106,59 @@ function getRoundAnalysis(round: number) {
   };
 }
 
+// --- Static params: both rounds and years ---
+
+export function generateStaticParams() {
+  const allResults = getAllResults();
+
+  // Round params
+  const roundParams = allResults.map((r) => ({ round: r.drwNo.toString() }));
+
+  // Year params
+  const years = getAvailableYears();
+  const yearParams = years.map((y) => ({ round: y.toString() }));
+
+  return [...roundParams, ...yearParams];
+}
+
+// --- Metadata ---
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { round } = await params;
+
+  if (isYearParam(round)) {
+    return generateYearMetadata(round);
+  }
+  return generateRoundMetadata(round);
+}
+
+function generateYearMetadata(year: string): Metadata {
+  const yearNum = parseInt(year, 10);
+  const results = getResultsByYear(yearNum);
+
+  if (results.length === 0) {
+    return { title: `${year}년 로또 당첨번호` };
+  }
+
+  const title = `${year}년 로또 당첨번호 모음 - 전체 ${results.length}회차 결과`;
+  const description = `${year}년 로또 6/45 당첨번호 전체 ${results.length}회차를 확인하세요. 제${results[results.length - 1].drwNo}회~제${results[0].drwNo}회 당첨번호, 1등 당첨금, 월별 결과를 제공합니다.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `/lotto/results/${year}` },
+    openGraph: {
+      title,
+      description,
+      url: `/lotto/results/${year}`,
+      siteName: SITE_NAME,
+      locale: "ko_KR",
+      type: "website",
+    },
+  };
+}
+
+function generateRoundMetadata(round: string): Metadata {
   const roundNum = parseInt(round, 10);
   const analysis = getRoundAnalysis(roundNum);
 
@@ -95,8 +189,209 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function RoundDetailPage({ params }: Props) {
+// --- Page component ---
+
+export default async function RoundOrYearPage({ params }: Props) {
   const { round } = await params;
+
+  if (isYearParam(round)) {
+    return <YearArchiveContent year={parseInt(round, 10)} />;
+  }
+
+  return <RoundDetailContent round={round} />;
+}
+
+// --- Year archive content ---
+
+function YearArchiveContent({ year }: { year: number }) {
+  const results = getResultsByYear(year);
+
+  if (results.length === 0) {
+    notFound();
+  }
+
+  const years = getAvailableYears();
+  const currentIndex = years.indexOf(year);
+  const prevYear = currentIndex > 0 ? years[currentIndex - 1] : null;
+  const nextYear = currentIndex < years.length - 1 ? years[currentIndex + 1] : null;
+
+  const months = getAvailableMonths(year);
+  const topNumbers = getTopNumbers(results, 5);
+
+  const totalPrize = results.reduce((sum, r) => {
+    if (r.firstWinamnt > 0 && r.firstPrzwnerCo > 0) {
+      return sum + r.firstWinamnt * r.firstPrzwnerCo;
+    }
+    return sum;
+  }, 0);
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <Breadcrumb
+        items={[
+          { label: "로또 6/45", href: "/lotto" },
+          { label: "당첨번호", href: "/lotto/results" },
+          { label: `${year}년` },
+        ]}
+      />
+
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        {year}년 로또 당첨번호
+      </h1>
+      <p className="text-gray-600 mb-8">
+        {year}년 로또 6/45 전체 {results.length}회차 당첨번호를 확인하세요
+      </p>
+
+      {/* Year summary stats */}
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          {year}년 요약 통계
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gray-50 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-blue-600">{results.length}</div>
+            <div className="text-xs text-gray-500 mt-1">총 추첨 횟수</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-purple-600">
+              {results[results.length - 1].drwNo}~{results[0].drwNo}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">회차 범위</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{months.length}</div>
+            <div className="text-xs text-gray-500 mt-1">추첨 월수</div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-4 text-center">
+            <div className="text-lg font-bold text-orange-600">
+              {totalPrize > 0 ? formatKRW(totalPrize) : "-"}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">총 1등 당첨금</div>
+          </div>
+        </div>
+
+        {/* Top 5 most common numbers */}
+        <div>
+          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            {year}년 최다 출현 번호 TOP 5
+          </h3>
+          <div className="flex flex-wrap items-center gap-3">
+            {topNumbers.map(({ number, count }, i) => (
+              <div key={number} className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-400">{i + 1}.</span>
+                <Link
+                  href={`/lotto/numbers/${number}`}
+                  className="hover:scale-110 transition-transform"
+                >
+                  <LottoBall number={number} size="md" />
+                </Link>
+                <span className="text-sm text-gray-500">{count}회</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Monthly links */}
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          월별 당첨번호
+        </h2>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {months.map((month) => (
+            <Link
+              key={month}
+              href={`/lotto/results/${year}/${String(month).padStart(2, "0")}`}
+              className="bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl p-3 text-center transition-colors"
+            >
+              <div className="text-lg font-bold text-gray-900">{month}월</div>
+              <div className="text-xs text-gray-500">
+                {results.filter((r) => parseInt(r.drwNoDate.substring(5, 7), 10) === month).length}회
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* All results for this year */}
+      <section>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          {year}년 전체 당첨번호
+        </h2>
+        <div className="space-y-3">
+          {results.map((result) => {
+            const numbers = [result.drwtNo1, result.drwtNo2, result.drwtNo3, result.drwtNo4, result.drwtNo5, result.drwtNo6];
+            const dateStr = result.drwNoDate;
+            const month = parseInt(dateStr.substring(5, 7), 10);
+            const day = parseInt(dateStr.substring(8, 10), 10);
+
+            return (
+              <Link
+                key={result.drwNo}
+                href={`/lotto/results/${result.drwNo}`}
+                className="block bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm p-4 transition-all"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-[140px]">
+                    <span className="text-sm font-bold text-blue-600">
+                      제{result.drwNo}회
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {month}월 {day}일
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {numbers.map((num, i) => (
+                      <LottoBall key={i} number={num} size="sm" />
+                    ))}
+                    <LottoBall number={result.bnusNo} size="sm" isBonus />
+                  </div>
+                  <div className="sm:ml-auto text-sm text-gray-500">
+                    {result.firstWinamnt > 0 ? formatKRW(result.firstWinamnt) : "-"}
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Year navigation */}
+      <div className="flex justify-between mt-8">
+        {prevYear ? (
+          <Link
+            href={`/lotto/results/${prevYear}`}
+            className="bg-white border border-gray-200 px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            ← {prevYear}년
+          </Link>
+        ) : (
+          <div />
+        )}
+        <Link
+          href="/lotto/results"
+          className="bg-white border border-gray-200 px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
+          전체 회차
+        </Link>
+        {nextYear ? (
+          <Link
+            href={`/lotto/results/${nextYear}`}
+            className="bg-white border border-gray-200 px-6 py-3 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            {nextYear}년 →
+          </Link>
+        ) : (
+          <div />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// --- Round detail content ---
+
+function RoundDetailContent({ round }: { round: string }) {
   const roundNum = parseInt(round, 10);
 
   if (isNaN(roundNum) || roundNum < 1) {
@@ -135,6 +430,7 @@ export default async function RoundDetailPage({ params }: Props) {
         : "역대 평균보다 낮은 당첨금"
       : "";
 
+  // JSON-LD is serialized from a trusted static object, not user input
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -173,6 +469,7 @@ export default async function RoundDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
+        // JSON-LD is serialized from a trusted static object, not user input
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 

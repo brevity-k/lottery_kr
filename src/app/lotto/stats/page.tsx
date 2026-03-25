@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
 import LottoBall from "@/components/lottery/LottoBall";
@@ -119,6 +120,25 @@ export default function StatsPage() {
           </div>
         </div>
       </div>
+
+      <Link
+        href="/lotto/stats/pairs"
+        className="mt-8 block bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200 p-6 hover:shadow-md hover:border-blue-300 transition-all group"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-gray-900 mb-1 group-hover:text-blue-700 transition-colors">
+              번호쌍 분석
+            </h3>
+            <p className="text-sm text-gray-600">
+              역대 전체 추첨에서 가장 자주 함께 나온 번호 조합 TOP 20을 확인하세요
+            </p>
+          </div>
+          <span className="text-blue-500 text-xl group-hover:translate-x-1 transition-transform shrink-0 ml-4">
+            &rarr;
+          </span>
+        </div>
+      </Link>
 
       <AdBanner slot="stats-bottom" format="horizontal" className="mt-8" />
 

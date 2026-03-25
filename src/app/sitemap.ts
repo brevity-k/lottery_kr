@@ -25,13 +25,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/lotto/recommend`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/lotto/stores`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/lotto/stats`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/lotto/stats/pairs`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/lotto/dream`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.6 },
     { url: `${baseUrl}/lotto/simulator`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/lotto/lucky`, lastModified: siteLastUpdated, changeFrequency: "daily", priority: 0.5 },
     { url: `${baseUrl}/lotto/my-numbers`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/lotto/tax`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/lotto/numbers`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.5 },
+    { url: `${baseUrl}/pension`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/pension/tax`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/blog`, lastModified: siteLastUpdated, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/lotto/guide/mobile`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/faq`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.5 },
     { url: `${baseUrl}/about`, lastModified: siteLastUpdated, changeFrequency: "monthly", priority: 0.3 },
     // /privacy, /terms, /contact excluded — they have robots noindex
@@ -81,5 +85,40 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  return [...staticPages, ...numberPages, ...dreamCategoryPages, ...roundPages, ...blogPages];
+  // Year and month archive pages
+  let yearPages: MetadataRoute.Sitemap = [];
+  let monthPages: MetadataRoute.Sitemap = [];
+  try {
+    const allResultsForArchive = getAllResults();
+    const yearsSet = new Set<string>();
+    const yearMonthsSet = new Set<string>();
+
+    for (const r of allResultsForArchive) {
+      const year = r.drwNoDate.substring(0, 4);
+      const yearMonth = r.drwNoDate.substring(0, 7);
+      yearsSet.add(year);
+      yearMonthsSet.add(yearMonth);
+    }
+
+    yearPages = [...yearsSet].sort().map((year) => ({
+      url: `${baseUrl}/lotto/results/${year}`,
+      lastModified: siteLastUpdated,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+
+    monthPages = [...yearMonthsSet].sort().map((ym) => {
+      const [year, month] = ym.split("-");
+      return {
+        url: `${baseUrl}/lotto/results/${year}/${month}`,
+        lastModified: siteLastUpdated,
+        changeFrequency: "monthly" as const,
+        priority: 0.5,
+      };
+    });
+  } catch (err) {
+    console.error("Sitemap: failed to generate archive pages:", err);
+  }
+
+  return [...staticPages, ...numberPages, ...dreamCategoryPages, ...yearPages, ...monthPages, ...roundPages, ...blogPages];
 }

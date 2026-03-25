@@ -2,7 +2,8 @@ name: Generate Weekly Blog Post
 
 on:
   schedule:
-    - cron: '0 1 * * 0'  # Sunday 01:00 UTC = 10:00 KST
+    - cron: '0 1 * * 0'  # Sunday 01:00 UTC = 10:00 KST (draw analysis)
+    - cron: '0 1 * * 3'  # Wednesday 01:00 UTC = 10:00 KST (number spotlight / dream)
   workflow_dispatch:       # Manual trigger
 
 permissions:

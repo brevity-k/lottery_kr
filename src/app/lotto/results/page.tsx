@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getAllResults } from "@/lib/api/dhlottery";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ResultsClient from "./ResultsClient";
@@ -22,6 +23,13 @@ export const metadata: Metadata = {
 
 export default function ResultsPage() {
   const results = getAllResults();
+
+  // Extract unique years from results (descending)
+  const yearsSet = new Set<number>();
+  for (const r of results) {
+    yearsSet.add(parseInt(r.drwNoDate.substring(0, 4), 10));
+  }
+  const years = [...yearsSet].sort((a, b) => b - a);
 
   // JSON-LD is serialized from a trusted static object, not user input
   const jsonLd = {
@@ -59,6 +67,33 @@ export default function ResultsPage() {
       </p>
 
       <ResultsClient results={results} />
+
+      {/* Year archive links */}
+      <section className="mt-12 bg-white rounded-2xl border border-gray-200 p-6">
+        <h2 className="text-lg font-bold text-gray-900 mb-4">
+          연도별 당첨번호
+        </h2>
+        <p className="text-sm text-gray-500 mb-4">
+          연도를 선택하면 해당 연도의 전체 당첨번호와 통계를 확인할 수 있습니다.
+        </p>
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {years.map((year) => {
+            const count = results.filter(
+              (r) => parseInt(r.drwNoDate.substring(0, 4), 10) === year
+            ).length;
+            return (
+              <Link
+                key={year}
+                href={`/lotto/results/${year}`}
+                className="bg-gray-50 hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-xl p-3 text-center transition-colors"
+              >
+                <div className="text-lg font-bold text-gray-900">{year}년</div>
+                <div className="text-xs text-gray-500">{count}회</div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

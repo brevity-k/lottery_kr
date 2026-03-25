@@ -150,6 +150,29 @@ export function getCompanionNumbers(
     .slice(0, topN);
 }
 
+export function getNumberPairFrequencies(
+  results: LottoResult[],
+  topN = 20
+): { pair: [number, number]; count: number }[] {
+  const pairCounts: Record<string, number> = {};
+  for (const r of results) {
+    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    for (let i = 0; i < nums.length; i++) {
+      for (let j = i + 1; j < nums.length; j++) {
+        const key = `${nums[i]}-${nums[j]}`;
+        pairCounts[key] = (pairCounts[key] || 0) + 1;
+      }
+    }
+  }
+  return Object.entries(pairCounts)
+    .map(([key, count]) => ({
+      pair: key.split("-").map(Number) as [number, number],
+      count,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
+}
+
 export function getNumberGaps(
   targetNum: number,
   results: LottoResult[]

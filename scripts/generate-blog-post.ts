@@ -82,8 +82,18 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
   const dateStart =
     data.draws[Math.min(4, data.draws.length - 1)]?.drwNoDate ?? dateEnd;
 
-  // Pick a random target number for deep-dive topics
-  const targetNumber = String(numbers[Math.floor(Math.random() * 6)]);
+  // Pick target number — deterministic for number-spotlight (cycles 1-45 by week),
+  // random from latest draw for other topics
+  const targetNumber = selectedTopic.id === "number-spotlight"
+    ? String((weekOfYear % 45) + 1)
+    : String(numbers[Math.floor(Math.random() * 6)]);
+
+  // Calculate dateRange for dream-weekly topic (current week Mon~Sun in KST)
+  const kstDay = kstNow.getDay(); // 0=Sun
+  const mondayOffset = kstDay === 0 ? -6 : 1 - kstDay;
+  const monday = new Date(kstNow.getTime() + mondayOffset * 24 * 60 * 60 * 1000);
+  const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+  const weekDateRange = `${monday.getMonth() + 1}월 ${monday.getDate()}일~${sunday.getMonth() + 1}월 ${sunday.getDate()}일`;
 
   // Generate random test numbers for what-if backtest topics
   const testNums: number[] = [];
@@ -111,7 +121,7 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
       bonus: String(latest.bnusNo),
       recentCount,
       year,
-      dateRange: `${dateStart} ~ ${dateEnd}`,
+      dateRange: selectedTopic.id === "dream-weekly" ? weekDateRange : `${dateStart} ~ ${dateEnd}`,
       totalDraws: String(data.draws.length),
       targetNumber,
       nextRound,

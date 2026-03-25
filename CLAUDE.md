@@ -65,7 +65,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │   ├── health-check.ts            # Validates data/blog freshness + critical files
 │   ├── post-to-x.ts              # X/Twitter posting (OAuth 1.0a, zero deps)
 │   ├── x-posted.json             # Posted slugs tracking (git-tracked)
-│   └── blog-topics.json          # 12 topic templates for blog rotation
+│   └── blog-topics.json          # 14 topic templates for blog rotation
 ├── content/blog/                  # Blog post JSON files (auto-generated)
 ├── src/
 │   ├── data/lotto.json            # All lottery rounds (1,212+, with prizes)
@@ -128,11 +128,13 @@ All workflows: retry with 60s delay, auto-create GitHub Issue on failure.
 
 | Day | Time (KST) | Event | Workflow |
 |-----|-----------|-------|----------|
+| Wednesday | 10:00 | Generate mid-week blog post | `generate-blog-post.yml` |
+| Wednesday | after blog | Tweet blog post | `post-to-x.yml` (workflow_run) |
 | Friday | 19:00 | Generate prediction post | `generate-prediction.yml` |
 | Friday | after prediction | Tweet prediction | `post-to-x.yml` (workflow_run) |
 | Saturday | 20:45 | Lotto draw (external) | — |
 | Sunday | 00:00 | Fetch new draw data | `update-data.yml` |
-| Sunday | 10:00 | Generate blog post | `generate-blog-post.yml` |
+| Sunday | 10:00 | Generate blog post (draw analysis) | `generate-blog-post.yml` |
 | Sunday | after blog | Tweet blog post | `post-to-x.yml` (workflow_run) |
 | Monday | 12:00 | Health check | `health-check.yml` |
 
@@ -158,7 +160,7 @@ Single source of truth for scripts: file paths, lottery constants, `withRetry()`
 }
 ```
 
-12 topic templates in `scripts/blog-topics.json`. Auto-selects draw analysis for new rounds first, then rotates.
+14 topic templates in `scripts/blog-topics.json`. Auto-selects draw analysis for new rounds first, then rotates. Runs Sunday (draw analysis priority) and Wednesday (number spotlight / dream rotation).
 
 ## Environment Variables
 
