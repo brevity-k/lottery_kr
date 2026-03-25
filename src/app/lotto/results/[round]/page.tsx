@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLottoResult, getAllResults } from "@/lib/api/dhlottery";
-import { getDrawNumbers } from "@/lib/lottery/stats";
+import { getDrawNumbers, getTopNumbers, isYearParam } from "@/lib/lottery/stats";
 import { SITE_NAME, SITE_URL, LOTTO_SECTIONS } from "@/lib/constants";
 import { formatKRW, formatDate } from "@/lib/utils/format";
 import LottoBall from "@/components/lottery/LottoBall";
@@ -14,11 +14,6 @@ interface Props {
 }
 
 // --- Year archive helpers ---
-
-function isYearParam(value: string): boolean {
-  const num = parseInt(value, 10);
-  return value.length === 4 && num >= 2002 && num <= 2099;
-}
 
 function getResultsByYear(year: number) {
   const allResults = getAllResults();
@@ -43,20 +38,6 @@ function getAvailableMonths(year: number): number[] {
     months.add(parseInt(r.drwNoDate.substring(5, 7), 10));
   }
   return [...months].sort((a, b) => a - b);
-}
-
-function getTopNumbers(results: { drwtNo1: number; drwtNo2: number; drwtNo3: number; drwtNo4: number; drwtNo5: number; drwtNo6: number }[], count: number) {
-  const freq = new Map<number, number>();
-  for (const r of results) {
-    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
-    for (const n of nums) {
-      freq.set(n, (freq.get(n) ?? 0) + 1);
-    }
-  }
-  return [...freq.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, count)
-    .map(([num, cnt]) => ({ number: num, count: cnt }));
 }
 
 // --- Round detail helpers ---
@@ -216,6 +197,14 @@ function YearArchiveContent({ year }: { year: number }) {
   const nextYear = currentIndex < years.length - 1 ? years[currentIndex + 1] : null;
 
   const months = getAvailableMonths(year);
+
+  // Pre-compute month counts
+  const monthCounts = new Map<number, number>();
+  for (const r of results) {
+    const m = parseInt(r.drwNoDate.substring(5, 7), 10);
+    monthCounts.set(m, (monthCounts.get(m) ?? 0) + 1);
+  }
+
   const topNumbers = getTopNumbers(results, 5);
 
   const totalPrize = results.reduce((sum, r) => {
@@ -306,7 +295,7 @@ function YearArchiveContent({ year }: { year: number }) {
             >
               <div className="text-lg font-bold text-gray-900">{month}월</div>
               <div className="text-xs text-gray-500">
-                {results.filter((r) => parseInt(r.drwNoDate.substring(5, 7), 10) === month).length}회
+                {monthCounts.get(month) ?? 0}회
               </div>
             </Link>
           ))}

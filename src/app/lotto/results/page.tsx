@@ -24,12 +24,13 @@ export const metadata: Metadata = {
 export default function ResultsPage() {
   const results = getAllResults();
 
-  // Extract unique years from results (descending)
-  const yearsSet = new Set<number>();
+  // Extract unique years and pre-compute counts (descending)
+  const yearCounts = new Map<number, number>();
   for (const r of results) {
-    yearsSet.add(parseInt(r.drwNoDate.substring(0, 4), 10));
+    const y = parseInt(r.drwNoDate.substring(0, 4), 10);
+    yearCounts.set(y, (yearCounts.get(y) ?? 0) + 1);
   }
-  const years = [...yearsSet].sort((a, b) => b - a);
+  const years = [...yearCounts.keys()].sort((a, b) => b - a);
 
   // JSON-LD is serialized from a trusted static object, not user input
   const jsonLd = {
@@ -78,9 +79,7 @@ export default function ResultsPage() {
         </p>
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
           {years.map((year) => {
-            const count = results.filter(
-              (r) => parseInt(r.drwNoDate.substring(0, 4), 10) === year
-            ).length;
+            const count = yearCounts.get(year) ?? 0;
             return (
               <Link
                 key={year}

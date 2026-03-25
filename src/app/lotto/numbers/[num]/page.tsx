@@ -7,6 +7,7 @@ import LottoBall from "@/components/lottery/LottoBall";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { LOTTO_MAX_NUMBER, SITE_NAME, SITE_URL } from "@/lib/constants";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ num: string }>;
@@ -75,20 +76,8 @@ export default async function NumberDetailPage({ params }: Props) {
     },
   ];
 
-  // JSON-LD: FAQPage + BreadcrumbList structured data
   const jsonLdData = [
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqItems.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    },
+    buildFaqJsonLd(faqItems),
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -171,12 +160,10 @@ export default async function NumberDetailPage({ params }: Props) {
                 <LottoBall number={c.number} size="md" />
               </Link>
               <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-2 bg-blue-500 rounded-full"
-                    style={{ width: `${Math.round((c.count / companions[0].count) * 100)}%` }}
-                  />
-                </div>
+                <div
+                  className="h-2 bg-blue-500 rounded-full"
+                  style={{ width: `${Math.round((c.count / companions[0].count) * 100)}%` }}
+                />
               </div>
               <span className="text-sm font-medium text-gray-700">{c.count}회</span>
             </div>

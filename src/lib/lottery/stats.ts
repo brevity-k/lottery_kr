@@ -131,6 +131,27 @@ export function getNumberDetail(num: number, results: LottoResult[]): NumberDeta
   };
 }
 
+export function getTopNumbers(
+  results: LottoResult[],
+  topN = 5
+): { number: number; count: number }[] {
+  const freq: Record<number, number> = {};
+  for (const r of results) {
+    for (const n of getDrawNumbers(r)) {
+      freq[n] = (freq[n] || 0) + 1;
+    }
+  }
+  return Object.entries(freq)
+    .map(([num, count]) => ({ number: Number(num), count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, topN);
+}
+
+export function isYearParam(value: string): boolean {
+  const num = parseInt(value, 10);
+  return value.length === 4 && num >= 2002 && num <= 2099;
+}
+
 export function getCompanionNumbers(
   targetNum: number,
   results: LottoResult[],
@@ -138,7 +159,7 @@ export function getCompanionNumbers(
 ): { number: number; count: number }[] {
   const counts: Record<number, number> = {};
   for (const r of results) {
-    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    const nums = getDrawNumbers(r);
     if (!nums.includes(targetNum)) continue;
     for (const n of nums) {
       if (n !== targetNum) counts[n] = (counts[n] || 0) + 1;
@@ -156,7 +177,7 @@ export function getNumberPairFrequencies(
 ): { pair: [number, number]; count: number }[] {
   const pairCounts: Record<string, number> = {};
   for (const r of results) {
-    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    const nums = getDrawNumbers(r);
     for (let i = 0; i < nums.length; i++) {
       for (let j = i + 1; j < nums.length; j++) {
         const key = `${nums[i]}-${nums[j]}`;
@@ -179,7 +200,7 @@ export function getNumberGaps(
 ): { lastSeen: number; gaps: number[] } {
   const appearances: number[] = [];
   for (const r of results) {
-    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
+    const nums = getDrawNumbers(r);
     if (nums.includes(targetNum)) appearances.push(r.drwNo);
   }
   appearances.sort((a, b) => b - a);

@@ -6,6 +6,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { DREAM_CATEGORIES } from "@/lib/lottery/dream";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "꿈해몽 로또 번호 - 꿈풀이로 번호 추천 [42가지 꿈]",
@@ -61,30 +62,13 @@ export default function DreamPage() {
         </div>
       </section>
 
-      {/* FAQPage JSON-LD — trusted static content, no user input */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: [
-            {
-              "@type": "Question",
-              name: "꿈해몽 로또 번호란 무엇인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "한국의 전통 꿈 해석에 기반하여 로또 번호를 추천하는 서비스입니다. 각 꿈의 상징에 연결된 번호를 조합하여 제안합니다." },
-            },
-            {
-              "@type": "Question",
-              name: "어떤 꿈이 로또에 좋은 꿈인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "전통적으로 돼지꿈, 용꿈, 조상꿈, 금은보화 꿈 등이 재물운과 관련된 길몽으로 알려져 있습니다." },
-            },
-            {
-              "@type": "Question",
-              name: "꿈해몽 번호는 신뢰할 수 있나요?",
-              acceptedAnswer: { "@type": "Answer", text: "꿈해몽은 한국의 전통 문화적 해석으로, 과학적 근거는 없습니다. 재미와 문화적 참고로 활용하시기 바랍니다." },
-            },
-          ],
-        }) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd([
+          { question: "꿈해몽 로또 번호란 무엇인가요?", answer: "한국의 전통 꿈 해석에 기반하여 로또 번호를 추천하는 서비스입니다. 각 꿈의 상징에 연결된 번호를 조합하여 제안합니다." },
+          { question: "어떤 꿈이 로또에 좋은 꿈인가요?", answer: "전통적으로 돼지꿈, 용꿈, 조상꿈, 금은보화 꿈 등이 재물운과 관련된 길몽으로 알려져 있습니다." },
+          { question: "꿈해몽 번호는 신뢰할 수 있나요?", answer: "꿈해몽은 한국의 전통 문화적 해석으로, 과학적 근거는 없습니다. 재미와 문화적 참고로 활용하시기 바랍니다." },
+        ])) }}
       />
 
       <section className="mt-8">

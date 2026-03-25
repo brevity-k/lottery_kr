@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllResults } from "@/lib/api/dhlottery";
+import { getTopNumbers, isYearParam } from "@/lib/lottery/stats";
 import { SITE_NAME } from "@/lib/constants";
 import { formatKRW } from "@/lib/utils/format";
 import LottoBall from "@/components/lottery/LottoBall";
@@ -35,25 +36,6 @@ function getAvailableYearMonths(): { year: number; month: number }[] {
     }
   }
   return result.sort((a, b) => a.year - b.year || a.month - b.month);
-}
-
-function getTopNumbers(results: { drwtNo1: number; drwtNo2: number; drwtNo3: number; drwtNo4: number; drwtNo5: number; drwtNo6: number }[], count: number) {
-  const freq = new Map<number, number>();
-  for (const r of results) {
-    const nums = [r.drwtNo1, r.drwtNo2, r.drwtNo3, r.drwtNo4, r.drwtNo5, r.drwtNo6];
-    for (const n of nums) {
-      freq.set(n, (freq.get(n) ?? 0) + 1);
-    }
-  }
-  return [...freq.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, count)
-    .map(([num, cnt]) => ({ number: num, count: cnt }));
-}
-
-function isYearParam(value: string): boolean {
-  const num = parseInt(value, 10);
-  return value.length === 4 && num >= 2002 && num <= 2099;
 }
 
 export function generateStaticParams() {

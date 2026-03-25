@@ -4,6 +4,7 @@ import { calculateStats } from "@/lib/lottery/stats";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 
 export const metadata: Metadata = {
@@ -70,30 +71,13 @@ export default function RecommendPage() {
         </p>
       </div>
 
-      {/* FAQPage JSON-LD — trusted static content, no user input */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: [
-            {
-              "@type": "Question",
-              name: "로또 번호 추천은 무료인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "네, 로또리의 모든 번호 추천 서비스는 완전 무료입니다. 6가지 추천 방법을 무제한으로 이용할 수 있습니다." },
-            },
-            {
-              "@type": "Question",
-              name: "AI 추천 번호의 당첨 확률은?",
-              acceptedAnswer: { "@type": "Answer", text: "로또는 독립시행이므로 어떤 방법을 사용해도 당첨 확률은 동일합니다. AI 추천은 통계적 패턴을 참고한 조합일 뿐, 당첨을 보장하지 않습니다." },
-            },
-            {
-              "@type": "Question",
-              name: "추천 방법은 몇 가지인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "총 6가지입니다: 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형 조합, AI 복합 추천을 제공합니다." },
-            },
-          ],
-        }) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd([
+          { question: "로또 번호 추천은 무료인가요?", answer: "네, 로또리의 모든 번호 추천 서비스는 완전 무료입니다. 6가지 추천 방법을 무제한으로 이용할 수 있습니다." },
+          { question: "AI 추천 번호의 당첨 확률은?", answer: "로또는 독립시행이므로 어떤 방법을 사용해도 당첨 확률은 동일합니다. AI 추천은 통계적 패턴을 참고한 조합일 뿐, 당첨을 보장하지 않습니다." },
+          { question: "추천 방법은 몇 가지인가요?", answer: "총 6가지입니다: 랜덤, 통계 기반, 핫넘버, 콜드넘버, 균형 조합, AI 복합 추천을 제공합니다." },
+        ])) }}
       />
     </div>
   );

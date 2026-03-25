@@ -8,6 +8,7 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 통계 분석 - 핫넘버·콜드넘버·출현 빈도 [1,200회 데이터]",
@@ -151,30 +152,13 @@ export default function StatsPage() {
         </p>
       </div>
 
-      {/* FAQPage JSON-LD — trusted static content, no user input */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: [
-            {
-              "@type": "Question",
-              name: "로또에서 가장 많이 나온 번호는 무엇인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "역대 1,200회 이상의 추첨 데이터를 기반으로 가장 많이 출현한 번호를 확인할 수 있습니다. 통계 페이지에서 전체 빈도를 확인하세요." },
-            },
-            {
-              "@type": "Question",
-              name: "핫넘버와 콜드넘버란 무엇인가요?",
-              acceptedAnswer: { "@type": "Answer", text: "핫넘버는 최근 20회 추첨에서 자주 나온 번호이고, 콜드넘버는 오랫동안 나오지 않은 번호입니다. 두 가지 모두 번호 선택의 참고 자료로 활용됩니다." },
-            },
-            {
-              "@type": "Question",
-              name: "통계를 보면 당첨 확률이 올라가나요?",
-              acceptedAnswer: { "@type": "Answer", text: "로또는 매 회차 독립적인 무작위 추첨이므로, 과거 통계가 미래 결과를 예측하지 못합니다. 다만 번호 선택의 참고 자료로 활용할 수 있습니다." },
-            },
-          ],
-        }) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd([
+          { question: "로또에서 가장 많이 나온 번호는 무엇인가요?", answer: "역대 1,200회 이상의 추첨 데이터를 기반으로 가장 많이 출현한 번호를 확인할 수 있습니다. 통계 페이지에서 전체 빈도를 확인하세요." },
+          { question: "핫넘버와 콜드넘버란 무엇인가요?", answer: "핫넘버는 최근 20회 추첨에서 자주 나온 번호이고, 콜드넘버는 오랫동안 나오지 않은 번호입니다. 두 가지 모두 번호 선택의 참고 자료로 활용됩니다." },
+          { question: "통계를 보면 당첨 확률이 올라가나요?", answer: "로또는 매 회차 독립적인 무작위 추첨이므로, 과거 통계가 미래 결과를 예측하지 못합니다. 다만 번호 선택의 참고 자료로 활용할 수 있습니다." },
+        ])) }}
       />
 
       <RelatedFeatures currentPath="/lotto/stats" />

@@ -7,6 +7,7 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { SITE_NAME } from "@/lib/constants";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 자주 나오는 번호 조합 - 번호쌍 출현 빈도 분석 [역대 전체]",
@@ -29,29 +30,10 @@ export default function PairsPage() {
   const topPairs = getNumberPairFrequencies(allResults, 20);
   const totalDraws = allResults.length;
 
-  // FAQPage JSON-LD — trusted static content, no user input
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: [
-      {
-        "@type": "Question",
-        name: "로또에서 가장 자주 나오는 번호 조합은?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "역대 전체 추첨 데이터를 분석한 결과, 가장 자주 함께 출현한 번호 조합을 확인할 수 있습니다. 상위 조합은 통계 페이지에서 확인하세요.",
-        },
-      },
-      {
-        "@type": "Question",
-        name: "번호 궁합이 좋은 조합은?",
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: "번호 궁합은 과거 데이터에서 자주 함께 출현한 번호쌍을 의미합니다. 다만 로또는 독립시행이므로 과거 조합이 미래 결과를 예측하지는 않습니다.",
-        },
-      },
-    ],
-  };
+  const faqJsonLd = buildFaqJsonLd([
+    { question: "로또에서 가장 자주 나오는 번호 조합은?", answer: "역대 전체 추첨 데이터를 분석한 결과, 가장 자주 함께 출현한 번호 조합을 확인할 수 있습니다. 상위 조합은 통계 페이지에서 확인하세요." },
+    { question: "번호 궁합이 좋은 조합은?", answer: "번호 궁합은 과거 데이터에서 자주 함께 출현한 번호쌍을 의미합니다. 다만 로또는 독립시행이므로 과거 조합이 미래 결과를 예측하지는 않습니다." },
+  ]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -182,7 +164,6 @@ export default function PairsPage() {
         </p>
       </div>
 
-      {/* FAQPage JSON-LD — trusted static content, no user input */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}

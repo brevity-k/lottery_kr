@@ -41,18 +41,48 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // /privacy, /terms, /contact excluded — they have robots noindex
   ];
 
-  // All round pages with actual draw dates as lastModified
+  // All lottery result pages (round, year, month archives)
   let roundPages: MetadataRoute.Sitemap = [];
+  let yearPages: MetadataRoute.Sitemap = [];
+  let monthPages: MetadataRoute.Sitemap = [];
   try {
     const allResults = getAllResults();
+
     roundPages = allResults.map((r) => ({
       url: `${baseUrl}/lotto/results/${r.drwNo}`,
       lastModified: r.drwNoDate,
       changeFrequency: "never" as const,
       priority: 0.5,
     }));
+
+    const yearsSet = new Set<string>();
+    const yearMonthsSet = new Set<string>();
+
+    for (const r of allResults) {
+      const year = r.drwNoDate.substring(0, 4);
+      const yearMonth = r.drwNoDate.substring(0, 7);
+      yearsSet.add(year);
+      yearMonthsSet.add(yearMonth);
+    }
+
+    yearPages = [...yearsSet].sort().map((year) => ({
+      url: `${baseUrl}/lotto/results/${year}`,
+      lastModified: siteLastUpdated,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+    }));
+
+    monthPages = [...yearMonthsSet].sort().map((ym) => {
+      const [year, month] = ym.split("-");
+      return {
+        url: `${baseUrl}/lotto/results/${year}/${month}`,
+        lastModified: siteLastUpdated,
+        changeFrequency: "monthly" as const,
+        priority: 0.5,
+      };
+    });
   } catch (err) {
-    console.error("Sitemap: failed to load lottery data for round pages:", err);
+    console.error("Sitemap: failed to load lottery data:", err);
   }
 
   // Blog pages with actual post dates
@@ -84,41 +114,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly" as const,
     priority: 0.6,
   }));
-
-  // Year and month archive pages
-  let yearPages: MetadataRoute.Sitemap = [];
-  let monthPages: MetadataRoute.Sitemap = [];
-  try {
-    const allResultsForArchive = getAllResults();
-    const yearsSet = new Set<string>();
-    const yearMonthsSet = new Set<string>();
-
-    for (const r of allResultsForArchive) {
-      const year = r.drwNoDate.substring(0, 4);
-      const yearMonth = r.drwNoDate.substring(0, 7);
-      yearsSet.add(year);
-      yearMonthsSet.add(yearMonth);
-    }
-
-    yearPages = [...yearsSet].sort().map((year) => ({
-      url: `${baseUrl}/lotto/results/${year}`,
-      lastModified: siteLastUpdated,
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
-
-    monthPages = [...yearMonthsSet].sort().map((ym) => {
-      const [year, month] = ym.split("-");
-      return {
-        url: `${baseUrl}/lotto/results/${year}/${month}`,
-        lastModified: siteLastUpdated,
-        changeFrequency: "monthly" as const,
-        priority: 0.5,
-      };
-    });
-  } catch (err) {
-    console.error("Sitemap: failed to generate archive pages:", err);
-  }
 
   return [...staticPages, ...numberPages, ...dreamCategoryPages, ...yearPages, ...monthPages, ...roundPages, ...blogPages];
 }

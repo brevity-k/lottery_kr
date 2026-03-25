@@ -4,25 +4,31 @@ import Link from "next/link";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { getRecentBlogPosts } from "@/lib/blog";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import LottoResultCard from "@/components/lottery/LottoResultCard";
+import DrawCountdown from "@/components/lottery/DrawCountdown";
 import BacktestClient from "./BacktestClient";
 
 export const metadata: Metadata = {
+  title: "로또 6/45 최신 당첨번호 · 다음 회차 카운트다운 - 로또리",
+  description:
+    "로또 6/45 최신 당첨번호와 다음 추첨까지 실시간 카운트다운을 확인하세요. 번호 추천, 역대 당첨 검사, 통계 분석까지 무료 제공.",
   alternates: { canonical: "/" },
 };
 
 export default function Home() {
   const allResults = getAllResults();
+  const latestResult = allResults[0];
   const recentPosts = getRecentBlogPosts(3);
 
   const jsonLd = [
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      name: "내 번호 역대 당첨 검사 - 로또리",
+      name: "로또 6/45 최신 당첨번호 - 로또리",
       url: SITE_URL,
       applicationCategory: "UtilityApplication",
       operatingSystem: "Web",
-      description: `나의 로또 번호가 역대 ${allResults.length}회 추첨결과와 얼마나 일치하는지 즉시 검사합니다.`,
+      description: `로또 6/45 최신 당첨번호와 다음 추첨 카운트다운. 역대 ${allResults.length}회 데이터 기반 분석.`,
       inLanguage: "ko",
       offers: {
         "@type": "Offer",
@@ -42,30 +48,53 @@ export default function Home() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
+      {/* Trusted static JSON-LD — not user input */}
       <script
         type="application/ld+json"
-        // JSON-LD is serialized from a trusted static object, not user input
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      {/* Hero */}
-      <section className="text-center mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          내 로또 번호, 역대 당첨번호와 비교하세요
+      {/* Latest Draw Result */}
+      <section className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 text-center">
+          최신 로또 당첨번호
         </h1>
-        <p className="text-gray-600 text-lg">
-          {allResults.length.toLocaleString()}회 전체 추첨 결과에서 당신의 번호를 검사합니다
-        </p>
+        {latestResult && (
+          <Link href={`/lotto/results/${latestResult.drwNo}`}>
+            <LottoResultCard result={latestResult} showDetails size="lg" />
+          </Link>
+        )}
+      </section>
+
+      {/* Next Draw Countdown */}
+      <section className="mb-8">
+        <DrawCountdown nextRound={(latestResult?.drwNo ?? 0) + 1} />
+      </section>
+
+      {/* Quick Links */}
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+        <QuickLink href="/lotto/recommend" emoji="🎯" label="번호 추천" />
+        <QuickLink href="/lotto/results" emoji="🔍" label="당첨번호 조회" />
+        <QuickLink href="/lotto/stats" emoji="📊" label="통계 분석" />
+        <QuickLink href="/lotto/dream" emoji="🌙" label="꿈해몽 번호" />
       </section>
 
       {/* Backtest Feature */}
-      <Suspense fallback={null}>
-        <BacktestClient allResults={allResults} />
-      </Suspense>
+      <section className="mb-10">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">
+          내 번호 역대 당첨 검사
+        </h2>
+        <p className="text-gray-600 text-sm text-center mb-4">
+          {allResults.length.toLocaleString()}회 전체 추첨 결과에서 당신의 번호를 검사합니다
+        </p>
+        <Suspense fallback={null}>
+          <BacktestClient allResults={allResults} />
+        </Suspense>
+      </section>
 
       {/* Recent Blog Posts */}
       {recentPosts.length > 0 && (
-        <section className="mt-10">
+        <section className="mb-10">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900">최근 블로그</h2>
             <Link
@@ -96,17 +125,16 @@ export default function Home() {
       )}
 
       {/* SEO Text */}
-      <section className="mt-10 bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
-        <h2 className="text-lg font-bold text-gray-900 mb-3">내 번호 역대 당첨 검사란?</h2>
+      <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-900 mb-3">로또리 - 로또 6/45 종합 서비스</h2>
         <div className="space-y-3 text-sm text-gray-700 leading-relaxed">
           <p>
-            <strong>내 번호 역대 당첨 검사</strong>는 나만의 로또 번호가 역대 모든 추첨 결과에서
-            얼마나 일치했는지 한눈에 확인할 수 있는 무료 서비스입니다.
-            6개 번호를 입력하면 {allResults.length.toLocaleString()}회 이상의 전체 데이터를 즉시 분석합니다.
+            <strong>로또리</strong>는 로또 6/45 최신 당첨번호 확인, 다음 추첨 카운트다운,
+            AI 기반 번호 추천, 역대 당첨번호 분석까지 한곳에서 제공하는 무료 서비스입니다.
           </p>
           <p>
-            등수별 당첨 현황, 가장 근접했던 순간, 그리고 매주 1장씩 구매했을 때의 수익 분석까지
-            스토리 형식으로 드라마틱하게 보여드립니다. 결과는 링크로 공유할 수 있어 친구, 가족과 함께 즐길 수 있습니다.
+            <strong>내 번호 역대 당첨 검사</strong>로 나만의 번호가 {allResults.length.toLocaleString()}회
+            전체 추첨에서 얼마나 일치했는지 확인하고, 등수별 현황과 수익 분석을 스토리 형식으로 받아보세요.
           </p>
           <p className="text-gray-500 text-xs">
             ※ 본 서비스는 과거 당첨 데이터를 기반으로 한 분석 도구이며, 미래 당첨을 보장하지 않습니다.
@@ -115,5 +143,17 @@ export default function Home() {
         </div>
       </section>
     </div>
+  );
+}
+
+function QuickLink({ href, emoji, label }: { href: string; emoji: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      className="flex flex-col items-center gap-1.5 bg-white rounded-2xl border border-gray-200 p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition-all"
+    >
+      <span className="text-2xl">{emoji}</span>
+      <span className="text-sm font-medium text-gray-800">{label}</span>
+    </Link>
   );
 }

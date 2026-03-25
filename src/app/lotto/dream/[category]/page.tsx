@@ -7,6 +7,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { SITE_NAME } from "@/lib/constants";
 import DreamCategoryClient from "./DreamCategoryClient";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ category: string }>;
@@ -63,19 +64,7 @@ export default async function DreamCategoryPage({ params }: Props) {
     },
   ];
 
-  // FAQPage JSON-LD — all data is server-controlled, no user input
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faqItems.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
+  const faqJsonLd = buildFaqJsonLd(faqItems);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

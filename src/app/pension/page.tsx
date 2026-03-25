@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "연금복권 720+ 완벽 가이드 - 당첨 확률, 구매 방법, 세금 [2026]",
@@ -43,7 +44,6 @@ const faqs = [
 ];
 
 export default function PensionPage() {
-  // JSON-LD is serialized from trusted static objects, not user input
   const jsonLd = [
     {
       "@context": "https://schema.org",
@@ -59,23 +59,11 @@ export default function PensionPage() {
         url: SITE_URL,
       },
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((faq) => ({
-        "@type": "Question",
-        name: faq.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: faq.answer,
-        },
-      })),
-    },
+    buildFaqJsonLd(faqs),
   ];
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* JSON-LD — trusted static content, no user input */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
