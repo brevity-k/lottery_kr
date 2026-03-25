@@ -199,17 +199,18 @@ ${fewestWinners.map((d) => `- ${d.drwNo}회: ${formatKoreanAmount(d.firstWinamnt
 - 1등 확률: 1/8,145,060`;
 }
 
-/** Formats a number into Korean 억/만 notation. */
-function formatKoreanAmount(amount: number): string {
+/** Formats a number into Korean 억/만 notation. Set `unit` to false to omit "원". */
+export function formatKoreanAmount(amount: number, unit = true): string {
+  const w = unit ? "원" : "";
   if (amount >= 100_000_000) {
     const eok = Math.floor(amount / 100_000_000);
     const man = Math.floor((amount % 100_000_000) / 10_000);
-    return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+    return man > 0 ? `${eok}억 ${man.toLocaleString()}만${w}` : `${eok}억${w}`;
   }
   if (amount >= 10_000) {
-    return `${Math.floor(amount / 10_000).toLocaleString()}만원`;
+    return `${Math.floor(amount / 10_000).toLocaleString()}만${w}`;
   }
-  return `${amount.toLocaleString()}원`;
+  return `${amount.toLocaleString()}${w}`;
 }
 
 /** Blog content validation thresholds. */

@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, buildEnrichedContext, getDrawNumbers, loadLottoData, ensureDir, getKSTDate, formatKSTDate, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
+import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, buildEnrichedContext, getDrawNumbers, loadLottoData, ensureDir, getKSTDate, formatKSTDate, formatKoreanAmount, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
 
 interface TopicConfig {
   id: string;
@@ -16,6 +16,7 @@ interface TopicConfig {
   category: string;
   tags: string[];
   prompt: string;
+  enrichedContext?: boolean;
 }
 
 function loadTopics(): TopicConfig[] {
@@ -128,23 +129,12 @@ function selectTopic(topics: TopicConfig[], data: LottoDataFile): {
       testNumbers,
       testNumbersParam,
       totalCost,
-      jackpot: formatAmount(jackpotNum),
-      netJackpot: formatAmount(Number(netJackpot)),
+      jackpot: formatKoreanAmount(jackpotNum, false),
+      netJackpot: formatKoreanAmount(Number(netJackpot), false),
     },
   };
 }
 
-function formatAmount(amount: number): string {
-  if (amount >= 100000000) {
-    const eok = Math.floor(amount / 100000000);
-    const man = Math.floor((amount % 100000000) / 10000);
-    return man > 0 ? `${eok}억 ${man.toLocaleString()}만` : `${eok}억`;
-  }
-  if (amount >= 10000) {
-    return `${Math.floor(amount / 10000).toLocaleString()}만`;
-  }
-  return amount.toLocaleString();
-}
 
 function fillTemplate(template: string, vars: Record<string, string>): string {
   let result = template;
@@ -170,19 +160,7 @@ async function generatePost(): Promise<void> {
   const title = fillTemplate(topic.titleTemplate, vars);
   const prompt = fillTemplate(topic.prompt, vars);
   const tags = topic.tags.map((t) => fillTemplate(t, vars));
-  // Use enriched context for narrative topics, basic for draw-analysis/prediction
-  const narrativeTopics = new Set([
-    "draw-analysis", "prediction-preview", "what-if-backtest",
-    "closest-miss", "myth-busting", "winner-story", "money-perspective",
-    "store-spotlight", "beginner-mistakes", "historical-moment",
-    "tax-deep-dive", "comparison-analysis", "number-spotlight",
-    "dream-weekly",
-    // narrative in-depth topics
-    "lottery-hackers", "ai-lottery", "jackpot-psychology",
-    "birthday-bias", "lucky-store-math", "lottery-economics",
-  ]);
-  const useEnriched = narrativeTopics.has(topic.id);
-  const context = useEnriched
+  const context = topic.enrichedContext
     ? buildEnrichedContext(data)
     : buildLotteryContext(data);
 
