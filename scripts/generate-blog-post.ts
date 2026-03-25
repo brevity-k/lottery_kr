@@ -8,7 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import * as fs from "fs";
 import * as path from "path";
 import type { LottoDataFile, BlogPost } from "../src/types/lottery";
-import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, getDrawNumbers, loadLottoData, ensureDir, getKSTDate, formatKSTDate, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
+import { withRetry, withTimeout, validateBlogContent, buildLotteryContext, buildEnrichedContext, getDrawNumbers, loadLottoData, ensureDir, getKSTDate, formatKSTDate, BLOG_DIR, TOPICS_PATH } from "./lib/shared";
 
 interface TopicConfig {
   id: string;
@@ -170,7 +170,21 @@ async function generatePost(): Promise<void> {
   const title = fillTemplate(topic.titleTemplate, vars);
   const prompt = fillTemplate(topic.prompt, vars);
   const tags = topic.tags.map((t) => fillTemplate(t, vars));
-  const context = buildLotteryContext(data);
+  // Use enriched context for narrative topics, basic for draw-analysis/prediction
+  const narrativeTopics = new Set([
+    "draw-analysis", "prediction-preview", "what-if-backtest",
+    "closest-miss", "myth-busting", "winner-story", "money-perspective",
+    "store-spotlight", "beginner-mistakes", "historical-moment",
+    "tax-deep-dive", "comparison-analysis", "number-spotlight",
+    "dream-weekly",
+    // narrative in-depth topics
+    "lottery-hackers", "ai-lottery", "jackpot-psychology",
+    "birthday-bias", "lucky-store-math", "lottery-economics",
+  ]);
+  const useEnriched = narrativeTopics.has(topic.id);
+  const context = useEnriched
+    ? buildEnrichedContext(data)
+    : buildLotteryContext(data);
 
   // Generate slug — use KST date for Korean audience
   const today = formatKSTDate();
@@ -191,44 +205,84 @@ async function generatePost(): Promise<void> {
 
   const client = new Anthropic({ apiKey });
 
-  const message = await withRetry(
-    () =>
-      withTimeout(
-        client.messages.create({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 6000,
-          messages: [
-            {
-              role: "user",
-              content: `당신은 한국 로또 블로그의 인기 작가입니다. 딱딱한 통계 나열이 아니라, 독자가 "오 재밌다"며 끝까지 읽고 친구에게 공유하고 싶은 글을 씁니다.
+  const systemPrompt = `당신은 한국 로또 블로그 lottery.io.kr의 수석 작가입니다.
+당신의 글은 네이버 블로그의 복붙 콘텐츠와 완전히 다릅니다.
+독자가 "이건 진짜 다르다"며 끝까지 읽고 카톡으로 공유하는 글을 씁니다.
 
-톤앤매너:
-- 친근하고 대화하듯이 (존댓말 기반이되, 가끔 "~인데요", "~거든요" 같은 구어체 사용)
-- 첫 문장에서 호기심을 확 잡아야 합니다. 통계 요약으로 시작하지 마세요.
-- 숫자를 나열하지 말고, 숫자에 "의미"를 부여하세요. ("19번이 5주 연속 출현" → "19번은 요즘 매주 빠지지 않는 단골손님입니다")
-- 독자에게 직접 말하세요 ("당신의 번호에 19가 있나요?")
-- 글 마지막에 반드시 "내 번호 역대 당첨 검사" 기능으로 유도하는 CTA를 포함하세요. (예: "내 번호의 역대 성적이 궁금하다면? → https://lottery.io.kr 에서 바로 검사해보세요")
+## 글쓰기 원칙 (반드시 따를 것)
 
-아래 데이터를 참고하여 블로그 글을 작성해주세요.
+### 1. 첫 문장 = 후킹
+- 절대로 "안녕하세요", "오늘은 ~에 대해", "~를 분석해보겠습니다"로 시작하지 마세요.
+- 구체적인 장면, 숫자, 질문으로 시작하세요.
+- 좋은 예: "2003년 4월 12일, 한 남자가 407억원을 혼자 가져갔다."
+- 좋은 예: "63명이 같은 번호를 골랐다. 1인당 4억. 혼자 골랐다면 260억이었다."
+- 나쁜 예: "로또 당첨번호 분석을 해보겠습니다."
+
+### 2. 숫자에 의미를 입혀라
+- 나쁨: "34번이 181회 출현했습니다"
+- 좋음: "34번은 181회로 역대 1위. 9번(133회)보다 48회 더 나왔지만, 이 격차는 1,216회 모수 대비 3%p에 불과합니다."
+- 데이터를 나열하지 말고, 데이터가 말하는 이야기를 전달하세요.
+
+### 3. 행동과학/심리학 프레이밍
+- 가능하면 인지편향, 행동경제학 개념을 자연스럽게 녹이세요.
+- 예: 도박사의 오류, 심적 회계, 쌍곡할인, 소유 효과, 확증 편향, 앵커링
+- 학술 용어를 쓰되 쉽게 풀어서 설명하세요.
+
+### 4. 한국적 맥락
+- 한국 독자가 공감할 비유와 사례를 사용하세요.
+- 예: 잠실야구장, 서울-부산 거리, 아파트 시세, 편의점 커피 가격
+- 원화 기준, 한국 세법 기준으로 계산하세요.
+
+### 5. 내부 링크 CTA
+글 끝에 반드시 다음 중 관련 있는 링크를 자연스럽게 포함하세요:
+- 번호 추천: /lotto/recommend
+- 통계 분석: /lotto/stats
+- 시뮬레이터: /lotto/simulator
+- 세금 계산기: /lotto/tax
+- 꿈해몽: /lotto/dream
+- 당첨번호 조회: /lotto/results
+
+### 6. 표(table)와 비교를 적극 활용
+- 마크다운 표로 핵심 데이터를 정리하세요.
+- 비교/대조 구조가 독자의 이해를 돕습니다.
+
+## 금지 사항
+- "~에 대해 알아보겠습니다" 식의 서론 금지
+- "마치며", "마무리하며" 같은 클리셰 결론 금지
+- 근거 없는 데이터 날조 금지 — 제공된 데이터만 사용
+- 이모지 사용 금지
+- "이 글은 AI 분석 도구의 도움을 받아 작성되었으며"는 글 맨 끝에 한 번만`;
+
+  const userPrompt = `아래 데이터를 참고하여 블로그 글을 작성하세요.
 
 ${context}
 
 ---
 
-${prompt}
+주제: ${prompt}
 
 작성 규칙:
-- 한국어로 작성
-- 마크다운 형식 (##, **, -, 등)
-- 1500~2500단어
-- 데이터에 기반한 사실만 언급 (없는 데이터를 지어내지 마세요)
-- 마지막에 다음 문구를 포함: "이 글은 AI 분석 도구의 도움을 받아 작성되었으며, 실제 당첨 데이터를 기반으로 합니다."
-- "당첨을 보장하지 않는다"는 면책 문구 포함
-- 글 끝에 "내 번호도 검사해보세요 → https://lottery.io.kr" CTA 포함`,
+- 한국어, 마크다운 형식
+- 2000~4000자 (충분히 깊이 있게)
+- 제공된 데이터의 실제 수치를 인용할 것 (구체적 회차, 번호, 금액)
+- 마지막에 면책 문구 + AI 작성 안내 포함
+- 내부 링크 CTA 포함`;
+
+  const message = await withRetry(
+    () =>
+      withTimeout(
+        client.messages.create({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 8000,
+          system: systemPrompt,
+          messages: [
+            {
+              role: "user",
+              content: userPrompt,
             },
           ],
         }),
-        120_000,
+        180_000,
         "Claude API"
       ),
     3,

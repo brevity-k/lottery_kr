@@ -127,6 +127,91 @@ export function buildLotteryContext(data: LottoDataFile, recentCount = 10): stri
   return `최근 ${recentCount}회차 당첨번호:\n${lines.join("\n")}`;
 }
 
+/**
+ * Builds an enriched context string with statistics, records, and patterns.
+ * Used for in-depth blog posts that need real data to cite.
+ */
+export function buildEnrichedContext(data: LottoDataFile): string {
+  const draws = data.draws;
+  const totalDraws = draws.length;
+  const latest = draws[0];
+
+  // --- Number frequency ---
+  const freq: Record<number, number> = {};
+  for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) freq[i] = 0;
+  draws.forEach((d) => getDrawNumbers(d).forEach((n) => freq[n]++));
+  const freqArr = Object.entries(freq)
+    .map(([n, c]) => ({ num: Number(n), count: c }))
+    .sort((a, b) => b.count - a.count);
+  const top5 = freqArr.slice(0, 5);
+  const bottom5 = freqArr.slice(-5).reverse();
+  const expectedCount = Math.round((totalDraws * 6) / 45 * 10) / 10;
+
+  // --- Jackpot records ---
+  const withWinners = draws.filter((d) => d.firstPrzwnerCo > 0 && d.firstWinamnt > 0);
+  const byPrize = [...withWinners].sort((a, b) => b.firstWinamnt - a.firstWinamnt).slice(0, 5);
+  const fewestWinners = [...withWinners].sort((a, b) => a.firstPrzwnerCo - b.firstPrzwnerCo).slice(0, 5);
+  const mostWinners = [...withWinners].sort((a, b) => b.firstPrzwnerCo - a.firstPrzwnerCo).slice(0, 5);
+
+  // --- Patterns ---
+  let below31Count = 0;
+  let oddEven33 = 0;
+  let consecutivePairs = 0;
+  draws.forEach((d) => {
+    const nums = getDrawNumbers(d);
+    if (nums.every((n) => n <= 31)) below31Count++;
+    const oddCount = nums.filter((n) => n % 2 === 1).length;
+    if (oddCount === 3) oddEven33++;
+    for (let i = 0; i < nums.length - 1; i++) {
+      if (nums[i + 1] - nums[i] === 1) { consecutivePairs++; break; }
+    }
+  });
+
+  // --- Recent 10 draws ---
+  const recentLines = draws.slice(0, 10).map((d) => {
+    const nums = getDrawNumbers(d);
+    const prize = d.firstWinamnt > 0 ? `1등 ${d.firstPrzwnerCo}명, 1인당 ${formatKoreanAmount(d.firstWinamnt)}` : "1등 없음";
+    return `${d.drwNo}회 (${d.drwNoDate}): ${nums.join(", ")} + 보너스 ${d.bnusNo} — ${prize}`;
+  });
+
+  return `=== 로또 6/45 통계 (총 ${totalDraws}회, 제1회~제${latest.drwNo}회) ===
+
+최근 10회차:
+${recentLines.join("\n")}
+
+번호별 출현 빈도 (기대치: ${expectedCount}회):
+- 최다: ${top5.map((x) => `${x.num}번(${x.count}회)`).join(", ")}
+- 최소: ${bottom5.map((x) => `${x.num}번(${x.count}회)`).join(", ")}
+
+역대 1인당 최고 당첨금 TOP 5:
+${byPrize.map((d) => `- ${d.drwNo}회: ${formatKoreanAmount(d.firstWinamnt)} (${d.firstPrzwnerCo}명, ${d.drwNoDate})`).join("\n")}
+
+역대 최다 1등 당첨자:
+${mostWinners.map((d) => `- ${d.drwNo}회: ${d.firstPrzwnerCo}명, 1인당 ${formatKoreanAmount(d.firstWinamnt)} (번호: ${getDrawNumbers(d).join(", ")})`).join("\n")}
+
+역대 최소 1등 당첨자 (1명 독식):
+${fewestWinners.map((d) => `- ${d.drwNo}회: ${formatKoreanAmount(d.firstWinamnt)} 독식 (${d.drwNoDate})`).join("\n")}
+
+패턴 통계:
+- 6개 번호 모두 31 이하: ${below31Count}/${totalDraws}회 (${(below31Count / totalDraws * 100).toFixed(1)}%)
+- 홀짝 3:3 비율: ${oddEven33}/${totalDraws}회 (${(oddEven33 / totalDraws * 100).toFixed(1)}%)
+- 연속번호 포함: ${consecutivePairs}/${totalDraws}회 (${(consecutivePairs / totalDraws * 100).toFixed(1)}%)
+- 1등 확률: 1/8,145,060`;
+}
+
+/** Formats a number into Korean 억/만 notation. */
+function formatKoreanAmount(amount: number): string {
+  if (amount >= 100_000_000) {
+    const eok = Math.floor(amount / 100_000_000);
+    const man = Math.floor((amount % 100_000_000) / 10_000);
+    return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+  }
+  if (amount >= 10_000) {
+    return `${Math.floor(amount / 10_000).toLocaleString()}만원`;
+  }
+  return `${amount.toLocaleString()}원`;
+}
+
 /** Blog content validation thresholds. */
 const MIN_BLOG_CONTENT_LENGTH = 800;
 const AI_DISCLAIMER_MARKERS = ["AI 분석 도구", "AI가"];
