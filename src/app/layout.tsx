@@ -3,6 +3,7 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import AdSenseScript from "@/components/ads/AdSenseScript";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SITE_URL, SITE_NAME, GA4_MEASUREMENT_ID } from "@/lib/constants";
 import "./globals.css";
@@ -87,13 +88,6 @@ export default function RootLayout({
             gtag('config', '${GA4_MEASUREMENT_ID}');
           `}
         </Script>
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
-          <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-            strategy="beforeInteractive"
-            crossOrigin="anonymous"
-          />
-        )}
         <Script
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
           strategy="afterInteractive"
@@ -116,6 +110,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <Footer />
         </ToastProvider>
+        <AdSenseScript />
         <Analytics />
       </body>
     </html>
