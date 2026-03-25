@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/lotto/results", label: "당첨번호" },
   { href: "/lotto/recommend", label: "번호 추천" },
+  { href: "/lotto/stats", label: "통계" },
+  { href: "/lotto/dream", label: "꿈해몽" },
+  { href: "/lotto/simulator", label: "시뮬레이터" },
   { href: "/lotto/stores", label: "명당" },
   { href: "/lotto/tax", label: "세금 계산기" },
   { href: "/blog", label: "블로그" },
