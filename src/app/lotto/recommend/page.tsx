@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getRecentResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RecommendClient from "./RecommendClient";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
@@ -61,8 +60,6 @@ export default function RecommendPage() {
       </p>
 
       <RecommendClient stats={stats} />
-
-      <AdBanner slot="recommend-bottom" format="horizontal" className="mt-8" />
 
       <div className="mt-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
         <p className="text-xs text-gray-500 leading-relaxed">

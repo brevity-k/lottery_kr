@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
@@ -55,8 +54,6 @@ export default function BlogPage() {
         만나보세요.
       </p>
 
-      <AdBanner slot="blog-top" format="horizontal" className="mb-8" />
-
       {posts.length === 0 ? (
         <p className="text-gray-500 text-center py-12">
           아직 작성된 글이 없습니다.
@@ -92,19 +89,10 @@ export default function BlogPage() {
                   ))}
                 </div>
               </Link>
-              {index === 2 && (
-                <AdBanner
-                  slot="blog-mid"
-                  format="horizontal"
-                  className="mt-6"
-                />
-              )}
             </div>
           ))}
         </div>
       )}
-
-      <AdBanner slot="blog-bottom" format="horizontal" className="mt-8" />
     </div>
   );
 }

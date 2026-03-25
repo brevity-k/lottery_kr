@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { LottoResult } from "@/types/lottery";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
-import AdBanner from "@/components/ads/AdBanner";
 
 const PER_PAGE = 20;
 
@@ -59,9 +58,6 @@ export default function ResultsClient({ results }: ResultsClientProps) {
             <Link href={`/lotto/results/${result.drwNo}`}>
               <LottoResultCard result={result} showDetails />
             </Link>
-            {idx === 4 && (
-              <AdBanner slot="results-mid" format="horizontal" className="mt-4" />
-            )}
           </div>
         ))}
       </div>

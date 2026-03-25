@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getAllWinningStores, getTopStores, getRegions } from "@/lib/lottery/stores";
 import StoresClient from "./StoresClient";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
@@ -81,11 +80,7 @@ export default function StoresPage() {
         <strong>{stores.length}곳</strong>의 명당 판매점 정보를 제공합니다.
       </p>
 
-      <AdBanner slot="stores-top" format="horizontal" className="mb-6" />
-
       <StoresClient stores={stores} topStores={topStores} regions={regions} />
-
-      <AdBanner slot="stores-bottom" format="horizontal" className="mt-6" />
 
       <section className="mt-8 bg-white rounded-2xl border border-gray-200 p-6">
         <h2 className="text-lg font-bold text-gray-900 mb-3">

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { getAllResults } from "@/lib/api/dhlottery";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ResultsClient from "./ResultsClient";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
@@ -59,11 +58,7 @@ export default function ResultsPage() {
         1회부터 최신 회차까지 전체 당첨번호를 검색하고 확인하세요
       </p>
 
-      <AdBanner slot="results-top" format="horizontal" className="mb-8" />
-
       <ResultsClient results={results} />
-
-      <AdBanner slot="results-bottom" format="horizontal" className="mt-8" />
     </div>
   );
 }

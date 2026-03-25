@@ -5,7 +5,6 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import { getRecentBlogPosts } from "@/lib/blog";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import BacktestClient from "./BacktestClient";
-import AdBanner from "@/components/ads/AdBanner";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
@@ -63,8 +62,6 @@ export default function Home() {
       <Suspense fallback={null}>
         <BacktestClient allResults={allResults} />
       </Suspense>
-
-      <AdBanner slot="home-bottom" format="horizontal" className="mt-8" />
 
       {/* Recent Blog Posts */}
       {recentPosts.length > 0 && (

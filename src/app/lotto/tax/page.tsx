@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import TaxCalculatorClient from "./TaxCalculatorClient";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
 
@@ -58,11 +57,7 @@ export default function TaxPage() {
         당첨금을 입력하면 세금과 실수령액을 바로 확인할 수 있습니다.
       </p>
 
-      <AdBanner slot="tax-top" format="horizontal" className="mb-6" />
-
       <TaxCalculatorClient />
-
-      <AdBanner slot="tax-bottom" format="horizontal" className="mt-6" />
 
     </div>
   );

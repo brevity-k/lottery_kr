@@ -4,7 +4,6 @@ import { useState } from "react";
 import { LottoStats, RecommendMethod, RecommendedSet } from "@/types/lottery";
 import { generateRecommendation } from "@/lib/lottery/recommend";
 import RecommendResult from "@/components/lottery/RecommendResult";
-import AdBanner from "@/components/ads/AdBanner";
 
 const methods: { id: RecommendMethod; label: string; icon: string; desc: string }[] = [
   { id: "random", label: "랜덤 추천", icon: "🎲", desc: "순수 랜덤으로 번호 생성" },
@@ -81,8 +80,6 @@ export default function RecommendClient({ stats }: RecommendClientProps) {
           </div>
 
           <RecommendResult sets={results} />
-
-          <AdBanner slot="recommend-mid" format="horizontal" className="mt-8" />
 
           {/* Stats Summary */}
           <div className="mt-8 grid grid-cols-2 gap-4">

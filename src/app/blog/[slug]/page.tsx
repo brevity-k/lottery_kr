@@ -6,7 +6,6 @@ import { getLottoResult } from "@/lib/api/dhlottery";
 import { markdownToHtml } from "@/lib/utils/markdown";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import PredictionResults from "@/components/blog/PredictionResults";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 interface Props {
@@ -115,8 +114,6 @@ export default async function BlogPostPage({ params }: Props) {
           <PredictionResults round={predictionRound} result={predictionResult} />
         )}
 
-        <AdBanner slot="blog-detail-top" format="horizontal" className="mb-6" />
-
         <div
           className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-strong:text-gray-900 prose-li:text-gray-700 prose-code:bg-gray-100 prose-code:px-1 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-blockquote:border-blue-400 prose-blockquote:text-gray-600 prose-hr:border-gray-200"
           dangerouslySetInnerHTML={{ __html: contentHtml }}
@@ -133,12 +130,6 @@ export default async function BlogPostPage({ params }: Props) {
           ))}
         </div>
       </article>
-
-      <AdBanner
-        slot="blog-detail-bottom"
-        format="horizontal"
-        className="mt-8"
-      />
 
       {relatedPosts.length > 0 && (
         <section className="mt-10">

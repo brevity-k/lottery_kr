@@ -7,7 +7,6 @@ import { SITE_NAME, SITE_URL, LOTTO_SECTIONS } from "@/lib/constants";
 import { formatKRW, formatDate } from "@/lib/utils/format";
 import LottoBall from "@/components/lottery/LottoBall";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
-import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 
 interface Props {
@@ -311,8 +310,6 @@ export default async function RoundDetailPage({ params }: Props) {
           </div>
         )}
       </section>
-
-      <AdBanner slot="round-detail" format="horizontal" className="mt-8" />
 
       <div className="flex justify-between mt-8">
         {roundNum > 1 && (
