@@ -13,6 +13,8 @@ interface Props {
   params: Promise<{ category: string }>;
 }
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return getAllDreamCategoryIds().map((id) => ({ category: id }));
 }

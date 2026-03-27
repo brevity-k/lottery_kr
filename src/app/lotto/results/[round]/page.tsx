@@ -89,6 +89,8 @@ function getRoundAnalysis(round: number) {
 
 // --- Static params: both rounds and years ---
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   const allResults = getAllResults();
 

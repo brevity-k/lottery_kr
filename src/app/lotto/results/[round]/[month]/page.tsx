@@ -38,6 +38,8 @@ function getAvailableYearMonths(): { year: number; month: number }[] {
   return result.sort((a, b) => a.year - b.year || a.month - b.month);
 }
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   const yearMonths = getAvailableYearMonths();
   return yearMonths.map(({ year, month }) => ({

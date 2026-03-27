@@ -13,6 +13,8 @@ interface Props {
   params: Promise<{ num: string }>;
 }
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return Array.from({ length: LOTTO_MAX_NUMBER }, (_, i) => ({ num: String(i + 1) }));
 }
