@@ -75,20 +75,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
     setMounted(true);
   }, []);
 
-  // Memoize filtered stores to prevent unnecessary marker updates
-  const _filteredStores = useMemo(() => {
-    return stores.filter((s) => {
-      const matchRegion =
-        selectedRegion === "전체" || s.region === selectedRegion;
-      const matchSearch =
-        !debouncedSearch ||
-        s.name.includes(debouncedSearch) ||
-        s.address.includes(debouncedSearch);
-      return matchRegion && matchSearch;
-    });
-  }, [stores, selectedRegion, debouncedSearch]);
-
-  // Also compute for instant list filtering (no debounce for list view)
+  // Compute for instant list filtering (no debounce for list view)
   const listFilteredStores = useMemo(() => {
     return stores.filter((s) => {
       const matchRegion =

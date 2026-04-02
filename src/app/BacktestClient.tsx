@@ -182,7 +182,6 @@ export default function BacktestClient({ allResults }: Props) {
 
   const animateTierCounts = (targets: Record<number, number>) => {
     const current: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    const _maxTarget = Math.max(...Object.values(targets), 1);
     const steps = 20;
     const intervalMs = 1200 / steps;
 

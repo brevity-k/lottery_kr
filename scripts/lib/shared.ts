@@ -6,7 +6,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import type { LottoResult, LottoDataFile } from "../../src/types/lottery";
+import type { LottoResult, LottoDataFile, BlogPost } from "../../src/types/lottery";
 
 /** Centralized file paths — single source of truth for all scripts. */
 export const DATA_PATH = path.join(process.cwd(), "src/data/lotto.json");
@@ -340,4 +340,68 @@ export function loadLottoData(): LottoDataFile {
     }
     throw new Error("Failed to load lottery data from both primary and backup files");
   }
+}
+
+// --- Social posting shared utilities ---
+
+export const SITE_URL = "https://lottery.io.kr";
+
+export const CATEGORY_EMOJI: Record<string, string> = {
+  "당첨번호 분석": "🎯",
+  "예상번호": "🔮",
+  "예상번호 분석": "🔮",
+};
+export const DEFAULT_EMOJI = "📊";
+
+export interface TrackingData<T extends { slug: string }> {
+  posted: T[];
+}
+
+export function loadTrackingData<T extends { slug: string }>(
+  trackingPath: string
+): TrackingData<T> {
+  try {
+    const raw = fs.readFileSync(trackingPath, "utf-8");
+    const data = JSON.parse(raw) as TrackingData<T>;
+    if (Array.isArray(data.posted)) return data;
+  } catch {
+    // File doesn't exist or is malformed — start fresh
+  }
+  return { posted: [] };
+}
+
+export function saveTrackingData<T extends { slug: string }>(
+  data: TrackingData<T>,
+  trackingPath: string
+): void {
+  fs.writeFileSync(trackingPath, JSON.stringify(data, null, 2) + "\n");
+}
+
+export function loadBlogPosts(): BlogPost[] {
+  if (!fs.existsSync(BLOG_DIR)) return [];
+  const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".json"));
+  const posts: BlogPost[] = [];
+  for (const file of files) {
+    try {
+      const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf-8");
+      const post = JSON.parse(raw) as BlogPost;
+      if (post.slug && post.title && post.date) {
+        posts.push(post);
+      }
+    } catch {
+      // Skip malformed files
+    }
+  }
+  posts.sort((a, b) => b.date.localeCompare(a.date));
+  return posts;
+}
+
+export function buildHashtags(tags: string[]): string {
+  const tagSet = new Set<string>();
+  tagSet.add("#로또");
+  for (const tag of tags.slice(0, 3)) {
+    const cleaned = tag.replace(/^#/, "");
+    if (cleaned) tagSet.add(`#${cleaned}`);
+  }
+  return [...tagSet].join(" ");
 }

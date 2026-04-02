@@ -5,69 +5,29 @@
  */
 
 import * as crypto from "crypto";
-import * as fs from "fs";
 import * as path from "path";
 import type { BlogPost } from "../src/types/lottery";
-import { withRetry, withTimeout, BLOG_DIR, formatKSTDate } from "./lib/shared";
+import {
+  withRetry,
+  withTimeout,
+  formatKSTDate,
+  loadBlogPosts,
+  loadTrackingData,
+  saveTrackingData,
+  SITE_URL,
+  CATEGORY_EMOJI,
+  DEFAULT_EMOJI,
+  buildHashtags,
+} from "./lib/shared";
 
 const TRACKING_PATH = path.join(process.cwd(), "scripts/x-posted.json");
-const SITE_URL = "https://lottery.io.kr";
 const T_CO_URL_LENGTH = 23; // X wraps all URLs to 23 chars via t.co
 const X_MAX_WEIGHTED_CHARS = 280;
 
-interface PostedEntry {
+interface XPostedEntry {
   slug: string;
   tweetId: string;
   postedAt: string;
-}
-
-interface TrackingData {
-  posted: PostedEntry[];
-}
-
-/** Category → emoji mapping for tweet text. */
-const CATEGORY_EMOJI: Record<string, string> = {
-  "당첨번호 분석": "🎯",
-  "예상번호": "🔮",
-  "예상번호 분석": "🔮",
-};
-const DEFAULT_EMOJI = "📊";
-
-function loadTrackingData(): TrackingData {
-  try {
-    if (fs.existsSync(TRACKING_PATH)) {
-      const raw = fs.readFileSync(TRACKING_PATH, "utf-8");
-      const data = JSON.parse(raw) as TrackingData;
-      if (Array.isArray(data.posted)) return data;
-    }
-  } catch (err) {
-    console.warn(`⚠️ Failed to load tracking file, starting fresh: ${err}`);
-  }
-  return { posted: [] };
-}
-
-function saveTrackingData(data: TrackingData): void {
-  fs.writeFileSync(TRACKING_PATH, JSON.stringify(data, null, 2) + "\n");
-}
-
-function loadBlogPosts(): BlogPost[] {
-  if (!fs.existsSync(BLOG_DIR)) return [];
-  const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith(".json"));
-  const posts: BlogPost[] = [];
-  for (const file of files) {
-    try {
-      const raw = fs.readFileSync(path.join(BLOG_DIR, file), "utf-8");
-      const post = JSON.parse(raw) as BlogPost;
-      if (post.slug && post.title && post.date) {
-        posts.push(post);
-      }
-    } catch {
-      // Skip malformed files
-    }
-  }
-  // Sort by date descending (latest first)
-  posts.sort((a, b) => b.date.localeCompare(a.date));
-  return posts;
 }
 
 /**
@@ -81,7 +41,6 @@ function weightedLength(text: string): number {
   let weight = urls.length * T_CO_URL_LENGTH;
   for (const ch of noUrls) {
     const code = ch.codePointAt(0) ?? 0;
-    // CJK Jamo, CJK Symbols, CJK Unified, Hangul Syllables, CJK Compat, Emoji
     if (
       (code >= 0x1100 && code <= 0x11ff) ||
       (code >= 0x3000 && code <= 0x9fff) ||
@@ -100,29 +59,18 @@ function weightedLength(text: string): number {
 function buildTweetText(post: BlogPost): string {
   const emoji = CATEGORY_EMOJI[post.category] ?? DEFAULT_EMOJI;
   const link = `${SITE_URL}/blog/${post.slug}`;
+  const hashtags = buildHashtags(post.tags);
 
-  // Build hashtags: first 3 tags + always include #로또
-  const tagSet = new Set<string>();
-  tagSet.add("#로또");
-  for (const tag of post.tags.slice(0, 3)) {
-    const cleaned = tag.replace(/^#/, "");
-    if (cleaned) tagSet.add(`#${cleaned}`);
-  }
-  const hashtags = [...tagSet].join(" ");
-
-  // Format: "{emoji} {title}\n\n{description}\n\n{link}\n\n{hashtags}"
   const prefix = `${emoji} ${post.title}`;
   const suffix = `\n\n${hashtags}`;
-  const skeleton = `${prefix}\n\n\n\n${link}${suffix}`; // with empty desc placeholder
-  const fixedWeight = weightedLength(skeleton);
-  const maxDescWeight = X_MAX_WEIGHTED_CHARS - fixedWeight;
+  const skeleton = `${prefix}\n\n\n\n${link}${suffix}`;
+  const maxDescWeight = X_MAX_WEIGHTED_CHARS - weightedLength(skeleton);
 
   if (maxDescWeight <= 0) {
     return `${prefix}\n\n${link}${suffix}`;
   }
 
   const description = post.description || "";
-  // Trim description to fit weighted budget
   let trimmed = "";
   let descWeight = 0;
   for (const ch of description) {
@@ -136,7 +84,6 @@ function buildTweetText(post: BlogPost): string {
         ? 2
         : 1;
     if (descWeight + w > maxDescWeight - 2) {
-      // -2 for "…"
       trimmed += "…";
       break;
     }
@@ -184,7 +131,6 @@ function buildOAuthHeader(
     oauth_version: "1.0",
   };
 
-  // Combine all params for signature base string
   const allParams: Record<string, string> = { ...oauthParams, ...bodyParams };
   const sortedKeys = Object.keys(allParams).sort();
   const paramString = sortedKeys
@@ -256,7 +202,6 @@ async function postTweet(
 }
 
 async function main(): Promise<void> {
-  // Load env vars
   const consumerKey = process.env.X_CONSUMER_KEY;
   const consumerSecret = process.env.X_SECRET_KEY;
   const accessToken = process.env.X_ACCESS_TOKEN;
@@ -269,12 +214,10 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Load blog posts and tracking data
   const posts = loadBlogPosts();
-  const tracking = loadTrackingData();
+  const tracking = loadTrackingData<XPostedEntry>(TRACKING_PATH);
   const postedSlugs = new Set(tracking.posted.map((e) => e.slug));
 
-  // Find the latest unposted post
   const unposted = posts.find((p) => !postedSlugs.has(p.slug));
   if (!unposted) {
     console.log("✅ No unposted blog posts found — nothing to do.");
@@ -298,13 +241,12 @@ async function main(): Promise<void> {
 
   console.log(`✅ Tweet posted: https://x.com/i/status/${tweetId}`);
 
-  // Update tracking file
   tracking.posted.push({
     slug: unposted.slug,
     tweetId,
     postedAt: formatKSTDate(),
   });
-  saveTrackingData(tracking);
+  saveTrackingData(tracking, TRACKING_PATH);
 
   console.log(`📝 Tracking file updated: ${TRACKING_PATH}`);
 }

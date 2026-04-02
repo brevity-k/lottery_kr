@@ -50,7 +50,7 @@ jobs:
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
 
       - name: Post to Bluesky
-        if: always()
+        if: ${{ !cancelled() }}
         continue-on-error: true
         env:
           BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
@@ -58,7 +58,7 @@ jobs:
         run: npx tsx scripts/post-to-bluesky.ts
 
       - name: Commit tracking file
-        if: always()
+        if: ${{ !cancelled() }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"

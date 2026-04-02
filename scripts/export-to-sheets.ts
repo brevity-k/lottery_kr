@@ -7,7 +7,7 @@
  *   npx tsx scripts/export-to-sheets.ts --share user@x.com # 시트 공유
  *   npx tsx scripts/export-to-sheets.ts --last 100         # 최근 100회차만
  *
- * 필요: mise의 gsheet-upload 도구 (PATH 또는 GSHEET_UPLOAD 환경변수)
+ * 필요: GSHEET_UPLOAD 환경변수로 gsheet-upload 경로 지정
  */
 
 import * as fs from "fs";
@@ -15,41 +15,10 @@ import * as path from "path";
 import * as os from "os";
 import { execFileSync } from "child_process";
 import type { LottoResult } from "../src/types/lottery";
-
-const DATA_PATH = path.join(process.cwd(), "src/data/lotto.json");
-
-interface LottoData {
-  lottery: string;
-  lastUpdated: string;
-  latestRound: number;
-  draws: LottoResult[];
-}
-
-function loadData(): LottoData {
-  return JSON.parse(fs.readFileSync(DATA_PATH, "utf-8"));
-}
-
-function formatAmount(amount: number): string {
-  if (amount >= 100000000) {
-    const eok = Math.floor(amount / 100000000);
-    const man = Math.floor((amount % 100000000) / 10000);
-    return man > 0 ? `${eok}억 ${man}만원` : `${eok}억원`;
-  }
-  if (amount >= 10000) {
-    return `${Math.floor(amount / 10000)}만원`;
-  }
-  return `${amount}원`;
-}
+import { loadLottoData, getDrawNumbers, formatKoreanAmount } from "./lib/shared";
 
 function drawToRow(draw: LottoResult): string[] {
-  const numbers = [
-    draw.drwtNo1,
-    draw.drwtNo2,
-    draw.drwtNo3,
-    draw.drwtNo4,
-    draw.drwtNo5,
-    draw.drwtNo6,
-  ];
+  const numbers = getDrawNumbers(draw);
 
   return [
     draw.drwNo.toString(),
@@ -57,10 +26,10 @@ function drawToRow(draw: LottoResult): string[] {
     numbers.join(", "),
     draw.bnusNo.toString(),
     draw.firstWinamnt.toString(),
-    formatAmount(draw.firstWinamnt),
+    formatKoreanAmount(draw.firstWinamnt),
     draw.firstPrzwnerCo.toString(),
     draw.totSellamnt.toString(),
-    formatAmount(draw.totSellamnt),
+    formatKoreanAmount(draw.totSellamnt),
   ];
 }
 
@@ -77,10 +46,7 @@ function buildTsv(draws: LottoResult[], lastN?: number): string {
     "총 판매금액",
   ];
 
-  let data = draws;
-  if (lastN && lastN > 0) {
-    data = draws.slice(0, lastN);
-  }
+  const data = lastN && lastN > 0 ? draws.slice(0, lastN) : draws;
 
   const rows: string[][] = [headers];
   for (const draw of data) {
@@ -93,17 +59,8 @@ function buildTsv(draws: LottoResult[], lastN?: number): string {
 function findGsheetUpload(): string {
   if (process.env.GSHEET_UPLOAD) return process.env.GSHEET_UPLOAD;
 
-  const candidates = [
-    path.join(os.homedir(), "project/brevity1swos/mise/py/gsheet-upload"),
-    path.join(os.homedir(), "mise/py/gsheet-upload"),
-  ];
-
-  for (const p of candidates) {
-    if (fs.existsSync(p)) return p;
-  }
-
   throw new Error(
-    "gsheet-upload not found. Set GSHEET_UPLOAD env var or add mise/py to PATH."
+    "gsheet-upload not found. Set GSHEET_UPLOAD env var to the path of the upload tool."
   );
 }
 
@@ -115,18 +72,16 @@ async function main(): Promise<void> {
   const shareIndex = args.indexOf("--share");
   const shareEmail = shareIndex !== -1 ? args[shareIndex + 1] : undefined;
 
-  const data = loadData();
+  const data = loadLottoData();
   console.error(`로또 6/45: ${data.draws.length} 회차 (최신: ${data.latestRound}회)`);
 
   const tsv = buildTsv(data.draws, lastN);
-  const totalRows = tsv.split("\n").length - 1;
 
   if (tsvOnly) {
     process.stdout.write(tsv);
     return;
   }
 
-  // Write TSV to temp file for safe subprocess invocation
   const tmpFile = path.join(os.tmpdir(), `rottery-kr-export-${Date.now()}.tsv`);
   fs.writeFileSync(tmpFile, tsv);
 
@@ -137,6 +92,7 @@ async function main(): Promise<void> {
       ? `로또 6/45 최근 ${lastN}회 (${today})`
       : `로또 6/45 전체 ${data.draws.length}회 (${today})`;
 
+    const totalRows = data.draws.length;
     console.error(`${totalRows}행 Google Sheets 업로드 중...`);
 
     const uploadArgs = [uploadTool, tmpFile, "--title", title, "--sheet-name", "로또 6/45"];
