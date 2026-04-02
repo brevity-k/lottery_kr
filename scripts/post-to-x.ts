@@ -121,7 +121,7 @@ function buildTweetText(post: BlogPost): string {
     return `${prefix}\n\n${link}${suffix}`;
   }
 
-  let description = post.description || "";
+  const description = post.description || "";
   // Trim description to fit weighted budget
   let trimmed = "";
   let descWeight = 0;

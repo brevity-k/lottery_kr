@@ -53,7 +53,7 @@ export default function ResultsClient({ results }: ResultsClientProps) {
 
       {/* Results */}
       <div className="space-y-4">
-        {paged.map((result, idx) => (
+        {paged.map((result) => (
           <div key={result.drwNo}>
             <Link href={`/lotto/results/${result.drwNo}`}>
               <LottoResultCard result={result} showDetails />

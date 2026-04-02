@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
 
       - run: npm ci
@@ -49,12 +49,21 @@ jobs:
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
 
+      - name: Post to Bluesky
+        if: always()
+        continue-on-error: true
+        env:
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+        run: npx tsx scripts/post-to-bluesky.ts
+
       - name: Commit tracking file
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scripts/x-posted.json
-          git diff --staged --quiet || (git commit -m "x: update posted tracking" && git pull --rebase && git push)
+          git add scripts/x-posted.json scripts/bsky-posted.json
+          git diff --staged --quiet || (git commit -m "social: update posted tracking" && git pull --rebase && git push)
 
       - name: Create issue on failure
         if: failure()

@@ -226,5 +226,5 @@ Local git config uses the project email (`rottery0.kr@gmail.com`) to comply with
 
 ## Dependencies
 
-**Production:** next ^16.1.6, react ^19.2.4, react-dom ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^1.6.1, resend ^6.9.2, @tailwindcss/typography ^0.5.19
-**Dev:** typescript ^5, tailwindcss ^4, @tailwindcss/postcss ^4, @anthropic-ai/sdk ^0.74.0, tsx ^4.21.0, eslint ^9, eslint-config-next 16.2.0-canary.35
+**Production:** next ^16.1.6, react ^19.2.4, react-dom ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^2.0.1, resend ^6.10.0, @tailwindcss/typography ^0.5.19
+**Dev:** typescript ^5, tailwindcss ^4.2, @tailwindcss/postcss ^4.2, @anthropic-ai/sdk ^0.82.0, tsx ^4.21.0, eslint ^9, eslint-config-next ^16.2.2

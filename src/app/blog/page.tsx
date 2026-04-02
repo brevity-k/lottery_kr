@@ -60,7 +60,7 @@ export default function BlogPage() {
         </p>
       ) : (
         <div className="space-y-6">
-          {posts.map((post, index) => (
+          {posts.map((post) => (
             <div key={post.slug}>
               <Link
                 href={`/blog/${post.slug}`}

@@ -76,7 +76,7 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
   }, []);
 
   // Memoize filtered stores to prevent unnecessary marker updates
-  const filteredStores = useMemo(() => {
+  const _filteredStores = useMemo(() => {
     return stores.filter((s) => {
       const matchRegion =
         selectedRegion === "전체" || s.region === selectedRegion;

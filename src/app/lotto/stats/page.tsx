@@ -6,7 +6,7 @@ import LottoBall from "@/components/lottery/LottoBall";
 import FrequencyChart from "@/components/charts/FrequencyChart";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
-import { SITE_URL, SITE_NAME } from "@/lib/constants";
+import { SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { buildFaqJsonLd } from "@/lib/utils/jsonld";
 
