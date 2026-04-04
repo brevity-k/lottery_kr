@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { MetadataRoute } from "next";
+
+export const dynamic = 'force-static';
 import { getAllResults } from "@/lib/api/dhlottery";
 import { getAllBlogPosts } from "@/lib/blog";
 import { SITE_URL } from "@/lib/constants";

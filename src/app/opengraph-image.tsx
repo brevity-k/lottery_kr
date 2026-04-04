@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
+export const dynamic = 'force-static';
 export const alt = "로또리 - 로또 번호 추천 및 당첨번호 분석";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

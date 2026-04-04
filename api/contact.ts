@@ -1,44 +1,39 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Resend } from "resend";
-import { OWNER_EMAIL, SITE_URL } from "@/lib/constants";
-import { escapeHtml } from "@/lib/utils/markdown";
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { Resend } from 'resend';
 
-export async function POST(req: NextRequest) {
+const SITE_URL = "https://lottery.io.kr";
+const OWNER_EMAIL = "rottery0.kr@gmail.com";
+
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    return NextResponse.json(
-      { error: "이메일 서비스가 설정되지 않았습니다." },
-      { status: 500 }
-    );
+  if (!apiKey || !apiKey.startsWith('re_')) {
+    return res.status(503).json({ error: "이메일 서비스가 설정되지 않았습니다." });
   }
 
   const resend = new Resend(apiKey);
-
-  let body: { name: string; email: string; subject: string; message: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "잘못된 요청입니다." }, { status: 400 });
-  }
-
-  const { name, email, subject, message } = body;
+  const { name, email, subject, message } = req.body || {};
 
   if (!name || !email || !subject || !message) {
-    return NextResponse.json(
-      { error: "모든 항목을 입력해주세요." },
-      { status: 400 }
-    );
+    return res.status(400).json({ error: "모든 항목을 입력해주세요." });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json(
-      { error: "올바른 이메일 주소를 입력해주세요." },
-      { status: 400 }
-    );
+    return res.status(400).json({ error: "올바른 이메일 주소를 입력해주세요." });
   }
 
   try {
-    // Send notification to site owner
     await resend.emails.send({
       from: "로또리 문의 <onboarding@resend.dev>",
       to: OWNER_EMAIL,
@@ -53,7 +48,6 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    // Send auto-reply to the submitter
     await resend.emails.send({
       from: "로또리 <onboarding@resend.dev>",
       to: email,
@@ -75,11 +69,8 @@ export async function POST(req: NextRequest) {
       `,
     });
 
-    return NextResponse.json({ success: true });
+    return res.status(200).json({ success: true });
   } catch {
-    return NextResponse.json(
-      { error: "이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요." },
-      { status: 500 }
-    );
+    return res.status(500).json({ error: "이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요." });
   }
 }

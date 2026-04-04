@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+export const dynamic = 'force-static';
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "로또리 - 한국 복권 번호 추천",
