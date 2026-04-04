@@ -62,7 +62,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scripts/x-posted.json scripts/bsky-posted.json
+          git add scripts/x-posted.json
+          [ -f scripts/bsky-posted.json ] && git add scripts/bsky-posted.json || true
           git diff --staged --quiet || (git commit -m "social: update posted tracking" && git pull --rebase && git push)
 
       - name: Create issue on failure
