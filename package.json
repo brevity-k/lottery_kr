@@ -15,7 +15,7 @@
     "prebuild": "tsx scripts/update-data.ts"
   },
   "dependencies": {
-    "@atproto/api": "^0.19.5",
+    "@atproto/api": "^0.19.6",
     "@tailwindcss/typography": "^0.5.19",
     "@vercel/analytics": "^2.0.1",
     "chart.js": "^4.5.1",
