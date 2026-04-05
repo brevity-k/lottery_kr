@@ -33,7 +33,7 @@ npm run lint                # ESLint
 
 ### Static-First Design
 
-All data pre-fetched at build time. Zero runtime API calls (except `/api/contact`).
+All data pre-fetched at build time. Zero runtime API calls (except `/api/contact` via standalone serverless function).
 
 ```
 scripts/update-data.ts  →  src/data/lotto.json  →  fs.readFileSync at build
@@ -57,6 +57,8 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 ## Directory Structure
 
 ```
+├── api/
+│   └── contact.ts                 # Contact form API (standalone serverless function for static export)
 ├── scripts/
 │   ├── lib/shared.ts              # Shared utilities (paths, constants, retry, validation)
 │   ├── update-data.ts             # Fetch lottery data (retry + validation + backup)
@@ -93,7 +95,7 @@ content/blog/*.json     →  src/lib/blog.ts      →  fs.readFileSync at build
 │       ├── layout.tsx             # Root (Korean, Pretendard, GA4, Kakao SDK, AdSense)
 │       ├── page.tsx               # Homepage
 │       ├── sitemap.ts             # Dynamic (all rounds + blog, excludes noindex pages)
-│       ├── api/contact/route.ts   # Contact form (Resend)
+│       ├── (contact API moved to /api/contact.ts — standalone serverless function)
 │       ├── lotto/
 │       │   ├── recommend/         # Number recommendation (6 algorithms)
 │       │   ├── results/           # Latest results + [round] detail (enriched, JSON-LD)

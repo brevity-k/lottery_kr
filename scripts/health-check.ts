@@ -203,8 +203,8 @@ function checkCriticalFiles(): CheckResult {
     "next.config.ts",
     "tsconfig.json",
     "postcss.config.mjs",
-    // API routes
-    "src/app/api/contact/route.ts",
+    // API routes (standalone serverless function for static export)
+    "api/contact.ts",
     // Feature pages
     "src/app/lotto/recommend/page.tsx",
     "src/app/lotto/results/page.tsx",
