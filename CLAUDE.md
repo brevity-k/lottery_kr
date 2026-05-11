@@ -206,27 +206,6 @@ Local git config uses the project email (`rottery0.kr@gmail.com`) to comply with
 
 `PredictionResults.tsx` enriches prediction posts with actual results at build time via `getLottoResult(round)`.
 
-## Remaining Roadmap
+## Roadmap
 
-### High Priority
-- 로또 명당 판매점 지도 (`/lotto/stores/`) — Kakao Map + data.go.kr (20K+/mo search)
-- 연금복권 720+ (`/pension/`) — results, stats, recommendations (10K+/mo search)
-- Naver Blog cross-posting (70%+ Korean searches on Naver)
-- AdSense approval + ad placement
-
-### Medium Priority
-- 운세/별자리 번호 (`/lotto/fortune`) — zodiac-based numbers
-- Number generation animation (rolling/revealing)
-- PWA push notifications (draw results)
-- Blog internal linking to site features
-
-### Low Priority
-- My Numbers (localStorage, auto-check weekly)
-- Community (Giscus comments, leaderboard)
-- KakaoTalk Channel
-- YouTube Shorts pipeline
-
-## Dependencies
-
-**Production:** next ^16.1.6, react ^19.2.4, react-dom ^19.2.4, chart.js ^4.5.1, react-chartjs-2 ^5.3.1, @vercel/analytics ^2.0.1, resend ^6.10.0, @tailwindcss/typography ^0.5.19
-**Dev:** typescript ^5, tailwindcss ^4.2, @tailwindcss/postcss ^4.2, @anthropic-ai/sdk ^0.82.0, tsx ^4.21.0, eslint ^9, eslint-config-next ^16.2.2
+High: 로또 명당 판매점 지도 (`/lotto/stores/`), 연금복권 720+ (`/pension/`), Naver Blog cross-posting, AdSense approval. Medium: 운세/별자리 번호, number animation, PWA push. Low: My Numbers, community, KakaoTalk Channel, YouTube Shorts.
