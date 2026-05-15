@@ -89,6 +89,11 @@
       "slug": "prediction-preview-2026-05-13",
       "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3mlpihrk7uv2o",
       "postedAt": "2026-05-13"
+    },
+    {
+      "slug": "1224-prediction",
+      "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3mlvbyo45ea2q",
+      "postedAt": "2026-05-15"
     }
   ]
 }
