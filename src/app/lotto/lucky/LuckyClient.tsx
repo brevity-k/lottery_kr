@@ -87,9 +87,13 @@ export default function LuckyClient() {
 
   const numbersText = numbers.join(", ");
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`🍀 오늘의 행운 번호 (${dateLabel})\n${numbersText}`);
-    toast("번호가 클립보드에 복사되었습니다!");
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(`🍀 오늘의 행운 번호 (${dateLabel})\n${numbersText}`);
+      toast("번호가 클립보드에 복사되었습니다!");
+    } catch {
+      toast("클립보드 복사에 실패했습니다.", "error");
+    }
   };
 
   const handleKakaoShare = () => {

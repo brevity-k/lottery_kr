@@ -111,12 +111,16 @@ export default function MyNumbersClient({
     myData.games.length >= 3 ? generateReport(myData.games, hotNumbers, coldNumbers) : null;
 
   // --- Share handlers ---
-  const handleCopyReport = () => {
+  const handleCopyReport = async () => {
     if (!report) return;
     const top3 = report.patterns.topNumbers.slice(0, 3).join(", ");
     const text = `📊 내 로또 번호 분석 리포트\n핵심 번호: ${top3}\n홀짝 비율: 홀수 ${report.patterns.oddRatio}% / 짝수 ${report.patterns.evenRatio}%\n추천 번호: ${report.suggestions.join(", ")}\n\n${SITE_URL}/lotto/my-numbers`;
-    navigator.clipboard.writeText(text);
-    toast("리포트가 클립보드에 복사되었습니다!");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("리포트가 클립보드에 복사되었습니다!");
+    } catch {
+      toast("클립보드 복사에 실패했습니다.", "error");
+    }
   };
 
   const handleKakaoShare = () => {

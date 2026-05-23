@@ -18,15 +18,20 @@ function getRandomNumbers(count: number, min: number, max: number): number[] {
 }
 
 function weightedRandom(weights: { number: number; weight: number }[], count: number): number[] {
-  const selected = new Set<number>();
   const totalWeight = weights.reduce((sum, w) => sum + w.weight, 0);
+  if (weights.length < count || totalWeight === 0) {
+    return getRandomNumbers(count, LOTTO_MIN_NUMBER, LOTTO_MAX_NUMBER);
+  }
 
+  const selected = new Set<number>();
   while (selected.size < count) {
-    let rand = Math.random() * totalWeight;
-    for (const w of weights) {
-      rand -= w.weight;
-      if (rand <= 0) {
-        selected.add(w.number);
+    const eligible = weights.filter((w) => !selected.has(w.number));
+    const eligibleTotal = eligible.reduce((sum, w) => sum + w.weight, 0);
+    let rand = Math.random() * eligibleTotal;
+    for (let k = 0; k < eligible.length; k++) {
+      rand -= eligible[k].weight;
+      if (rand <= 0 || k === eligible.length - 1) {
+        selected.add(eligible[k].number);
         break;
       }
     }
@@ -94,7 +99,9 @@ export function generateRecommendation(
       }
 
       case "cold": {
-        const maxCount = Math.max(...recentFrequencies.map((f) => f.count));
+        const maxCount = recentFrequencies.length > 0
+          ? Math.max(...recentFrequencies.map((f) => f.count))
+          : 0;
         const weights = recentFrequencies.map((f) => ({
           number: f.number,
           weight: maxCount - f.count + 1,
@@ -112,7 +119,9 @@ export function generateRecommendation(
         const weights = frequencies.map((f) => {
           const recent = recentFrequencies.find((r) => r.number === f.number);
           const recentCount = recent?.count ?? 0;
-          const maxRecent = Math.max(...recentFrequencies.map((r) => r.count));
+          const maxRecent = recentFrequencies.length > 0
+            ? Math.max(...recentFrequencies.map((r) => r.count))
+            : 0;
           const coldBonus = maxRecent - recentCount;
 
           return {

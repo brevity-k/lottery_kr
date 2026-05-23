@@ -17,8 +17,10 @@ export function getKSTDate(): Date {
  * Round 1 was 2002-12-07 (Saturday). Each subsequent round is 7 days later.
  */
 export function getDrawDateForRound(round: number): Date {
-  const firstDraw = new Date(2002, 11, 7); // 2002-12-07, Saturday
-  const drawDate = new Date(firstDraw);
-  drawDate.setDate(drawDate.getDate() + (round - 1) * 7);
-  return drawDate;
+  // Round 1: 2002-12-07 00:00 KST = 2002-12-06T15:00:00Z
+  const FIRST_DRAW_UTC_MS = Date.UTC(2002, 11, 6, 15, 0, 0);
+  const drawUTCMs = FIRST_DRAW_UTC_MS + (round - 1) * 7 * 24 * 60 * 60 * 1000;
+  // Apply same fake-KST transform as getKSTDate() so comparisons with kstNow work correctly
+  const d = new Date(drawUTCMs);
+  return new Date(drawUTCMs + KST_OFFSET_MS + d.getTimezoneOffset() * 60 * 1000);
 }

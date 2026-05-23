@@ -3,6 +3,8 @@ import { DEFAULT_RECENT_RESULTS } from "@/lib/constants";
 import fs from "fs";
 import path from "path";
 
+// NOTE: Process-scoped cache. Safe only from statically generated pages.
+// A new deployment is required to pick up updated lotto.json at runtime.
 let cachedData: LottoDataFile | null = null;
 
 function loadLottoData(): LottoDataFile {

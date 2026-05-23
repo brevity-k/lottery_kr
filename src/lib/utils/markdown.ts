@@ -158,6 +158,16 @@ export function markdownToHtml(md: string): string {
   }
 }
 
+function safeLinkHref(url: string): string {
+  try {
+    const parsed = new URL(url, "https://lottery.io.kr");
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "#";
+    return url;
+  } catch {
+    return "#";
+  }
+}
+
 function processInline(text: string): string {
   // Inline code
   text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
@@ -168,7 +178,7 @@ function processInline(text: string): string {
   // Links
   text = text.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+    (_, label, url) => `<a href="${safeLinkHref(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`
   );
   return text;
 }

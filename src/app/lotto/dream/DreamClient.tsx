@@ -36,9 +36,13 @@ export default function DreamClient() {
     ? `🔮 꿈해몽 번호 (${selectedKeyword.emoji} ${selectedKeyword.name}꿈)`
     : "";
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`${shareTitle}\n${numbersText}`);
-    toast("번호가 클립보드에 복사되었습니다!");
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareTitle}\n${numbersText}`);
+      toast("번호가 클립보드에 복사되었습니다!");
+    } catch {
+      toast("클립보드 복사에 실패했습니다.", "error");
+    }
   };
 
   const handleKakaoShare = () => {

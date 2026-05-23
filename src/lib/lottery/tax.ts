@@ -58,7 +58,7 @@ export function calculateLotteryTax(prizeAmount: number): TaxResult {
   }
 
   const totalTax = incomeTax + localTax;
-  const netAmount = prizeAmount - totalTax;
+  const netAmount = prizeAmount - ticketCost - totalTax;
   const effectiveRate = prizeAmount > 0 ? (totalTax / prizeAmount) * 100 : 0;
 
   return {

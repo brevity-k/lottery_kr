@@ -100,12 +100,13 @@ async function fetchRoundSmok95(round: number): Promise<LottoResult | null> {
 // --- superkts source (fallback) ---
 
 function parseKoreanAmount(text: string): number {
+  const normalized = text.replace(/[,\s]/g, "");
   let amount = 0;
-  const eokMatch = text.match(/(\d+)억/);
-  const manMatch = text.match(/억(\d+)만/);
-  const wonMatch = text.match(/만(\d+)원/);
-  const manOnlyMatch = !eokMatch ? text.match(/(\d+)만/) : null;
-  const wonOnlyMatch = !eokMatch && !manOnlyMatch ? text.match(/(\d+)원/) : null;
+  const eokMatch = normalized.match(/(\d+)억/);
+  const manMatch = normalized.match(/억(\d+)만/);
+  const wonMatch = normalized.match(/만(\d+)원/);
+  const manOnlyMatch = !eokMatch ? normalized.match(/(\d+)만/) : null;
+  const wonOnlyMatch = !eokMatch && !manOnlyMatch ? normalized.match(/(\d+)원/) : null;
 
   if (eokMatch) amount += parseInt(eokMatch[1]) * 100000000;
   if (manMatch) amount += parseInt(manMatch[1]) * 10000;
@@ -336,7 +337,9 @@ async function fetchAllData(): Promise<void> {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  fs.writeFileSync(DATA_PATH, JSON.stringify(output));
+  const tmpPath = DATA_PATH + ".tmp";
+  fs.writeFileSync(tmpPath, JSON.stringify(output));
+  fs.renameSync(tmpPath, DATA_PATH);
 
   const fileSizeKB = Math.round(fs.statSync(DATA_PATH).size / 1024);
   console.log(

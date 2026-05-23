@@ -68,12 +68,16 @@ export default function SimulatorClient() {
     [selectedNumbers]
   );
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!result) return;
     const roi = (((result.totalWon - result.totalSpent) / result.totalSpent) * 100).toFixed(1);
     const text = `🎰 로또 시뮬레이터 결과\n${result.drawCount.toLocaleString()}회 시뮬레이션\n💰 투자: ${formatKRW(result.totalSpent)}\n💸 당첨: ${formatKRW(result.totalWon)}\n📉 수익률: ${roi}%\n\n${SITE_URL}/lotto/simulator`;
-    navigator.clipboard.writeText(text);
-    toast("결과가 클립보드에 복사되었습니다!");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("결과가 클립보드에 복사되었습니다!");
+    } catch {
+      toast("클립보드 복사에 실패했습니다.", "error");
+    }
   };
 
   const handleKakaoShare = () => {

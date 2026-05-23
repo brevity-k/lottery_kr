@@ -13,12 +13,16 @@ interface RecommendResultProps {
 export default function RecommendResult({ sets }: RecommendResultProps) {
   const { toast } = useToast();
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const text = sets
       .map((s) => `${s.label}: ${s.numbers.join(", ")}`)
       .join("\n");
-    navigator.clipboard.writeText(text);
-    toast("번호가 클립보드에 복사되었습니다!");
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("번호가 클립보드에 복사되었습니다!");
+    } catch {
+      toast("클립보드 복사에 실패했습니다.", "error");
+    }
   };
 
   const handleKakaoShare = () => {

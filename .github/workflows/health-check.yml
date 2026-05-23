@@ -12,6 +12,10 @@ on:
     - cron: '0 3 * * 1'  # Monday 03:00 UTC = Monday 12:00 KST
   workflow_dispatch:
 
+concurrency:
+  group: health-check
+  cancel-in-progress: false
+
 permissions:
   contents: read
   issues: write
@@ -20,9 +24,9 @@ jobs:
   health-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
         with:
           node-version: '22'
           cache: 'npm'
@@ -43,7 +47,7 @@ jobs:
 
       - name: Create issue on failure
         if: failure()
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         with:
           script: |
             const title = `🏥 Health check failed (${new Date().toISOString().slice(0, 10)})`;

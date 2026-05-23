@@ -33,6 +33,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "올바른 이메일 주소를 입력해주세요." });
   }
 
+  if (name.length > 100 || email.length > 254 || subject.length > 200 || message.length > 5000) {
+    return res.status(400).json({ error: "입력 내용이 너무 깁니다." });
+  }
+
   try {
     await resend.emails.send({
       from: "로또리 문의 <onboarding@resend.dev>",

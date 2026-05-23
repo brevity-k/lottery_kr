@@ -2,6 +2,8 @@ import { BlogPost } from "@/types/lottery";
 import fs from "fs";
 import path from "path";
 
+// NOTE: Process-scoped cache. Safe only from statically generated pages.
+// A new deployment is required to pick up updated blog posts at runtime.
 let cachedPosts: BlogPost[] | null = null;
 
 function loadBlogPosts(): BlogPost[] {
