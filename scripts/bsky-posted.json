@@ -119,6 +119,11 @@
       "slug": "closest-miss-2026-05-27",
       "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3mmsqnbxdjz2n",
       "postedAt": "2026-05-27"
+    },
+    {
+      "slug": "1226-prediction",
+      "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3mmylclqwpu25",
+      "postedAt": "2026-05-29"
     }
   ]
 }
