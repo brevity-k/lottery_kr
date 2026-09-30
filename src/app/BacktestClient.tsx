@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import LottoBall from "@/components/lottery/LottoBall";
 import { useToast } from "@/components/ui/Toast";
@@ -23,6 +23,16 @@ const TIER_LABELS: Record<number, string> = {
   5: "5등 (3개 일치)",
 };
 
+function pickRandomNumbers(): number[] {
+  const pool: number[] = [];
+  for (let i = LOTTO_MIN_NUMBER; i <= LOTTO_MAX_NUMBER; i++) pool.push(i);
+  for (let i = pool.length - 1; i > pool.length - (LOTTO_NUMBERS_PER_SET + 1); i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(pool.length - LOTTO_NUMBERS_PER_SET).sort((a, b) => a - b);
+}
+
 interface Props {
   allResults: LottoResult[];
 }
@@ -43,27 +53,6 @@ export default function BacktestClient({ allResults }: Props) {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Read URL params on mount
-  useEffect(() => {
-    if (!mounted || autoRanRef.current) return;
-    const nParam = searchParams.get("n");
-    if (!nParam) return;
-
-    const parsed = nParam.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
-    if (parsed.length === LOTTO_NUMBERS_PER_SET && parsed.every((n) => n >= LOTTO_MIN_NUMBER && n <= LOTTO_MAX_NUMBER && !isNaN(n))) {
-      const unique = new Set(parsed);
-      if (unique.size === LOTTO_NUMBERS_PER_SET) {
-        setNumbers(parsed.map(String));
-        autoRanRef.current = true;
-        // Auto-run after a brief delay for UI to settle
-        setTimeout(() => {
-          runAnalysis(parsed);
-        }, 300);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mounted, searchParams]);
 
   // Cleanup timers on unmount
   useEffect(() => {
@@ -108,14 +97,7 @@ export default function BacktestClient({ allResults }: Props) {
   };
 
   const fillRandom = () => {
-    const pool: number[] = [];
-    for (let i = LOTTO_MIN_NUMBER; i <= LOTTO_MAX_NUMBER; i++) pool.push(i);
-    for (let i = pool.length - 1; i > pool.length - (LOTTO_NUMBERS_PER_SET + 1); i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-    const selected = pool.slice(pool.length - LOTTO_NUMBERS_PER_SET).sort((a, b) => a - b);
-    setNumbers(selected.map(String));
+    setNumbers(pickRandomNumbers().map(String));
     // Reset state if previously run
     if (phase !== "idle") {
       resetState();
@@ -147,7 +129,30 @@ export default function BacktestClient({ allResults }: Props) {
     return parsed;
   };
 
-  const runAnalysis = useCallback((nums: number[]) => {
+  const animateTierCounts = (targets: Record<number, number>) => {
+    const current: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    const steps = 20;
+    const intervalMs = 1200 / steps;
+
+    let step = 0;
+    const interval = setInterval(() => {
+      step++;
+      const progress = step / steps;
+      for (const tier of [1, 2, 3, 4, 5]) {
+        current[tier] = Math.round(targets[tier] * progress);
+      }
+      setTierAnimated({ ...current });
+      if (step >= steps) {
+        clearInterval(interval);
+        setTierAnimated({ ...targets });
+      }
+    }, intervalMs);
+
+    // Store interval for cleanup
+    timerRef.current.push(interval as unknown as ReturnType<typeof setTimeout>);
+  };
+
+  const runAnalysis = (nums: number[]) => {
     clearTimers();
     setPhase("analyzing");
     setSummary(null);
@@ -178,30 +183,26 @@ export default function BacktestClient({ allResults }: Props) {
         }, 1500);
       }, 1000);
     }, 1500);
-  }, [allResults]);
-
-  const animateTierCounts = (targets: Record<number, number>) => {
-    const current: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    const steps = 20;
-    const intervalMs = 1200 / steps;
-
-    let step = 0;
-    const interval = setInterval(() => {
-      step++;
-      const progress = step / steps;
-      for (const tier of [1, 2, 3, 4, 5]) {
-        current[tier] = Math.round(targets[tier] * progress);
-      }
-      setTierAnimated({ ...current });
-      if (step >= steps) {
-        clearInterval(interval);
-        setTierAnimated({ ...targets });
-      }
-    }, intervalMs);
-
-    // Store interval for cleanup
-    timerRef.current.push(interval as unknown as ReturnType<typeof setTimeout>);
   };
+
+  // Read URL params on mount
+  useEffect(() => {
+    if (!mounted || autoRanRef.current) return;
+    const nParam = searchParams.get("n");
+    if (!nParam) return;
+
+    const parsed = nParam.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
+    if (parsed.length === LOTTO_NUMBERS_PER_SET && parsed.every((n) => n >= LOTTO_MIN_NUMBER && n <= LOTTO_MAX_NUMBER && !isNaN(n))) {
+      const unique = new Set(parsed);
+      if (unique.size === LOTTO_NUMBERS_PER_SET) {
+        setNumbers(parsed.map(String));
+        autoRanRef.current = true;
+        // Auto-run after a brief delay for UI to settle
+        addTimer(() => runAnalysis(parsed), 300);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mounted, searchParams]);
 
   const handleSubmit = () => {
     const parsed = validate();
