@@ -8,6 +8,7 @@ export default function ContactForm() {
     email: "",
     subject: "",
     message: "",
+    website: "",
   });
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle"
@@ -35,7 +36,7 @@ export default function ContactForm() {
       }
 
       setStatus("sent");
-      setForm({ name: "", email: "", subject: "", message: "" });
+      setForm({ name: "", email: "", subject: "", message: "", website: "" });
     } catch {
       setStatus("error");
       setErrorMsg("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
@@ -65,6 +66,18 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Honeypot: hidden from users, catches naive spam bots */}
+      <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden">
+        <label htmlFor="website">웹사이트</label>
+        <input
+          id="website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.website}
+          onChange={(e) => setForm({ ...form, website: e.target.value })}
+        />
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label

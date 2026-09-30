@@ -12,6 +12,32 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+// Best-effort per-IP limit: state lives per function instance (Fluid Compute reuses instances)
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const RATE_LIMIT_MAX = 3;
+const recentRequests = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const hits = (recentRequests.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
+  if (hits.length >= RATE_LIMIT_MAX) {
+    recentRequests.set(ip, hits);
+    return true;
+  }
+  hits.push(now);
+  recentRequests.set(ip, hits);
+  if (recentRequests.size > 1000) {
+    for (const [key, times] of recentRequests) {
+      if (times.every((t) => now - t >= RATE_LIMIT_WINDOW_MS)) recentRequests.delete(key);
+    }
+  }
+  return false;
+}
+
+function asTrimmedString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -22,14 +48,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(503).json({ error: "이메일 서비스가 설정되지 않았습니다." });
   }
 
+  const body = req.body || {};
+
+  // Honeypot: hidden field real users never fill — pretend success so bots don't adapt
+  if (asTrimmedString(body.website)) {
+    return res.status(200).json({ success: true });
+  }
+
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0].trim() || 'unknown';
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
+  }
+
   const resend = new Resend(apiKey);
-  const { name, email, subject, message } = req.body || {};
+  // Reject non-string fields (e.g. an array email would coerce into multiple recipients)
+  const name = asTrimmedString(body.name);
+  const email = asTrimmedString(body.email);
+  const subject = asTrimmedString(body.subject).replace(/[\r\n]+/g, ' ');
+  const message = asTrimmedString(body.message);
 
   if (!name || !email || !subject || !message) {
     return res.status(400).json({ error: "모든 항목을 입력해주세요." });
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(email)) {
     return res.status(400).json({ error: "올바른 이메일 주소를 입력해주세요." });
   }
 
@@ -38,9 +81,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    await resend.emails.send({
+    // resend v6 resolves with { data, error } instead of throwing
+    const { error: ownerError } = await resend.emails.send({
       from: "로또리 문의 <onboarding@resend.dev>",
       to: OWNER_EMAIL,
+      replyTo: email,
       subject: `[로또리 문의] ${subject}`,
       html: `
         <h2>새로운 문의가 접수되었습니다</h2>
@@ -52,7 +97,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `,
     });
 
-    await resend.emails.send({
+    if (ownerError) {
+      console.error('Contact email to owner failed:', ownerError);
+      return res.status(502).json({ error: "이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요." });
+    }
+
+    // Auto-reply is best-effort: the inquiry already reached the owner
+    const { error: replyError } = await resend.emails.send({
       from: "로또리 <onboarding@resend.dev>",
       to: email,
       subject: "[로또리] 문의가 접수되었습니다",
@@ -73,8 +124,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `,
     });
 
+    if (replyError) {
+      console.warn('Contact auto-reply failed:', replyError);
+    }
+
     return res.status(200).json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error('Contact handler error:', err);
     return res.status(500).json({ error: "이메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요." });
   }
 }
