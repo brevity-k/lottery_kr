@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { Resend } from 'resend';
 
 const SITE_URL = "https://lottery.io.kr";
 const OWNER_EMAIL = "rottery0.kr@gmail.com";
@@ -34,6 +33,26 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+interface EmailPayload {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  reply_to?: string;
+}
+
+// Direct Resend REST call (no SDK) keeps this standalone function dependency-free
+async function sendEmail(apiKey: string, payload: EmailPayload): Promise<string | null> {
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (res.ok) return null;
+  const detail = await res.text().catch(() => '');
+  return `${res.status} ${detail}`.trim();
+}
+
 function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -61,7 +80,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(429).json({ error: "요청이 너무 많습니다. 잠시 후 다시 시도해주세요." });
   }
 
-  const resend = new Resend(apiKey);
   // Reject non-string fields (e.g. an array email would coerce into multiple recipients)
   const name = asTrimmedString(body.name);
   const email = asTrimmedString(body.email);
@@ -81,11 +99,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // resend v6 resolves with { data, error } instead of throwing
-    const { error: ownerError } = await resend.emails.send({
+    const ownerError = await sendEmail(apiKey, {
       from: "로또리 문의 <onboarding@resend.dev>",
       to: OWNER_EMAIL,
-      replyTo: email,
+      reply_to: email,
       subject: `[로또리 문의] ${subject}`,
       html: `
         <h2>새로운 문의가 접수되었습니다</h2>
@@ -103,7 +120,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Auto-reply is best-effort: the inquiry already reached the owner
-    const { error: replyError } = await resend.emails.send({
+    const replyError = await sendEmail(apiKey, {
       from: "로또리 <onboarding@resend.dev>",
       to: email,
       subject: "[로또리] 문의가 접수되었습니다",
