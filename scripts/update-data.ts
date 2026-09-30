@@ -209,6 +209,14 @@ async function fetchRound(round: number, probe = false): Promise<LottoResult | n
   return null;
 }
 
+// Rounds drawn at least 24h ago (Saturday 20:45 KST draw + grace for sources to publish)
+function expectedLatestRound(): number {
+  const DRAW_OFFSET_MS = (20 * 60 + 45) * 60 * 1000;
+  const GRACE_MS = 24 * 60 * 60 * 1000;
+  const elapsed = getKSTDate().getTime() - DRAW_OFFSET_MS - GRACE_MS - FIRST_DRAW_DATE.getTime();
+  return Math.floor(elapsed / (7 * 24 * 60 * 60 * 1000)) + 1;
+}
+
 async function findLatestRound(): Promise<number> {
   const kstNow = getKSTDate();
   const weeksSinceFirst = Math.floor(
@@ -239,6 +247,14 @@ async function fetchAllData(): Promise<void> {
   console.log("🔍 Finding latest round...");
   const latestRound = await findLatestRound();
   console.log(`📌 Latest round: ${latestRound}`);
+
+  // In strict mode a missing draw is an error: sources being down otherwise looks like "up to date"
+  if (process.env.UPDATE_DATA_STRICT === "1") {
+    const expected = expectedLatestRound();
+    if (latestRound < expected) {
+      throw new Error(`Round ${expected} should be available (drawn 24h+ ago) but latest found is ${latestRound}`);
+    }
+  }
 
   let existingData: LottoDataFile | null = null;
   let startRound = 1;
@@ -350,6 +366,11 @@ async function fetchAllData(): Promise<void> {
 }
 
 fetchAllData().catch((err) => {
+  // Scheduled data workflow sets this so failures surface (retry + issue) instead of passing silently
+  if (process.env.UPDATE_DATA_STRICT === "1") {
+    console.error(`\n❌ Data update failed (strict mode): ${err}`);
+    process.exit(1);
+  }
   // If existing data is available, don't block the build
   if (fs.existsSync(DATA_PATH)) {
     try {
