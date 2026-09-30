@@ -169,6 +169,8 @@ function safeLinkHref(url: string): string {
 }
 
 function processInline(text: string): string {
+  // Escape raw text first so stray "<" or quotes can't inject markup/attributes
+  text = escapeHtml(text);
   // Inline code
   text = text.replace(/`([^`]+)`/g, "<code>$1</code>");
   // Bold
