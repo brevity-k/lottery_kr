@@ -204,7 +204,7 @@ function checkCriticalFiles(): CheckResult {
     "tsconfig.json",
     "postcss.config.mjs",
     // API routes (standalone serverless function for static export)
-    "api/contact.ts",
+    "api/contact.js",
     // Feature pages
     "src/app/lotto/recommend/page.tsx",
     "src/app/lotto/results/page.tsx",
