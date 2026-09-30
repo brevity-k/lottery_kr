@@ -190,7 +190,9 @@ async function fetchRoundSuperkts(round: number): Promise<LottoResult | null> {
 let superktsFailCount = 0;
 const SUPERKTS_MAX_FAILS = 3;
 
-async function fetchRound(round: number): Promise<LottoResult | null> {
+// `probe` = checking a round that may not exist yet; misses there are expected
+// and must not trip the superkts circuit breaker.
+async function fetchRound(round: number, probe = false): Promise<LottoResult | null> {
   // Try smok95 first (reliable from CI)
   const result = await fetchRoundSmok95(round);
   if (result) return result;
@@ -203,7 +205,7 @@ async function fetchRound(round: number): Promise<LottoResult | null> {
     superktsFailCount = 0;
     return fallback;
   }
-  superktsFailCount++;
+  if (!probe) superktsFailCount++;
   return null;
 }
 
@@ -226,7 +228,7 @@ async function findLatestRound(): Promise<number> {
 
   const searchStart = Math.max(knownLatest, estimated) + 5;
   for (let round = searchStart; round >= knownLatest; round--) {
-    const result = await fetchRound(round);
+    const result = await fetchRound(round, true);
     if (result) return round;
   }
 
