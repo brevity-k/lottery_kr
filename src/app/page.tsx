@@ -7,6 +7,7 @@ import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import DrawCountdown from "@/components/lottery/DrawCountdown";
 import BacktestClient from "./BacktestClient";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 6/45 최신 당첨번호 · 다음 회차 카운트다운 - 로또리",
@@ -51,7 +52,7 @@ export default function Home() {
       {/* Trusted static JSON-LD — not user input */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       {/* Latest Draw Result */}

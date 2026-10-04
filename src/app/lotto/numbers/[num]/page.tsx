@@ -7,7 +7,7 @@ import LottoBall from "@/components/lottery/LottoBall";
 import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { LOTTO_MAX_NUMBER, SITE_NAME, SITE_URL } from "@/lib/constants";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ num: string }>;
@@ -92,7 +92,7 @@ export default async function NumberDetailPage({ params }: Props) {
     },
   ];
 
-  const jsonLdString = JSON.stringify(jsonLdData);
+  const jsonLdString = serializeJsonLd(jsonLdData);
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">

@@ -7,7 +7,7 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { SITE_NAME } from "@/lib/constants";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 자주 나오는 번호 조합 - 번호쌍 출현 빈도 분석 [역대 전체]",
@@ -166,7 +166,7 @@ export default function PairsPage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
       />
 
       <AdBanner slot="pairs-bottom" format="horizontal" className="mt-8" />

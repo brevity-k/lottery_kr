@@ -12,3 +12,8 @@ export function buildFaqJsonLd(items: { question: string; answer: string }[]) {
     })),
   };
 }
+
+/** Serializes JSON-LD for a <script> tag; escapes "<" so content can't close the tag early. */
+export function serializeJsonLd(data: unknown): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
+}

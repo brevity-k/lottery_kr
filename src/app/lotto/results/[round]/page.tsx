@@ -8,6 +8,7 @@ import { formatKRW, formatDate } from "@/lib/utils/format";
 import LottoBall from "@/components/lottery/LottoBall";
 import LottoResultCard from "@/components/lottery/LottoResultCard";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ round: string }>;
@@ -461,7 +462,7 @@ function RoundDetailContent({ round }: { round: string }) {
         type="application/ld+json"
         suppressHydrationWarning
         // JSON-LD is serialized from a trusted static object, not user input
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <h1 className="text-3xl font-bold text-gray-900 mb-6">

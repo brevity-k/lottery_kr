@@ -6,7 +6,7 @@ import { SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { getAllResults } from "@/lib/api/dhlottery";
 import { calculateStats } from "@/lib/lottery/stats";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "내 로또 번호 분석 - 역대 당첨번호와 비교 [무료]",
@@ -53,7 +53,7 @@ export default function MyNumbersPage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd([
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildFaqJsonLd([
           { question: "내 번호 분석이란 무엇인가요?", answer: "자주 사용하는 로또 번호를 등록하면 역대 당첨번호와 자동으로 비교하여 일치 결과를 분석해 드리는 서비스입니다." },
           { question: "과거 당첨번호와 비교할 수 있나요?", answer: "네, 등록한 번호를 1회부터 최신 회차까지 모든 당첨번호와 비교하여 몇 개가 일치했는지 확인할 수 있습니다." },
         ])) }}

@@ -4,6 +4,7 @@ import { getAllResults } from "@/lib/api/dhlottery";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import ResultsClient from "./ResultsClient";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 당첨번호 조회 - 1회~최신 전체 회차 확인",
@@ -54,7 +55,7 @@ export default function ResultsPage() {
       <script
         type="application/ld+json"
         // JSON-LD is serialized from a trusted static object, not user input
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb items={[
         { label: "로또 6/45", href: "/lotto" },

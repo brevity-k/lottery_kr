@@ -4,7 +4,7 @@ import AdBanner from "@/components/ads/AdBanner";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 시뮬레이터 - 당첨될 때까지 돌려보기 [무료]",
@@ -37,7 +37,7 @@ export default function SimulatorPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }} />
       <Breadcrumb items={[
         { label: "로또 6/45", href: "/lotto" },
         { label: "시뮬레이터" },
@@ -55,7 +55,7 @@ export default function SimulatorPage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd([
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(buildFaqJsonLd([
           { question: "로또 시뮬레이터란 무엇인가요?", answer: "실제 로또와 동일한 확률로 번호를 추첨하는 시뮬레이션입니다. 실제 돈을 쓰지 않고 로또의 당첨 확률을 체험할 수 있습니다." },
           { question: "시뮬레이터에서 1등이 나올 확률은?", answer: "실제 로또와 동일하게 약 814만분의 1입니다. 1,000원씩 1만 번을 구매해도 1등 당첨 확률은 약 0.12%입니다." },
         ])) }}

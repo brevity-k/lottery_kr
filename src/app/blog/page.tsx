@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getAllBlogPosts } from "@/lib/blog";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 분석 블로그 - 당첨번호 분석 & 통계 전략",
@@ -45,7 +46,7 @@ export default function BlogPage() {
       <script
         type="application/ld+json"
         // JSON-LD is serialized from a trusted static object, not user input
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb items={[{ label: "블로그" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">블로그</h1>
