@@ -19,7 +19,6 @@ export const LOTTO_MAX_NUMBER = 45;
 export const LOTTO_NUMBERS_PER_SET = 6;
 export const LOTTO_HIGH_LOW_THRESHOLD = 22;
 export const LOTTO_TICKET_PRICE = 1_000;
-export const LOTTO_FIRST_DRAW_DATE = "2002-12-07";
 
 /** Number section boundaries for balanced recommendations */
 export const LOTTO_SECTIONS: readonly [number, number][] = [
