@@ -5,7 +5,6 @@
  */
 
 import * as path from "path";
-import { AtpAgent, RichText } from "@atproto/api";
 import type { BlogPost } from "../src/types/lottery";
 import {
   withRetry,
@@ -88,6 +87,9 @@ async function main(): Promise<void> {
   console.log(`🦋 Posting to Bluesky: ${unposted.slug}`);
   console.log(`   Post (${graphemeLength(postText)} graphemes):\n${postText}\n`);
 
+  // @atproto/api pulls in ESM-only multiformats; a static import fails under
+  // tsx's CJS mode with ERR_PACKAGE_PATH_NOT_EXPORTED, so load it dynamically.
+  const { AtpAgent, RichText } = await import("@atproto/api");
   const agent = new AtpAgent({ service: "https://bsky.social" });
 
   await withRetry(
