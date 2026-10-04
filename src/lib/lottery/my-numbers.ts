@@ -20,7 +20,7 @@ export function loadMyNumbers(): MyNumbersData {
   }
 }
 
-function saveMyNumbers(data: MyNumbersData): void {
+export function saveMyNumbers(data: MyNumbersData): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
