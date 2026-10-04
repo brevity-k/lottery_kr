@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import type { WinningStore } from "@/types/store";
+import { escapeHtml } from "@/lib/utils/markdown";
 
 interface Props {
   stores: WinningStore[];
@@ -428,13 +429,4 @@ export default function StoresClient({ stores, topStores, regions }: Props) {
       </section>
     </div>
   );
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
