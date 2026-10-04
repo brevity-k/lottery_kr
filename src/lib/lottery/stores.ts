@@ -21,7 +21,8 @@ export function getStoresByRegion(region: string): WinningStore[] {
 }
 
 export function getTopStores(count: number = 20): WinningStore[] {
-  return getAllWinningStores()
+  // Copy first: sort() mutates, and the cached store list is shared across callers
+  return [...getAllWinningStores()]
     .sort((a, b) => b.totalWins - a.totalWins)
     .slice(0, count);
 }
