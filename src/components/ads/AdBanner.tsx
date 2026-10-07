@@ -7,6 +7,7 @@ const ADSENSE_CLIENT_ID =
 const IS_PLACEHOLDER = ADSENSE_CLIENT_ID.includes("XXXX");
 
 interface AdBannerProps {
+  /** Numeric ad unit ID from the AdSense dashboard. Descriptive names are not valid slots. */
   slot?: string;
   format?: "auto" | "rectangle" | "horizontal" | "vertical";
   className?: string;
@@ -43,8 +44,9 @@ export default function AdBanner({
     );
   }
 
-  // Don't render empty ad containers with fake publisher ID in production
-  if (IS_PLACEHOLDER) {
+  // Don't render empty ad containers with fake publisher ID in production.
+  // Without a real numeric ad unit ID the request is invalid; Auto ads handle placement instead.
+  if (IS_PLACEHOLDER || !slot || !/^\d+$/.test(slot)) {
     return null;
   }
 
@@ -55,7 +57,7 @@ export default function AdBanner({
         className="adsbygoogle"
         style={{ display: "block" }}
         data-ad-client={ADSENSE_CLIENT_ID}
-        {...(slot ? { "data-ad-slot": slot } : {})}
+        data-ad-slot={slot}
         data-ad-format={format}
         data-full-width-responsive="true"
       />
