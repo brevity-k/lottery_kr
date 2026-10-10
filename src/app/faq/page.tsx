@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME } from "@/lib/constants";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "로또 FAQ - 구매방법·당첨금 수령·세금 총정리",
@@ -110,7 +111,7 @@ export default function FaqPage() {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb items={[{ label: "자주 묻는 질문" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">자주 묻는 질문</h1>

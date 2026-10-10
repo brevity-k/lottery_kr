@@ -16,12 +16,9 @@ export function getAllWinningStores(): WinningStore[] {
   return loadStoreData().stores;
 }
 
-export function getStoresByRegion(region: string): WinningStore[] {
-  return getAllWinningStores().filter((s) => s.region === region);
-}
-
 export function getTopStores(count: number = 20): WinningStore[] {
-  return getAllWinningStores()
+  // Copy first: sort() mutates, and the cached store list is shared across callers
+  return [...getAllWinningStores()]
     .sort((a, b) => b.totalWins - a.totalWins)
     .slice(0, count);
 }
@@ -29,8 +26,4 @@ export function getTopStores(count: number = 20): WinningStore[] {
 export function getRegions(): string[] {
   const regions = new Set(getAllWinningStores().map((s) => s.region));
   return Array.from(regions).sort();
-}
-
-export function getStoreDataLastUpdated(): string {
-  return loadStoreData().lastUpdated;
 }

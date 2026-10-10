@@ -1,6 +1,6 @@
 import { LOTTO_MAX_NUMBER, LOTTO_NUMBERS_PER_SET, LOTTO_TICKET_PRICE } from "@/lib/constants";
 import type { WinTierResult, SimulationResult } from "@/types/lottery";
-export type { WinTierResult, SimulationResult };
+export type { SimulationResult };
 
 const PRIZE_AMOUNTS: Record<number, number> = {
   1: 2_000_000_000,
@@ -10,7 +10,7 @@ const PRIZE_AMOUNTS: Record<number, number> = {
   5: 5_000,
 };
 
-export function simulateDraw(): { numbers: number[]; bonus: number } {
+function simulateDraw(): { numbers: number[]; bonus: number } {
   const pool: number[] = [];
   for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) pool.push(i);
 

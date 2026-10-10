@@ -7,7 +7,7 @@ import Breadcrumb from "@/components/ui/Breadcrumb";
 import RelatedFeatures from "@/components/ui/RelatedFeatures";
 import { SITE_NAME } from "@/lib/constants";
 import DreamCategoryClient from "./DreamCategoryClient";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ category: string }>;
@@ -72,7 +72,7 @@ export default async function DreamCategoryPage({ params }: Props) {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
       />
 
       <Breadcrumb items={[

@@ -54,6 +54,7 @@ jobs:
           X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
 
       - name: Post to Bluesky
+        id: bluesky
         if: ${{ !cancelled() }}
         continue-on-error: true
         env:
@@ -70,12 +71,20 @@ jobs:
           [ -f scripts/bsky-posted.json ] && git add scripts/bsky-posted.json || true
           git diff --staged --quiet || (git commit -m "social: update posted tracking" && git pull --rebase && git push)
 
+      # Bluesky runs with continue-on-error so X tracking still gets committed;
+      # fail the job afterwards so a broken Bluesky step opens an issue.
+      - name: Fail if Bluesky posting failed
+        if: ${{ steps.bluesky.outcome == 'failure' }}
+        run: |
+          echo "::error::Bluesky posting failed — see the 'Post to Bluesky' step log"
+          exit 1
+
       - name: Create issue on failure
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3  # v9
         with:
           script: |
-            const title = `⚠️ X posting failed (${new Date().toISOString().slice(0, 10)})`;
+            const title = `⚠️ Social posting failed (${new Date().toISOString().slice(0, 10)})`;
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -87,6 +96,6 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               title,
-              body: `The automated X posting workflow failed after retry.\n\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nPlease check the logs and re-run manually if needed.`,
+              body: `The automated X/Bluesky posting workflow failed.\n\n**Run:** ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}\n\nPlease check the logs and re-run manually if needed.`,
               labels: ['automation-failure'],
             });

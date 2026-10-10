@@ -14,6 +14,7 @@ import {
   matchGameAgainstDraw,
   backtestGame,
   generateReport,
+  saveMyNumbers,
 } from "@/lib/lottery/my-numbers";
 
 const TIER_LABELS: Record<number, string> = {
@@ -92,7 +93,7 @@ export default function MyNumbersClient({
   const handleDeleteAll = () => {
     if (!window.confirm("저장된 모든 번호를 삭제하시겠습니까?")) return;
     const empty: MyNumbersData = { version: 1, games: [] };
-    localStorage.setItem("my-lotto-numbers", JSON.stringify(empty));
+    saveMyNumbers(empty);
     setMyData(empty);
     setBacktestTarget(null);
     toast("모든 번호가 삭제되었습니다.");

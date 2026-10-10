@@ -3,6 +3,11 @@ import { SITE_URL, SITE_NAME } from "@/lib/constants";
 
 export const dynamic = 'force-static';
 
+// Split any "]]>" so AI-generated text can't terminate the CDATA section early
+function cdata(text: string): string {
+  return `<![CDATA[${text.replace(/]]>/g, "]]]]><![CDATA[>")}]]>`;
+}
+
 export function GET() {
   const posts = getAllBlogPosts();
 
@@ -11,12 +16,12 @@ export function GET() {
     .map(
       (post) => `
     <item>
-      <title><![CDATA[${post.title}]]></title>
+      <title>${cdata(post.title)}</title>
       <link>${SITE_URL}/blog/${post.slug}</link>
-      <description><![CDATA[${post.description}]]></description>
+      <description>${cdata(post.description)}</description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <guid isPermaLink="true">${SITE_URL}/blog/${post.slug}</guid>
-      <category><![CDATA[${post.category}]]></category>
+      <category>${cdata(post.category)}</category>
     </item>`
     )
     .join("");

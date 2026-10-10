@@ -53,10 +53,6 @@ function loadLottoData(): LottoDataFile {
   }
 }
 
-export function getLatestRound(): number {
-  return loadLottoData().latestRound;
-}
-
 export function getLottoResult(round: number): LottoResult | null {
   const data = loadLottoData();
   return data.draws.find((d) => d.drwNo === round) ?? null;
@@ -65,16 +61,6 @@ export function getLottoResult(round: number): LottoResult | null {
 export function getRecentResults(count: number = DEFAULT_RECENT_RESULTS): LottoResult[] {
   const data = loadLottoData();
   return data.draws.slice(0, count);
-}
-
-export function getMultipleResults(
-  startRound: number,
-  endRound: number
-): LottoResult[] {
-  const data = loadLottoData();
-  return data.draws.filter(
-    (d) => d.drwNo >= startRound && d.drwNo <= endRound
-  );
 }
 
 export function getAllResults(): LottoResult[] {

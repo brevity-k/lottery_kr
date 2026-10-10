@@ -353,7 +353,7 @@ export const CATEGORY_EMOJI: Record<string, string> = {
 };
 export const DEFAULT_EMOJI = "📊";
 
-export interface TrackingData<T extends { slug: string }> {
+interface TrackingData<T extends { slug: string }> {
   posted: T[];
 }
 

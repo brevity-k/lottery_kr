@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import PensionTaxClient from "./PensionTaxClient";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "연금복권 세금 계산기 - 매월 실수령액 확인 [2026]",
@@ -62,7 +62,7 @@ export default function PensionTaxPage() {
     <div className="max-w-2xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb
         items={[
@@ -81,7 +81,7 @@ export default function PensionTaxPage() {
 
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqJsonLd) }}
       />
     </div>
   );

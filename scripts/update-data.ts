@@ -99,6 +99,11 @@ async function fetchRoundSmok95(round: number): Promise<LottoResult | null> {
 
 // --- superkts source (fallback) ---
 
+// Track consecutive superkts failures to avoid wasting time on a down source
+let superktsFailCount = 0;
+let superktsUnreachable = false;
+const SUPERKTS_MAX_FAILS = 3;
+
 function parseKoreanAmount(text: string): number {
   const normalized = text.replace(/[,\s]/g, "");
   let amount = 0;
@@ -122,14 +127,21 @@ function parseCommaNumber(text: string): number {
 }
 
 async function fetchRoundSuperkts(round: number): Promise<LottoResult | null> {
+  let res: Response;
   try {
-    const res = await withRetry(
+    res = await withRetry(
       () => fetchWithTimeout(`${SUPERKTS_BASE}/${round}`, {
         headers: { "User-Agent": "Mozilla/5.0" },
       }),
       2,
       `Fetch round ${round} (superkts)`
     );
+  } catch {
+    // Network-level failure after retries: the host is down, so stop trying it this run
+    superktsUnreachable = true;
+    return null;
+  }
+  try {
     if (!res.ok) return null;
     const html = await res.text();
 
@@ -186,10 +198,6 @@ async function fetchRoundSuperkts(round: number): Promise<LottoResult | null> {
 
 // --- Unified fetch with fallback ---
 
-// Track consecutive superkts failures to avoid wasting time on a down source
-let superktsFailCount = 0;
-const SUPERKTS_MAX_FAILS = 3;
-
 // `probe` = checking a round that may not exist yet; misses there are expected
 // and must not trip the superkts circuit breaker.
 async function fetchRound(round: number, probe = false): Promise<LottoResult | null> {
@@ -198,7 +206,7 @@ async function fetchRound(round: number, probe = false): Promise<LottoResult | n
   if (result) return result;
 
   // Fallback to superkts (skip if it's been consistently failing)
-  if (superktsFailCount >= SUPERKTS_MAX_FAILS) return null;
+  if (superktsUnreachable || superktsFailCount >= SUPERKTS_MAX_FAILS) return null;
 
   const fallback = await fetchRoundSuperkts(round);
   if (fallback) {

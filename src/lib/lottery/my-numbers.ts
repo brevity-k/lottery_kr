@@ -102,7 +102,7 @@ export function matchGameAgainstDraw(
 
 // --- Pattern Analysis ---
 
-export function analyzePatterns(games: MyGame[]): PatternAnalysis {
+function analyzePatterns(games: MyGame[]): PatternAnalysis {
   const totalGames = games.length;
   const numberCounts = new Map<number, number>();
   for (let i = 1; i <= LOTTO_MAX_NUMBER; i++) numberCounts.set(i, 0);
@@ -173,7 +173,7 @@ export function analyzePatterns(games: MyGame[]): PatternAnalysis {
 
 // --- Story Generator ---
 
-export function generateStory(patterns: PatternAnalysis): string {
+function generateStory(patterns: PatternAnalysis): string {
   const { topNumbers, oddRatio, sectionCoverage, avgConsecutivePairs, avgSpread } = patterns;
 
   const parts: string[] = [];
@@ -222,7 +222,7 @@ export function generateStory(patterns: PatternAnalysis): string {
 
 // --- Suggestions ---
 
-export function generateSuggestions(
+function generateSuggestions(
   patterns: PatternAnalysis,
   hotNumbers: number[],
   coldNumbers: number[]

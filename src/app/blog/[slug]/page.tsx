@@ -7,6 +7,7 @@ import { markdownToHtml } from "@/lib/utils/markdown";
 import { SITE_URL, SITE_NAME } from "@/lib/constants";
 import PredictionResults from "@/components/blog/PredictionResults";
 import Breadcrumb from "@/components/ui/Breadcrumb";
+import { serializeJsonLd } from "@/lib/utils/jsonld";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -91,7 +92,7 @@ export default async function BlogPostPage({ params }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb items={[
         { label: "블로그", href: "/blog" },

@@ -14,11 +14,6 @@ export interface LottoResult {
   returnValue: string;
 }
 
-export interface LottoNumbers {
-  numbers: number[];
-  bonusNumber: number;
-}
-
 export interface RecommendedSet {
   label: string;
   numbers: number[];

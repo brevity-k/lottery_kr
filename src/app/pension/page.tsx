@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import { SITE_NAME, SITE_URL } from "@/lib/constants";
-import { buildFaqJsonLd } from "@/lib/utils/jsonld";
+import { buildFaqJsonLd, serializeJsonLd } from "@/lib/utils/jsonld";
 
 export const metadata: Metadata = {
   title: "연금복권 720+ 완벽 가이드 - 당첨 확률, 구매 방법, 세금 [2026]",
@@ -66,7 +66,7 @@ export default function PensionPage() {
     <div className="max-w-4xl mx-auto px-4 py-8">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       <Breadcrumb items={[{ label: "연금복권 720+" }]} />
       <h1 className="text-3xl font-bold text-gray-900 mb-2">
