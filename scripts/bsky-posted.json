@@ -139,6 +139,11 @@
       "slug": "1246-prediction",
       "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3mxysqhcivj2t",
       "postedAt": "2026-10-16"
+    },
+    {
+      "slug": "1246-draw-analysis",
+      "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3my4uivfbgv2j",
+      "postedAt": "2026-10-18"
     }
   ]
 }
