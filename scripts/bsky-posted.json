@@ -199,6 +199,11 @@
       "slug": "1250-prediction",
       "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3n27jn4eu352i",
       "postedAt": "2026-11-14"
+    },
+    {
+      "slug": "1250-draw-analysis",
+      "postUri": "at://did:plc:4mcuyfxhgait2d6z6wrpl52f/app.bsky.feed.post/3n2disgtnye2l",
+      "postedAt": "2026-11-15"
     }
   ]
 }
